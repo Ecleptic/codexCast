@@ -7,9 +7,12 @@ struct EpisodeListView: View {
     let podcast: PodcastRecord
 
     @State private var episodes: [EpisodeRecord] = []
+    @State private var descriptionExpanded = false
 
     var body: some View {
-        List(episodes, id: \.id) { episode in
+        List {
+            showHeader
+            ForEach(episodes, id: \.id) { episode in
             NavigationLink {
                 EpisodeDetailView(episode: episode)
             } label: {
@@ -48,7 +51,9 @@ struct EpisodeListView: View {
                     Label("Play Last", systemImage: "text.line.last.and.arrowtriangle.forward")
                 }
             }
+            }
         }
+        .listStyle(.plain)
         .navigationTitle(podcast.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -70,6 +75,68 @@ struct EpisodeListView: View {
         .task {
             episodes = (try? await model.episodes.episodes(podcastID: podcast.id)) ?? []
         }
+    }
+
+    /// Hero header (ux invariant 5): artwork, author, description — the show's
+    /// identity, not just its rows.
+    @ViewBuilder
+    private var showHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 14) {
+                AsyncImage(url: podcast.imageURL.flatMap(URL.init(string:))) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 14).fill(.quaternary)
+                }
+                .frame(width: 110, height: 110)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(podcast.title).font(.title3.bold())
+                    if let author = podcast.author {
+                        Text(author).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 4) {
+                        let unplayed = episodes.filter { !$0.isPlayed }.count
+                        Text("\(episodes.count) episodes")
+                        if unplayed > 0 { Text("· \(unplayed) unplayed") }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+            }
+
+            if let summary = podcast.summary, !summary.isEmpty {
+                Text(summary)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(descriptionExpanded ? nil : 3)
+                    .onTapGesture {
+                        withAnimation { descriptionExpanded.toggle() }
+                    }
+                if !descriptionExpanded {
+                    Button("more") {
+                        withAnimation { descriptionExpanded = true }
+                    }
+                    .font(.caption.weight(.semibold))
+                }
+            }
+
+            if let latest = episodes.first(where: { !$0.isPlayed }) ?? episodes.first {
+                Button {
+                    model.play(latest)
+                } label: {
+                    Label(
+                        latest.playbackPositionMs > 15_000 ? "Resume Latest" : "Play Latest",
+                        systemImage: "play.fill"
+                    )
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(.vertical, 6)
+        .listRowSeparator(.hidden)
     }
 }
 

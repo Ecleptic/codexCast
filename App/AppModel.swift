@@ -661,9 +661,25 @@ final class AppModel {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
-    private func startPlayback(_ episode: EpisodeRecord, startAtMs: Int?, blocks: [SkipBlock]) {
+    /// Restores the last session paused, so the mini player is present from
+    /// launch and "continue where I was" is one tap (ux invariant 1 + 3).
+    func restoreSession() async {
+        guard nowPlaying == nil,
+              let idString = UserDefaults.standard.string(forKey: "lastEpisodeID"),
+              let uuid = UUID(uuidString: idString),
+              let episode = try? await episodes.find(id: Episode.ID(uuid)),
+              !episode.isPlayed
+        else { return }
+        nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
+        startPlayback(episode, startAtMs: episode.playbackPositionMs, blocks: [], autoplay: false)
+    }
+
+    private func startPlayback(
+        _ episode: EpisodeRecord, startAtMs: Int?, blocks: [SkipBlock], autoplay: Bool = true
+    ) {
         configureAudioSession()
         installPlaybackCallbacks()
+        UserDefaults.standard.set(episode.id.rawValue.uuidString, forKey: "lastEpisodeID")
         lastSavedPositionMs = startAtMs ?? episode.playbackPositionMs
         guard let renditionData = episode.renditions?.data(using: .utf8),
               let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData),
@@ -676,7 +692,10 @@ final class AppModel {
             blocks: blocks
         )
         player.load(url: url, timeline: timeline, startAtMs: startAtMs ?? episode.playbackPositionMs)
-        player.play()
+        if autoplay {
+            player.play()
+        }
         nowPlaying = episode
+        updateNowPlayingInfo()
     }
 }

@@ -49,5 +49,8 @@ struct RootView: View {
                 MiniPlayerView()
             }
         }
+        .task {
+            await model.restoreSession()
+        }
     }
 }
