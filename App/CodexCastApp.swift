@@ -30,6 +30,20 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
+        // The mini player is a tab-bar accessory (iOS 26 Liquid Glass), so it
+        // docks ABOVE the tab bar instead of covering it — a bottom inset on
+        // TabView buries the tabs entirely, which is exactly what happened.
+        // Applied conditionally: an empty accessory still draws its capsule.
+        if model.nowPlaying != nil {
+            tabs.tabViewBottomAccessory {
+                MiniPlayerView()
+            }
+        } else {
+            tabs
+        }
+    }
+
+    private var tabs: some View {
         TabView {
             Tab("Home", systemImage: "house") {
                 HomeView()
@@ -42,13 +56,6 @@ struct RootView: View {
             }
             Tab("Settings", systemImage: "gearshape") {
                 SettingsView()
-            }
-        }
-        // The mini player is global (ux-architecture invariant 1): present on
-        // every tab while something plays, never scoped to one screen.
-        .safeAreaInset(edge: .bottom) {
-            if model.nowPlaying != nil {
-                MiniPlayerView()
             }
         }
         .task {

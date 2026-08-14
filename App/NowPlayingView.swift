@@ -349,8 +349,33 @@ private struct InfoPage: View {
                 }
             }
 
-            if !model.nowPlayingSegments.isEmpty, let episode = model.nowPlaying {
-                Section("Detected Segments") {
+            if let episode = model.nowPlaying {
+                Section("Detected Ads") {
+                    if model.nowPlayingSegments.isEmpty {
+                        switch model.scanState[episode.id] {
+                        case .scanning(let done, let total):
+                            HStack(spacing: 10) {
+                                ProgressView(value: Double(done), total: Double(max(1, total)))
+                                Text("\(done)/\(total)")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+                        case .unavailable(let reason):
+                            Text(reason).foregroundStyle(.orange).font(.callout)
+                        default:
+                            Text("No ads detected yet.")
+                                .foregroundStyle(.secondary)
+                                .font(.callout)
+                            Button {
+                                Task {
+                                    await model.scanForAds(episode)
+                                    await model.refreshNowPlayingSegments()
+                                }
+                            } label: {
+                                Label("Scan for Ads", systemImage: "sparkle.magnifyingglass")
+                            }
+                        }
+                    }
                     ForEach(model.nowPlayingSegments, id: \.id) { segment in
                         SegmentReviewRow(segment: segment, episode: episode)
                     }
@@ -359,7 +384,7 @@ private struct InfoPage: View {
 
             if let notes = model.nowPlaying?.summary, !notes.isEmpty {
                 Section("Show Notes") {
-                    Text(notes.strippingHTMLTags).font(.callout)
+                    Text(notes.htmlToPlainText).font(.callout)
                 }
             }
         }
@@ -567,17 +592,6 @@ struct SegmentBar: View {
     }
 }
 
-extension String {
-    /// Display-only HTML cleanup, shared by notes surfaces.
-    var strippingHTMLTags: String {
-        replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-            .replacingOccurrences(of: "&amp;", with: "&")
-            .replacingOccurrences(of: "&nbsp;", with: " ")
-            .replacingOccurrences(of: "&#39;", with: "'")
-            .replacingOccurrences(of: "&quot;", with: "\"")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-}
 
 /// Mirrored bar waveform, one bar per peak bin.
 struct WaveformShape: Shape {
@@ -640,17 +654,43 @@ private struct TranscriptPage: View {
                         withAnimation { proxy.scrollTo(index, anchor: .center) }
                     }
                 }
+            } else if let episode = model.nowPlaying,
+                      let work = model.episodeWork[episode.id] {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text(workDescription(work)).foregroundStyle(.secondary)
+                }
             } else {
-                ContentUnavailableView(
-                    "No Transcript",
-                    systemImage: "text.quote",
-                    description: Text("Transcribe this episode from its detail page.")
-                )
+                VStack(spacing: 14) {
+                    ContentUnavailableView(
+                        "No Transcript Yet",
+                        systemImage: "text.quote",
+                        description: Text("Transcription happens on this iPhone. Audio never leaves your phone.")
+                    )
+                    Button {
+                        Task {
+                            guard let episode = model.nowPlaying else { return }
+                            await model.transcribeOnDevice(episode)
+                            transcript = try? await model.transcripts.transcript(episodeID: episode.id)
+                        }
+                    } label: {
+                        Label("Transcribe This Episode", systemImage: "waveform")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
             }
         }
         .task {
             guard let episode = model.nowPlaying else { return }
             transcript = try? await model.transcripts.transcript(episodeID: episode.id)
+        }
+    }
+
+    private func workDescription(_ work: AppModel.EpisodeWork) -> String {
+        switch work {
+        case .downloading: "Downloading episode…"
+        case .preparingSpeechModel: "Preparing the speech model…"
+        case .transcribing: "Transcribing on this iPhone…"
         }
     }
 

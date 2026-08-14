@@ -6,13 +6,14 @@ import SwiftUI
 /// (ux-architecture invariant 3). Not the subscription list.
 struct HomeView: View {
     @Environment(AppModel.self) private var model
+    @State private var path = NavigationPath()
 
     @State private var inProgress: [EpisodeRecord] = []
     @State private var upNext: [EpisodeRecord] = []
     @State private var newReleases: [EpisodeRecord] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 26) {
                     if !inProgress.isEmpty {
@@ -21,6 +22,14 @@ struct HomeView: View {
                                 HStack(spacing: 12) {
                                     ForEach(inProgress, id: \.id) { episode in
                                         ContinueCard(episode: episode)
+                                            .contextMenu {
+                                                EpisodeContextMenu(
+                                                    episode: episode,
+                                                    onChange: { Task { await reload() } },
+                                                    onGoToEpisode: { path.append(episode) },
+                                                    onGoToShow: { path.append(episode.podcastId) }
+                                                )
+                                            }
                                     }
                                 }
                                 .padding(.horizontal)
@@ -33,7 +42,7 @@ struct HomeView: View {
                         shelf("Up Next") {
                             VStack(spacing: 0) {
                                 ForEach(upNext.prefix(3), id: \.id) { episode in
-                                    HomeEpisodeRow(episode: episode)
+                                    HomeEpisodeRow(episode: episode) { path.append($0) }
                                     Divider().padding(.leading, 74)
                                 }
                                 if upNext.count > 3, let queue = queuePlaylist {
@@ -62,7 +71,7 @@ struct HomeView: View {
                         } else {
                             VStack(spacing: 0) {
                                 ForEach(newReleases, id: \.id) { episode in
-                                    HomeEpisodeRow(episode: episode)
+                                    HomeEpisodeRow(episode: episode) { path.append($0) }
                                     Divider().padding(.leading, 74)
                                 }
                             }
@@ -76,6 +85,14 @@ struct HomeView: View {
                 if let playlist = model.playlists.first(where: { $0.id == id }) {
                     PlaylistDetailView(playlist: playlist)
                 }
+            }
+            .navigationDestination(for: Podcast.ID.self) { id in
+                if let podcast = model.library.first(where: { $0.id == id }) {
+                    EpisodeListView(podcast: podcast)
+                }
+            }
+            .navigationDestination(for: EpisodeRecord.self) { episode in
+                EpisodeDetailView(episode: episode)
             }
             .refreshable {
                 for podcast in model.library { await model.refresh(podcast) }
@@ -154,6 +171,8 @@ private struct ContinueCard: View {
 struct HomeEpisodeRow: View {
     @Environment(AppModel.self) private var model
     let episode: EpisodeRecord
+    /// Pushes a show onto the owning stack — "Go to Show" from any row.
+    var onGoToShow: ((Podcast.ID) -> Void)? = nil
 
     var body: some View {
         NavigationLink {
@@ -190,7 +209,10 @@ struct HomeEpisodeRow: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            EpisodeContextMenu(episode: episode)
+            EpisodeContextMenu(
+                episode: episode,
+                onGoToShow: onGoToShow.map { handler in { handler(episode.podcastId) } }
+            )
         }
         .swipeActions(edge: .trailing) {
             Button {

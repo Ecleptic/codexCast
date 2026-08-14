@@ -9,12 +9,32 @@ struct EpisodeContextMenu: View {
     let episode: EpisodeRecord
     /// Called after an action that changes the row (played, deleted…).
     var onChange: () -> Void = {}
+    /// Navigation hooks: provided by screens that own a navigation path, so
+    /// "where can this take me" is answered from every episode surface.
+    var onGoToEpisode: (() -> Void)? = nil
+    var onGoToShow: (() -> Void)? = nil
 
     var body: some View {
         Button {
             model.play(episode)
         } label: {
             Label("Play", systemImage: "play.fill")
+        }
+
+        if let onGoToEpisode {
+            Button {
+                onGoToEpisode()
+            } label: {
+                Label("Episode Details", systemImage: "doc.text.magnifyingglass")
+            }
+        }
+
+        if let onGoToShow {
+            Button {
+                onGoToShow()
+            } label: {
+                Label("Go to Show", systemImage: "square.stack")
+            }
         }
 
         Button {

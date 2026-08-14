@@ -11,6 +11,7 @@
 		02083153A9EF952A315DB5C5 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */; };
 		0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197ED145FAC304355353C8E1 /* EpisodeListView.swift */; };
 		0C91B4FED7A10D2C6A51ECD6 /* CodexCastFeeds in Frameworks */ = {isa = PBXBuildFile; productRef = C676E321AA8E8076B4217FD2 /* CodexCastFeeds */; };
+		29A38E37DC6A6AF99E1DE498 /* HTMLText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202F8C90F77046AABC3576DD /* HTMLText.swift */; };
 		579DA001537CC7E7E5DA8619 /* ShowSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */; };
 		641650F77684086614099CAD /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */; };
 		6557D740D1BD19FE8578A8DB /* LearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50975386D4925546C9385E4C /* LearningViews.swift */; };
@@ -41,6 +42,7 @@
 		13E01DDCDAB399DDADF254EB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		197ED145FAC304355353C8E1 /* EpisodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeListView.swift; sourceTree = "<group>"; };
 		1C68376FFD04E8EE369D0ADF /* StorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageView.swift; sourceTree = "<group>"; };
+		202F8C90F77046AABC3576DD /* HTMLText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLText.swift; sourceTree = "<group>"; };
 		2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeLimitsView.swift; sourceTree = "<group>"; };
 		3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowSettingsView.swift; sourceTree = "<group>"; };
 		43BB462F4FC79B134F9443D6 /* EpisodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeDetailView.swift; sourceTree = "<group>"; };
@@ -92,6 +94,7 @@
 				2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */,
 				197ED145FAC304355353C8E1 /* EpisodeListView.swift */,
 				A0BB3042EAA04FA1A6611534 /* HomeView.swift */,
+				202F8C90F77046AABC3576DD /* HTMLText.swift */,
 				8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */,
 				50975386D4925546C9385E4C /* LearningViews.swift */,
 				B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */,
@@ -210,6 +213,7 @@
 				E48D4E2633CA2D7CCBB9BDAB /* EpisodeDetailView.swift in Sources */,
 				B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */,
 				0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */,
+				29A38E37DC6A6AF99E1DE498 /* HTMLText.swift in Sources */,
 				A93FA27F7534529D008D51CD /* HomeView.swift in Sources */,
 				85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */,
 				6557D740D1BD19FE8578A8DB /* LearningViews.swift in Sources */,

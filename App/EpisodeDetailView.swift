@@ -138,7 +138,7 @@ struct EpisodeDetailView: View {
 
             if page == .notes, let summary = episode.summary, !summary.isEmpty {
                 Section("Show Notes") {
-                    Text(summary.strippingHTML)
+                    Text(summary.htmlToPlainText)
                         .font(.callout)
                 }
             }
@@ -244,6 +244,15 @@ struct EpisodeDetailView: View {
         }
         .navigationTitle("Episode")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let podcast = model.library.first(where: { $0.id == episode.podcastId }) {
+                NavigationLink {
+                    EpisodeListView(podcast: podcast)
+                } label: {
+                    Label("Go to Show", systemImage: "square.stack")
+                }
+            }
+        }
         .sheet(item: Binding(
             get: { videoToPlay.map(VideoSheetItem.init) },
             set: { videoToPlay = $0?.url }
@@ -317,17 +326,6 @@ struct EpisodeDetailView: View {
     }
 }
 
-private extension String {
-    /// Feed descriptions are HTML; this is display-only cleanup, not parsing.
-    var strippingHTML: String {
-        replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-            .replacingOccurrences(of: "&amp;", with: "&")
-            .replacingOccurrences(of: "&nbsp;", with: " ")
-            .replacingOccurrences(of: "&#39;", with: "'")
-            .replacingOccurrences(of: "&quot;", with: "\"")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-}
 
 private struct VideoSheetItem: Identifiable {
     let url: URL

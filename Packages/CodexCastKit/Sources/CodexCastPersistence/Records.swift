@@ -109,7 +109,7 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
 
 // MARK: - Episode
 
-public struct EpisodeRecord: Codable, FetchableRecord, MutablePersistableRecord, Sendable {
+public struct EpisodeRecord: Codable, Hashable, FetchableRecord, MutablePersistableRecord, Sendable {
     public static let databaseTableName = "episodes"
 
     public var id: Episode.ID

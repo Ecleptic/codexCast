@@ -1026,6 +1026,11 @@ final class AppModel {
     /// Segments of the playing episode, for the seek-bar overlay.
     private(set) var nowPlayingSegments: [DetectedSegment] = []
 
+    func refreshNowPlayingSegments() async {
+        guard let episode = nowPlaying else { return }
+        nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
+    }
+
     /// Media playback, not a sound effect: without the .playback category,
     /// audio follows the ringer switch and dies when the screen locks — the
     /// exact behavior Cam hit on the first real listen.
