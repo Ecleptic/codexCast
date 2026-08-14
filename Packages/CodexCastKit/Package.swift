@@ -16,6 +16,7 @@ let package = Package(
         .library(name: "CodexCastTranscription", targets: ["CodexCastTranscription"]),
         .library(name: "CodexCastPipeline", targets: ["CodexCastPipeline"]),
         .library(name: "CodexCastDetection", targets: ["CodexCastDetection"]),
+        .library(name: "CodexCastDetectionAFM", targets: ["CodexCastDetectionAFM"]),
     ],
     dependencies: [
         // The only mandatory third-party dependency (§3).
@@ -37,6 +38,13 @@ let package = Package(
         .target(
             name: "CodexCastDetection",
             dependencies: ["CodexCastCore", "CodexCastPersistence"]
+        ),
+        // Separate module: links FoundationModels, whose newest symbols are
+        // absent from the development Mac's OS. The app links it on iOS 27;
+        // Mac test binaries never load it.
+        .target(
+            name: "CodexCastDetectionAFM",
+            dependencies: ["CodexCastCore", "CodexCastDetection"]
         ),
 
         .testTarget(name: "CodexCastCoreTests", dependencies: ["CodexCastCore"]),
