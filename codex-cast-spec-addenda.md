@@ -102,3 +102,28 @@ During that period the app is also the labeling tool:
 
 None of this replaces on-device learning; it's a manual fast lane for the
 author's own testing period.
+
+---
+
+## A4. Music beds are evidence, not verdicts (labeling observation)
+
+From labeling Tech Brew Ride Home (the author's daily show, and the single
+most important one for detection quality): the host plays music under his ad
+reads — but the show also uses music for the intro, the outro, and topic
+transitions. So "music under speech" separates *structure* from *content*, not
+ads from content.
+
+Consequences for the Phase 0 acoustic arm and for Stage 3:
+
+- Treat music-bed detection as a **prior-raiser and boundary-finder**, never a
+  classifier on its own. Music starting mid-episode marks *something* —
+  transcript content decides what.
+- The corpus labels intros and outros as their own kinds, so the eval can
+  measure whether an acoustic signal confuses them with ads. A music-triggered
+  detector that flags every Tech Brew transition would be worse than useless.
+
+Also observed across both Tech Brew episodes: the first ad starts ~33 s in,
+immediately after the intro, and is the same sponsor (Vanguard) with a similar
+script. One show, two episodes, and already position rules (§6.3) and text
+patterns (§5.2) would have caught the next episode's opening ad with no model
+inference. The design's core bet, visible in the first four labeled episodes.
