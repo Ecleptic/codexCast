@@ -11,6 +11,14 @@ struct EpisodeDetailView: View {
 
     @State private var transcript: TimedTranscript?
     @State private var segments: [DetectedSegment] = []
+
+    enum Page: String, CaseIterable {
+        case notes = "Notes"
+        case transcript = "Transcript"
+        case ads = "Ads"
+        case info = "Info"
+    }
+    @State private var page: Page = .notes
     @State private var isLoadingTranscript = false
     @State private var transcriptError: String?
 
@@ -53,6 +61,16 @@ struct EpisodeDetailView: View {
                 .padding(.vertical, 4)
             }
 
+            Section {
+                Picker("Section", selection: $page) {
+                    ForEach(Page.allCases, id: \.self) { Text($0.rawValue) }
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            }
+
+            if page == .ads {
             Section("Ad Detection") {
                 switch model.scanState[episode.id] {
                 case .scanning(let done, let total):
@@ -105,13 +123,44 @@ struct EpisodeDetailView: View {
                 }
             }
 
-            if let summary = episode.summary, !summary.isEmpty {
-                Section("Description") {
+            }
+
+            if page == .notes, let summary = episode.summary, !summary.isEmpty {
+                Section("Show Notes") {
                     Text(summary.strippingHTML)
                         .font(.callout)
                 }
             }
 
+            if page == .info {
+                Section("Poster") {
+                    AsyncImage(url: artworkURL) { image in
+                        image.resizable().aspectRatio(contentMode: .fit)
+                    } placeholder: {
+                        RoundedRectangle(cornerRadius: 12).fill(.quaternary)
+                            .frame(height: 240)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .listRowInsets(EdgeInsets())
+                }
+                Section("Details") {
+                    if let published = episode.publishedAt {
+                        LabeledContent("Published") { Text(published, style: .date) }
+                    }
+                    if let duration = episode.durationMs {
+                        LabeledContent("Length") {
+                            Text(Duration.milliseconds(duration),
+                                 format: .units(allowed: [.hours, .minutes], width: .wide))
+                        }
+                    }
+                    if let number = episode.episodeNumber {
+                        LabeledContent("Episode", value: "#\(number)")
+                    }
+                    LabeledContent("Downloaded", value: episode.localPath == nil ? "No" : "Yes")
+                }
+            }
+
+            if page == .transcript {
             Section("Transcript") {
                 if let transcript {
                     ForEach(Array(transcript.segments.enumerated()), id: \.offset) { _, cue in
@@ -180,6 +229,7 @@ struct EpisodeDetailView: View {
                     .padding(.vertical, 4)
                 }
             }
+            }
         }
         .navigationTitle("Episode")
         .navigationBarTitleDisplayMode(.inline)
@@ -190,6 +240,12 @@ struct EpisodeDetailView: View {
                 await loadFeedTranscript()
             }
         }
+    }
+
+    private var artworkURL: URL? {
+        episode.imageURL.flatMap(URL.init(string:))
+            ?? model.library.first { $0.id == episode.podcastId }?
+                .imageURL.flatMap(URL.init(string:))
     }
 
     /// True only when the feed advertises at least one actual transcript —

@@ -120,6 +120,32 @@ architecture the spec already assumes:
 Patterns first, model for the remainder, Stage 3 to fix edges — precisely the
 pipeline in §5. The measurements support the design rather than undermining it.
 
+## First on-device run (iPhone 17 Pro, iOS 27 — 2026-08-14)
+
+The scan shipped inside the app and Cam ran it on live episodes. Results:
+
+- **Speed is solved.** A 21-minute episode scanned in **16 seconds** — versus
+  ~5 minutes for the Mac preview. On-device transcription is similarly fast.
+  §5.3.6's device-time budget (~5 min per hour-long episode) is met with an
+  order of magnitude to spare.
+- **Precision is the whole game.** On an AI-news episode, the device model
+  found **5 segments, none of them real ads** — tech coverage discussing
+  products reads exactly like ad copy, the hard case §5.3.5 names. Claimed
+  confidences ran 90–98%, including a **zero-length segment** ("sponsor read,
+  0:51–0:51") at 90% — the degenerate-confidence scenario §5.7 predicted,
+  observed on the first real run. It also missed the episode's actual mid-roll.
+- **Consequences shipped immediately:** auto-skip is opt-in (off by default),
+  detected segments render on the seek bar rather than acting silently, sub-5s
+  model output is dropped at storage, and the §6.4 mark-an-ad teaching flow
+  landed in the player — marked spans become Stage 1 patterns that run ahead
+  of the model on every future scan.
+
+The reading stays the same as the Mac preview, now with production-model
+numbers: the model is fast and can locate ad-shaped language, but its
+confidence is uncalibrated and its precision on product-adjacent content is
+poor. The learning layer is not an enhancement to the model — it is the
+product, exactly as §1 claimed.
+
 ## Open, pending hardware
 
 1. Arm 1 on an iOS 27 device with guided generation — the real baseline.
