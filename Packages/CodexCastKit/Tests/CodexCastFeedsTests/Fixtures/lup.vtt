@@ -1,0 +1,358 @@
+WEBVTT
+
+00:00:31.752 --> 00:00:35.961
+<v Chris>Why not make it a Linux Tuesday on a Sunday? Join us Sunday,
+
+00:00:35.961 --> 00:00:37.610
+<v Chris>10 a.m. Pacific, 1 p.m. Eastern.
+
+00:00:37.935 --> 00:00:42.411
+<v Chris>And remember, if you want more show, we got that LUP-LUG every Sunday before
+
+00:00:42.411 --> 00:00:45.330
+<v Chris>the show, getting together, LUP-LUG details at our website.
+
+00:00:46.369 --> 00:00:49.591
+<v Chris>And of course, links to everything we talked about today. Technically,
+
+00:00:49.777 --> 00:00:51.199
+<v Chris>everything we've talked about in the past, too.
+
+00:00:51.965 --> 00:00:56.586
+<v Chris>And how to contact us, Mumble Room, Matrix, all that, linuxunplugged.com.
+
+00:00:57.497 --> 00:01:00.061
+<v Chris>Don't forget you can support us at boost.jupiterbroadcasting.com.
+
+00:01:00.061 --> 00:01:01.771
+<v Chris>Thank you so much for joining us this week.
+
+00:01:01.771 --> 00:01:05.891
+<v Wes>Whoa, whoa, you're not going to tell them? We got all kinds of special stuff
+
+00:01:05.891 --> 00:01:09.241
+<v Wes>in the feed. We got JSON. We got cloud chapters. We got transcripts.
+
+00:01:09.561 --> 00:01:13.561
+<v Wes>We got an MP4 file in there. Who put that in there? A whole giant MP4 file.
+
+00:01:13.581 --> 00:01:14.101
+<v Wes>It's actually not that big.
+
+00:01:14.161 --> 00:01:14.713
+<v Chris>Did you put that in there?
+
+00:01:15.021 --> 00:01:15.441
+<v Wes>Yeah.
+
+00:01:15.441 --> 00:01:19.114
+<v Chris>All right. All right. We'll see you next Tuesday, as in Sunday.
+
+00:01:19.485 --> 00:01:20.838
+<v Chris>And don't forget about that live stream.
+
+00:01:25.133 --> 00:01:28.407
+<v Chris>All right. Normally, I think we'd be done right here. But before we wrap up,
+
+00:01:28.529 --> 00:01:31.571
+<v Chris>I just want to say thank you to our friends over at Define Networking.
+
+00:01:31.571 --> 00:01:33.249
+<v Chris>Define.net slash unplug.
+
+00:01:33.672 --> 00:01:36.081
+<v Chris>Go over there and check out Manage Nebula from Define Networking.
+
+00:01:36.121 --> 00:01:39.698
+<v Chris>It's built on the open source Nebula platform that we love and use right now.
+
+00:01:40.087 --> 00:01:43.061
+<v Chris>And now you can take advantage of their automatic lighthouse or you can add
+
+00:01:43.061 --> 00:01:44.493
+<v Chris>your own or combo it all up.
+
+00:01:45.341 --> 00:01:48.161
+<v Chris>That's the thing. It's control. And that's what's big for me because it's my
+
+00:01:48.161 --> 00:01:50.402
+<v Chris>infrastructure. It's my network infrastructure.
+
+00:01:51.661 --> 00:01:55.714
+<v Chris>I can own the entire stack. I can turn it on. I can turn it off. I control it.
+
+00:01:56.196 --> 00:01:59.074
+<v Chris>and I can use their lighthouse if I want. I think that's fantastic.
+
+00:01:59.474 --> 00:02:01.931
+<v Chris>And Nebula is lightweight on systems that are sitting there idle.
+
+00:02:01.931 --> 00:02:03.660
+<v Chris>It uses very little CPU and network.
+
+00:02:04.014 --> 00:02:07.776
+<v Chris>Some of the other solutions, real chatty, constantly chatty.
+
+00:02:08.408 --> 00:02:11.841
+<v Chris>And that matters a lot when you're running it across your entire home lab on
+
+00:02:11.841 --> 00:02:15.305
+<v Chris>your remote systems. Maybe you're on a Starlinkle. It matters.
+
+00:02:16.390 --> 00:02:18.781
+<v Chris>And the great thing about Nebula is it's built for scale from day one.
+
+00:02:18.781 --> 00:02:21.821
+<v Chris>With strong encryption, decentralized by design, it stays resilient.
+
+00:02:21.821 --> 00:02:24.151
+<v Chris>So get started. 100 hosts for free. No credit card required.
+
+00:02:24.151 --> 00:02:28.931
+<v Chris>Go to Define.net slash unplug. That is Define.net slash unplug.
+
+00:02:28.931 --> 00:02:30.369
+<v Chris>Big thank you to Define Networking.
+
+00:02:32.036 --> 00:02:35.826
+<v Chris>All right, boys, before we run, we've got some picks to get to.
+
+00:02:36.395 --> 00:02:41.190
+<v Chris>And I wanted to hit you with a strange one. This is a big one. It's LAN Orangutan.
+
+00:02:41.591 --> 00:02:45.965
+<v Chris>And it is a lightweight network scanner that goes through and labels your network.
+
+00:02:45.965 --> 00:02:49.898
+<v Chris>But it is easy and simple, but yet efficient.
+
+00:02:50.971 --> 00:02:53.225
+<v Chris>Take a look at it. What do you think? What was your first impression?
+
+00:02:53.225 --> 00:02:57.635
+<v Wes>Yeah, it's clean. So, like, we've talked a lot about tools vaguely in this camp.
+
+00:02:57.635 --> 00:03:02.505
+<v Wes>But, and sometimes I like this, but often you kind of get information overload.
+
+00:03:02.505 --> 00:03:02.755
+<v Chris>Right?
+
+00:03:02.755 --> 00:03:05.625
+<v Wes>You're like all kinds of details, hardware stuff that I probably don't need
+
+00:03:05.625 --> 00:03:06.925
+<v Wes>for whatever it is the task I'm actually trying to do.
+
+00:03:07.245 --> 00:03:09.755
+<v Chris>And maybe I don't need it for like ever, right? I just want to know for a little
+
+00:03:09.755 --> 00:03:11.375
+<v Chris>while so I can spin up real quick.
+
+00:03:11.375 --> 00:03:14.815
+<v Wes>Whereas this just looks like a very clean dashboard you could take a quick glance
+
+00:03:14.815 --> 00:03:16.335
+<v Wes>at and get a sense for what's going on.
+
+00:03:16.335 --> 00:03:19.485
+<v Chris>Here you go, Brentley. So when you get moved, when you get your network going,
+
+00:03:19.485 --> 00:03:21.755
+<v Chris>I want you to pop this thing up and take a screenshot for us,
+
+00:03:21.755 --> 00:03:24.923
+<v Chris>all right? It's a self-hosted network discovery tool for home labbers,
+
+00:03:25.312 --> 00:03:27.146
+<v Chris>and it has tailscale support as well.
+
+00:03:27.541 --> 00:03:30.175
+<v Wes>Oh, and there's a CLI. I like that.
+
+00:03:30.175 --> 00:03:34.443
+<v Chris>Auto-discovers your devices, password protected. What do you think?
+
+00:03:34.582 --> 00:03:35.865
+<v Chris>When you get your new LAN online?
+
+00:03:36.289 --> 00:03:40.995
+<v Brent>It looks like it's been around a while, too, yeah. I mean, I have not really
+
+00:03:40.995 --> 00:03:44.025
+<v Brent>done very good network monitoring, I have to say.
+
+00:03:44.765 --> 00:03:49.035
+<v Brent>And just last week, I was like, huh, I should probably know what's happening
+
+00:03:49.035 --> 00:03:52.775
+<v Brent>on the network here, wherever I am. You know, I'm kind of in charge of the network
+
+00:03:52.775 --> 00:03:54.649
+<v Brent>wherever I seem to end up, so...
+
+00:03:55.502 --> 00:03:58.431
+<v Brent>I should do better. And this is maybe a tool that can help me do that.
+
+00:03:58.431 --> 00:04:00.280
+<v Brent>So thank you for the picks.
+
+00:04:00.599 --> 00:04:01.221
+<v Chris>Do better.
+
+00:04:01.221 --> 00:04:04.701
+<v Wes>I like they have a philosophy in here, actually, which we kind of touched on
+
+00:04:04.701 --> 00:04:06.398
+<v Wes>without maybe even fully realizing.
+
+00:04:07.205 --> 00:04:10.191
+<v Wes>Lan Orangutan isn't trying to be the most powerful scanner out there.
+
+00:04:10.191 --> 00:04:13.931
+<v Wes>And that's the point. It's built to be the simplest and the fastest one to reach for.
+
+00:04:14.291 --> 00:04:17.143
+<v Wes>There's a bunch of already excellent, deeply capable tools in this space.
+
+00:04:17.439 --> 00:04:20.191
+<v Wes>And they're the right choice when you need everything they offer.
+
+00:04:20.811 --> 00:04:23.082
+<v Wes>Lan Orangutan is for the other times.
+
+00:04:23.296 --> 00:04:27.941
+<v Chris>Also, you know, you could, if you're a Clanker user, you could have the CLI
+
+00:04:27.941 --> 00:04:31.391
+<v Chris>kind of do these audits and it'll do the output as JSON and the Clanker can
+
+00:04:31.391 --> 00:04:35.251
+<v Chris>take that in. You could just spin up this thing, do a little network scan and
+
+00:04:35.251 --> 00:04:36.160
+<v Chris>then get a Clanker report.
+
+00:04:36.311 --> 00:04:38.442
+<v Wes>Even CSV if you have like an enterprise Clanker.
+
+00:04:39.611 --> 00:04:42.841
+<v Brent>I'm going through like the docs here trying to figure out where the naming comes
+
+00:04:42.841 --> 00:04:46.411
+<v Brent>from. I don't think I found anything. So, listener, if you have any ideas or
+
+00:04:46.411 --> 00:04:52.981
+<v Brent>theories or, I don't know, make up some reason why the orangutan is the land expert, let us know.
+
+00:04:52.981 --> 00:04:57.179
+<v Chris>Maybe it's a reference to another tool. I don't know. MIT license on that one.
+
+00:04:57.498 --> 00:05:00.351
+<v Chris>And then really quickly, this isn't going to surprise anyone.
+
+00:05:00.351 --> 00:05:04.441
+<v Chris>I just had to give it a shout because it saved my bacon a couple of times in just the last week.
+
+00:05:05.770 --> 00:05:08.341
+<v Chris>I'm kind of embarrassed. It's called local send. I don't know why.
+
+00:05:08.341 --> 00:05:12.581
+<v Chris>It's just there are so many of these stupid open source send a file from one
+
+00:05:12.581 --> 00:05:16.446
+<v Chris>computer to the other that it almost feels embarrassing to even have a pick.
+
+00:05:18.117 --> 00:05:24.824
+<v Chris>But I like LocalSend because it's a local app on every OS. So like on the desktop,
+
+00:05:24.824 --> 00:05:27.764
+<v Chris>it's a desktop application. On iOS, it's an iOS application.
+
+00:05:27.764 --> 00:05:29.130
+<v Chris>On Android, it's an Android application.
+
+00:05:30.041 --> 00:05:33.594
+<v Wes>I did a little spelunking. And it's interesting that it's finally landed because
+
+00:05:33.594 --> 00:05:37.264
+<v Wes>we talked about it ages and ages ago on the show. And you and Alex talked about
+
+00:05:37.264 --> 00:05:38.708
+<v Wes>it on a self-hosted episode.
+
+00:05:38.952 --> 00:05:41.084
+<v Wes>But it felt like maybe it was one of those picks where it's like,
+
+00:05:41.084 --> 00:05:43.924
+<v Wes>oh, this is cool and seems useful. But then if you never actually deploy it,
+
+00:05:43.924 --> 00:05:47.174
+<v Wes>you don't quite use it. So what changed that you're using it?
+
+00:05:47.174 --> 00:05:51.274
+<v Chris>So I was taking pictures of the chickens and whatnot, and I wanted to transfer
+
+00:05:51.274 --> 00:05:54.924
+<v Chris>them to the desktop. And there's just not, from the iPhone at least,
+
+00:05:54.924 --> 00:05:58.362
+<v Chris>not a lot of great options here. If I were on Android, I might use KDE Connect.
+
+00:05:59.343 --> 00:06:03.954
+<v Chris>But so I set this up. But then because it works across Android,
+
+00:06:03.954 --> 00:06:07.987
+<v Chris>it works across Linux and iOS, then it's like, well, let's all just use this.
+
+00:06:08.457 --> 00:06:10.982
+<v Chris>And it'll queue up downloads too. The desktop app's pretty nice.
+
+00:06:11.724 --> 00:06:14.774
+<v Chris>You can auto-accept files from certain favorite people and things like that,
+
+00:06:14.774 --> 00:06:17.664
+<v Chris>which is really nice. Like I just grabbed this and I just want to blast it over
+
+00:06:17.664 --> 00:06:19.649
+<v Chris>to the machine. I don't have to be at my desktop and approve it.
+
+00:06:20.704 --> 00:06:23.602
+<v Chris>And so it's like one of these things where I, you know, I've actually been using this.
+
+00:06:23.974 --> 00:06:26.344
+<v Chris>And I don't know if we've made an implicit pick, but we have talked about it
+
+00:06:26.344 --> 00:06:31.024
+<v Chris>before. And it also, it's all local, right? So there's no like routing through
+
+00:06:31.024 --> 00:06:34.005
+<v Chris>the internet or anything like that. So it's as fast as your LAN can blast the file.
+
+00:06:34.678 --> 00:06:37.494
+<v Brent>This is one of those apps that since the last time we talked about it,
+
+00:06:37.494 --> 00:06:39.200
+<v Brent>it's been installed on my phone. Yeah.
+
+00:06:40.263 --> 00:06:45.638
+<v Brent>I guess, and my laptop, which I, is it? And on my phone, every time I go like,
+
+00:06:45.638 --> 00:06:47.658
+<v Brent>you know, do some spring cleaning on my phone, I'm like, well,
+
+00:06:47.658 --> 00:06:51.058
+<v Brent>I only use this once, maybe twice a year.
+
+00:06:51.058 --> 00:06:51.516
+<v Chris>Yeah.
+
+00:06:51.644 --> 00:06:54.848
+<v Brent>And then I will always land with, well, you never know, I'm going to keep it.
+
+00:06:54.848 --> 00:06:57.356
+<v Brent>So this has been installed for a very long time for me.
+
+00:06:57.896 --> 00:07:02.038
+<v Brent>Used it a couple of times. It's saved my bacon, but it's nice.

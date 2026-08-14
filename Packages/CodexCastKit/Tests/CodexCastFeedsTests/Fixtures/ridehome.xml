@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <atom:link href="https://feeds.megaphone.fm/ridehome" rel="self" type="application/rss+xml"/>
+    <title>Tech Brew Ride Home</title>
+    <link>https://www.ridehome.info/show/techmeme-ride-home/</link>
+    <language>en</language>
+    <copyright>© Amalgamated Internets, LLC</copyright>
+    <description>Silicon Valley's water cooler podcast. A tech news summary every day... 15 minutes and you're up to date. From Tech Brew, Morning Brew's tech hub.</description>
+    <image>
+      <url>https://megaphone.imgix.net/podcasts/de2eda0a-6caf-11f0-b957-cb9efc7ef063/image/5f654e3697eab991cefe3a98fc543911.png?ixlib=rails-4.3.1&amp;max-w=3000&amp;max-h=3000&amp;fit=crop&amp;auto=format,compress</url>
+      <title>Tech Brew Ride Home</title>
+      <link>https://www.ridehome.info/show/techmeme-ride-home/</link>
+    </image>
+    <itunes:explicit>no</itunes:explicit>
+    <itunes:type>episodic</itunes:type>
+    <itunes:subtitle></itunes:subtitle>
+    <itunes:author>Morning Brew</itunes:author>
+    <itunes:summary>Silicon Valley's water cooler podcast. A tech news summary every day... 15 minutes and you're up to date. From Tech Brew, Morning Brew's tech hub.</itunes:summary>
+    <content:encoded>
+      <![CDATA[<p>Silicon Valley's water cooler podcast. A tech news summary every day... 15 minutes and you're up to date. From Tech Brew, Morning Brew's tech hub.</p>]]>
+    </content:encoded>
+    <itunes:owner>
+      <itunes:name>Amalgamated Internets, LLC</itunes:name>
+      <itunes:email>brian@ridehome.info</itunes:email>
+    </itunes:owner>
+    <itunes:image href="https://megaphone.imgix.net/podcasts/de2eda0a-6caf-11f0-b957-cb9efc7ef063/image/5f654e3697eab991cefe3a98fc543911.png?ixlib=rails-4.3.1&amp;max-w=3000&amp;max-h=3000&amp;fit=crop&amp;auto=format,compress"/>
+    <itunes:category text="Technology">
+    </itunes:category>
+    <itunes:category text="News">
+      <itunes:category text="Tech News"/>
+    </itunes:category>
+    <item>
+      <title>AI 50% Off!</title>
+      <description>Anthropic's investors talked up a $2T+ October IPO, even as data showed Fable 5 barely selling. Google cut prices on Gemini 3.7 Flash, OpenAI previewed a 14× faster tier, Trump enlisted private hackers, and Twitch fed Amazon's AI.
+
+Links
+
+
+  Google's Gemini 3.7 Flash targets coding and agents with a 50% introductory price cut&amp;nbsp;(VentureBeat)
+
+  OpenAI previews Ultrafast, an API tier powered by Cerebras that runs GPT-5.6 Sol up to 14× faster and generates up to 750 output tokens per second&amp;nbsp;(9to5Mac)
+
+  President Trump signs a memo letting the US government partner with private companies to conduct cyberattacks abroad against criminal groups targeting Americans&amp;nbsp;(Bloomberg)
+
+  Sources: Anthropic's investors expect it to float at a $2T+ valuation in an October IPO and to hit $100B to $120B in annualized revenue by the end of 2026&amp;nbsp;(Financial Times)
+
+  Ramp data: Fable 5 drew just 6% of Anthropic's API tokens in its first month and 75% of GPT-5.6 Sol's model revenue, suggesting corporate willingness to pay for frontier AI has hit a ceiling&amp;nbsp;(The Decoder)
+
+  Databricks closed a $5B funding round at a $190B valuation, six months after raising $5B at a $134B valuation, and says it has crossed $7B in revenue run rate&amp;nbsp;(CNBC)
+
+  Twitch says it intends to use videos streamed on its platform to help train Amazon's generative AI content models and adds a setting for creators to opt out&amp;nbsp;(TechCrunch)
+
+
+Subscribe to the ad-free feed.</description>
+      <pubDate>Thu, 13 Aug 2026 20:06:00 -0000</pubDate>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:author>Morning Brew</itunes:author>
+      <itunes:subtitle>Anthropic's investors talked up a $2T+ October IPO, even as data showed Fable 5 barely selling. Google cut prices on Gemini 3.7 Flash, OpenAI previewed a 14× faster tier, Trump enlisted private hackers, and Twitch fed Amazon's AI.</itunes:subtitle>
+      <itunes:summary>Anthropic's investors talked up a $2T+ October IPO, even as data showed Fable 5 barely selling. Google cut prices on Gemini 3.7 Flash, OpenAI previewed a 14× faster tier, Trump enlisted private hackers, and Twitch fed Amazon's AI.
+
+Links
+
+
+  Google's Gemini 3.7 Flash targets coding and agents with a 50% introductory price cut&amp;nbsp;(VentureBeat)
+
+  OpenAI previews Ultrafast, an API tier powered by Cerebras that runs GPT-5.6 Sol up to 14× faster and generates up to 750 output tokens per second&amp;nbsp;(9to5Mac)
+
+  President Trump signs a memo letting the US government partner with private companies to conduct cyberattacks abroad against criminal groups targeting Americans&amp;nbsp;(Bloomberg)
+
+  Sources: Anthropic's investors expect it to float at a $2T+ valuation in an October IPO and to hit $100B to $120B in annualized revenue by the end of 2026&amp;nbsp;(Financial Times)
+
+  Ramp data: Fable 5 drew just 6% of Anthropic's API tokens in its first month and 75% of GPT-5.6 Sol's model revenue, suggesting corporate willingness to pay for frontier AI has hit a ceiling&amp;nbsp;(The Decoder)
+
+  Databricks closed a $5B funding round at a $190B valuation, six months after raising $5B at a $134B valuation, and says it has crossed $7B in revenue run rate&amp;nbsp;(CNBC)
+
+  Twitch says it intends to use videos streamed on its platform to help train Amazon's generative AI content models and adds a setting for creators to opt out&amp;nbsp;(TechCrunch)
+
+
+Subscribe to the ad-free feed.</itunes:summary>
+      <content:encoded>
+        <![CDATA[<p><em><strong>Anthropic's investors talked up a $2T+ October IPO, even as data showed Fable 5 barely selling. Google cut prices on Gemini 3.7 Flash, OpenAI previewed a 14× faster tier, Trump enlisted private hackers, and Twitch fed Amazon's AI.</strong></em></p>
+<p><strong>Links</strong></p>
+<ul>
+  <li><a href="https://venturebeat.com/technology/googles-gemini-3-7-flash-targets-coding-and-agents-with-a-50-introductory-price-cut">Google's Gemini 3.7 Flash targets coding and agents with a 50% introductory price cut</a>&nbsp;(VentureBeat)</li>
+  <li><a href="https://9to5mac.com/2026/08/13/openai-previews-ultrafast-gpt-5-6-sol-running-up-to-14-times-faster/">OpenAI previews Ultrafast, an API tier powered by Cerebras that runs GPT-5.6 Sol up to 14× faster and generates up to 750 output tokens per second</a>&nbsp;(9to5Mac)</li>
+  <li><a href="https://www.bloomberg.com/news/articles/2026-08-13/trump-enlists-private-sector-to-boost-cyber-offensive-arsenal?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzb3VyY2UiOiJTdWJzY3JpYmVyR2lmdGVkQXJ0aWNsZSIsImlhdCI6MTc4NjYwMjQzMywiZXhwIjoxNzg3MjA3MjMzLCJhcnRpY2xlSWQiOiJUSk9QM0hLSzNOWTkwMCIsImJjb25uZWN0SWQiOiJGNDJDMzlEM0JBNjY0NkQ0ODdDNTI0NzM1QjQ2OTExMyJ9.numdJnKP-sXa3qzd_-fCDfuNsY61ZpPAV_crbprM4Ek">President Trump signs a memo letting the US government partner with private companies to conduct cyberattacks abroad against criminal groups targeting Americans</a>&nbsp;(Bloomberg)</li>
+  <li><a href="https://www.ft.com/content/840ac156-af1c-4a82-b260-ae791072fcfa?accessToken=zwAAAZ_6yHO9kdOECsFWrxxKgtOyYK55EHL8-g.MEUCIQDUzeMiGW6UboFtYr2F_Llwge2IB8ubdmWZVqeD-dEI2gIgQmlsOPTronqbAHY24gjsyrrdmBKBLz0uGHiKPRMhYdU&amp;sharetype=gift&amp;token=fa2b9bb8-393a-4cee-8a73-6a5864cb21fd">Sources: Anthropic's investors expect it to float at a $2T+ valuation in an October IPO and to hit $100B to $120B in annualized revenue by the end of 2026</a>&nbsp;(Financial Times)</li>
+  <li><a href="https://the-decoder.com/fable-5s-slow-adoption-suggests-corporate-willingness-to-pay-for-frontier-ai-has-hit-a-ceiling/">Ramp data: Fable 5 drew just 6% of Anthropic's API tokens in its first month and 75% of GPT-5.6 Sol's model revenue, suggesting corporate willingness to pay for frontier AI has hit a ceiling</a>&nbsp;(The Decoder)</li>
+  <li><a href="https://www.cnbc.com/2026/08/13/databricks-funding-round-190-billion-valuation.html">Databricks closed a $5B funding round at a $190B valuation, six months after raising $5B at a $134B valuation, and says it has crossed $7B in revenue run rate</a>&nbsp;(CNBC)</li>
+  <li><a href="https://techcrunch.com/2026/08/12/amazon-will-train-on-twitch-streamers-content-by-default-unless-they-opt-out/">Twitch says it intends to use videos streamed on its platform to help train Amazon's generative AI content models and adds a setting for creators to opt out</a>&nbsp;(TechCrunch)</li>
+</ul>
+<p><a href="https://tech.supercast.com/">Subscribe to the ad-free feed.</a></p>
+<p><br></p>]]>
+      </content:encoded>
+      <itunes:duration>1224</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+      <guid isPermaLink="false"><![CDATA[33d2ff08-8cef-11f1-8e46-b3df39e4d96c]]></guid>
+      <enclosure url="https://tracking.swap.fm/track/bHsDpvy53mYwJpnc1UL5/traffic.megaphone.fm/MOBI8354835915.mp3" length="0" type="audio/mpeg"/>
+    </item>
+<item>
+      <title>New Pixels</title>
+      <description>Google's Pixel event dominated, with the Pixel 11 line, a $1,899 Pro Fold, and a $399 Watch 5 packed with Gemini and health trends. SpaceXAI closed the day out by dropping Grok 4.6, which it says matches GPT-5.6 Sol.
+
+Links
+
+
+  Google unveils the $899+ Pixel 11, $1,099+ 11 Pro, and $1,299+ 11 Pro XL, with a Tensor G6, new Gemini features, Magic Capture to pick the best frames, and more (TechCrunch)
+
+  Google unveils the $1,899+ Pixel 11 Pro Fold, with a stronger hinge, inner and outer displays that are 20% brighter, Tensor G6 chip, and an updated 48MP camera (Engadget)
+
+  Google unveils the $399 Pixel Watch 5 with a satin pyrite case finish, offline Gemini, proactive AI suggestions, better GPS maps, and insulin resistance trends (The Verge)
+
+  SpaceXAI releases Grok 4.6, saying it matches GPT-5.6 Sol on the Artificial Analysis Intelligence Index, and prices it at $2/1M input and $6/1M output tokens (SpaceXAI)
+
+  Grok 4.6 is built for long-running agents, coding, and knowledge work, beating Grok 4.5 on CursorBench, FrontierCode, APEX-Agents, and Terminal-Bench, out today via Cursor, OpenRouter, and Vercel (9to5Mac)
+
+
+Subscribe to the ad-free feed.</description>
+      <pubDate>Wed, 12 Aug 2026 18:15:00 -0000</pubDate>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:author>Morning Brew</itunes:author>
+      <itunes:subtitle>Google's Pixel event dominated, with the Pixel 11 line, a $1,899 Pro Fold, and a $399 Watch 5 packed with Gemini and health trends. SpaceXAI closed the day out by dropping Grok 4.6, which it says matches GPT-5.6 Sol.</itunes:subtitle>
+      <itunes:summary>Google's Pixel event dominated, with the Pixel 11 line, a $1,899 Pro Fold, and a $399 Watch 5 packed with Gemini and health trends. SpaceXAI closed the day out by dropping Grok 4.6, which it says matches GPT-5.6 Sol.
+
+Links
+
+
+  Google unveils the $899+ Pixel 11, $1,099+ 11 Pro, and $1,299+ 11 Pro XL, with a Tensor G6, new Gemini features, Magic Capture to pick the best frames, and more (TechCrunch)
+
+  Google unveils the $1,899+ Pixel 11 Pro Fold, with a stronger hinge, inner and outer displays that are 20% brighter, Tensor G6 chip, and an updated 48MP camera (Engadget)
+
+  Google unveils the $399 Pixel Watch 5 with a satin pyrite case finish, offline Gemini, proactive AI suggestions, better GPS maps, and insulin resistance trends (The Verge)
+
+  SpaceXAI releases Grok 4.6, saying it matches GPT-5.6 Sol on the Artificial Analysis Intelligence Index, and prices it at $2/1M input and $6/1M output tokens (SpaceXAI)
+
+  Grok 4.6 is built for long-running agents, coding, and knowledge work, beating Grok 4.5 on CursorBench, FrontierCode, APEX-Agents, and Terminal-Bench, out today via Cursor, OpenRouter, and Vercel (9to5Mac)
+
+
+Subscribe to the ad-free feed.</itunes:summary>
+      <content:encoded>
+        <![CDATA[<p><em><strong>Google's Pixel event dominated, with the Pixel 11 line, a $1,899 Pro Fold, and a $399 Watch 5 packed with Gemini and health trends. SpaceXAI closed the day out by dropping Grok 4.6, which it says matches GPT-5.6 Sol.</strong></em></p>
+<p><strong>Links</strong></p>
+<ul>
+  <li><a href="https://techcrunch.com/2026/08/12/pixel-11-has-few-hardware-changes-and-more-gemini/">Google unveils the $899+ Pixel 11, $1,099+ 11 Pro, and $1,299+ 11 Pro XL, with a Tensor G6, new Gemini features, Magic Capture to pick the best frames, and more</a> (TechCrunch)</li>
+  <li><a href="https://www.engadget.com/2235151/this-is-the-1900-google-pixel-11-pro-fold/">Google unveils the $1,899+ Pixel 11 Pro Fold, with a stronger hinge, inner and outer displays that are 20% brighter, Tensor G6 chip, and an updated 48MP camera</a> (Engadget)</li>
+  <li><a href="https://www.theverge.com/tech/978094/pixel-watch-5-hands-on-made-by-google-gemini-wearables-smartwatch">Google unveils the $399 Pixel Watch 5 with a satin pyrite case finish, offline Gemini, proactive AI suggestions, better GPS maps, and insulin resistance trends</a> (The Verge)</li>
+  <li><a href="https://x.ai/news/grok-4-6">SpaceXAI releases Grok 4.6, saying it matches GPT-5.6 Sol on the Artificial Analysis Intelligence Index, and prices it at $2/1M input and $6/1M output tokens</a> (SpaceXAI)</li>
+  <li><a href="https://9to5mac.com/2026/08/12/spacexai-releases-grok-4-6/">Grok 4.6 is built for long-running agents, coding, and knowledge work, beating Grok 4.5 on CursorBench, FrontierCode, APEX-Agents, and Terminal-Bench, out today via Cursor, OpenRouter, and Vercel</a> (9to5Mac)</li>
+</ul>
+<p><a href="https://tech.supercast.com/">Subscribe to the ad-free feed.</a></p>]]>
+      </content:encoded>
+      <itunes:duration>1163</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+      <guid isPermaLink="false"><![CDATA[33a7b2c6-8cef-11f1-8e46-5ff4d1efd4fc]]></guid>
+      <enclosure url="https://tracking.swap.fm/track/bHsDpvy53mYwJpnc1UL5/traffic.megaphone.fm/MOBI4277629546.mp3" length="0" type="audio/mpeg"/>
+    </item>
+</channel>
+</rss>

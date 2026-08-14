@@ -1,0 +1,281 @@
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md" version="2.0">
+  <channel>
+    <title>Podcasting 2.0</title>
+    <description>The Podcast Index presents Podcasting 2.0 - Upgrading Podcasting</description>
+    <link>http://podcastindex.org</link>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <language>en</language>
+    <generator>Sovereign Feeds</generator>
+    <pubDate>Fri, 24 Jul 2026 19:59:15 +0000</pubDate>
+    <lastBuildDate>Fri, 24 Jul 2026 19:59:15 +0000</lastBuildDate>
+    <podcast:locked owner="adam@curry.com">yes</podcast:locked>
+    <podcast:funding url="https://paypal.me/podcastindex">Value 4 Value</podcast:funding>
+    <managingEditor>adam@curry.com (Adam Curry)</managingEditor>
+    <webMaster>adam@curry.com (Adam Curry)</webMaster>
+    <itunes:owner>
+      <itunes:email>adam@curry.com</itunes:email>
+      <itunes:name><![CDATA[Adam Curry & Dave Jones]]></itunes:name>
+    </itunes:owner>
+    <image>
+      <url>https://noagendaassets.com/enc/1684513486.722_pcifeedimage.png</url>
+      <link>http://podcastindex.org</link>
+      <title>Podcasting 2.0</title>
+      <description>The Podcast Index presents Podcasting 2.0 - Upgrading Podcasting</description>
+      <width>144</width>
+      <height>144</height>
+    </image>
+    <itunes:summary>The Podcast Index presents Podcasting 2.0 - Upgrading Podcasting</itunes:summary>
+    <itunes:author>Podcast Index LLC</itunes:author>
+    <itunes:image href="https://noagendaassets.com/enc/1684513486.722_pcifeedimage.png"/>
+    <itunes:explicit>no</itunes:explicit>
+    <itunes:keywords>podcasting,media,software</itunes:keywords>
+    <itunes:category text="News &amp; Politics"/>
+    <itunes:category text="Technology"/>
+    <podcast:value type="lightning" method="keysend" suggested="0.00000005000">
+      <podcast:valueRecipient name="Podcastindex.org" type="lnaddress" address="podcastindex@getalby.com" split="92"/>
+      <podcast:valueRecipient name="Dreb Scott (Chapters)" type="lnaddress" address="drebscott@getalby.com" split="5"/>
+      <podcast:valueRecipient name="Sovereign Feeds" address="035ad2c954e264004986da2d9499e1732e5175e1dcef2453c921c6cdcc3536e9d8" type="node" fee="true" split="5"/>
+      <podcast:valueRecipient name="Boostagram Monitor" type="lnaddress" address="adam@getalby.com" split="1"/>
+      <podcast:valueRecipient name="Stay Safe Sage" type="lnaddress" address="dave@getalby.com" split="1"/>
+      <podcast:valueRecipient name="Fountain Boost Bot" type="lnaddress" address="boostbot@fountain.fm" split="1"/>
+      <podcast:valueRecipient name="IPFSPodcasting.net" type="node" address="028eb5be336f7fdf2a4e40c57ff55d3d5d71277bb4197ea14957f756bff249e623" split="5" fee="true"/>
+    </podcast:value>
+    <podcast:guid>917393e3-1b1e-5cef-ace4-edaa54e1f810</podcast:guid>
+    <podcast:medium>podcast</podcast:medium>
+    <podcast:complete>no</podcast:complete>
+    <podcast:block>no</podcast:block>
+    <podcast:block id="apple">yes</podcast:block>
+    <podcast:block id="spotify">yes</podcast:block>
+    <podcast:block id="amazon">yes</podcast:block>
+    <podcast:person href="http://curry.com/" img="https://feeds.podcastindex.org/adam_avatar.jpg" group="cast" role="host">Adam Curry</podcast:person>
+    <podcast:person href="http://dave.sobr.org" img="https://feeds.podcastindex.org/dave_avatar.jpg" group="cast" role="host">Dave Jones</podcast:person>
+    <category><![CDATA[News & Politics]]></category>
+    <category>Technology</category>
+    <podcast:podroll>
+      <podcast:remoteItem feedGuid="ae38e5df-3281-5138-b120-b07cb835cac5" feedUrl="https://newmediashow.com/feed/audio/"/>
+      <podcast:remoteItem feedGuid="396d9ae0-da7e-5557-b894-b606231fa3ea" feedUrl="https://feeds.buzzsprout.com/1538779.rss"/>
+      <podcast:remoteItem feedGuid="856cd618-7f34-57ea-9b84-3600f1f65e7f" feedUrl="http://feed.nashownotes.com/rss.xml"/>
+      <podcast:remoteItem feedGuid="e722d2b3-0a9a-5ecc-ba3f-a5de968c18d4" feedUrl="https://feeds.rssblue.com/phantom-power-business-hour"/>
+      <podcast:remoteItem feedGuid="55b53584-4219-4fb0-b916-075ce23f714e" feedUrl="https://serve.podhome.fm/rss/55b53584-4219-4fb0-b916-075ce23f714e"/>
+      <podcast:remoteItem feedGuid="1ebc8445-f337-5150-a82a-48ec3e759e46" feedUrl="https://anchor.fm/s/101adcf44/podcast/rss"/>
+      <podcast:remoteItem feedGuid="d35a8293-f3dd-4186-959f-e0f1211da2df" feedUrl="https://feeds.redcircle.com/d35a8293-f3dd-4186-959f-e0f1211da2df"/>
+      <podcast:remoteItem feedGuid="29cdca4a-32d8-56ba-b48b-09a011c5daa9" feedUrl="https://feeds.buzzsprout.com/231452.rss"/>
+    </podcast:podroll>
+    <podcast:liveItem status="ended" start="2026-07-24T17:20:00.000Z" chat="irc.zeronode.net" end="2026-07-24T19:50:00.000Z">
+      <title>PC2.0 266 Live July 24th 2026</title>
+      <description><![CDATA[<p><strong>PC2.0 Episode #266 July 24th 2026 Live!</strong></p>
+<p><strong>Pre-Boost Us!</strong></p>
+<p>Get Podcast Addict, Podcast Guru, CurioCaster, Podverse, Fountain and Truefans from <a href="http://newpodcastapp.com">newpodcastapps.com</a></p>]]></description>
+      <enclosure length="33" type="audio/mpeg" url="https://op3.dev/e/live.noagendastream.com/noagenda"/>
+      <guid isPermaLink="false">6c917fc6-1314-43e2-8af8-723b0068855e</guid>
+      <itunes:image href="https://behindthesch3m3s.com/wp-content/uploads/2023/01/v4v-storm-good-quality.gif"/>
+      <itunes:subtitle>PC2.0 266 Live July 24th 2026</itunes:subtitle>
+      <itunes:summary><![CDATA[<p><strong>PC2.0 Episode #266 July 24th 2026 Live!</strong></p>
+<p><strong>Pre-Boost Us!</strong></p>
+<p>Get Podcast Addict, Podcast Guru, CurioCaster, Podverse, Fountain and Truefans from <a href="http://newpodcastapp.com">newpodcastapps.com</a></p>]]></itunes:summary>
+      <podcast:contentLink href="http://adam.curry.com/html/NoAgendaStreamandCha-1414965812.html">Listen Live in the Chat Room</podcast:contentLink>
+      <podcast:value type="lightning" method="keysend" suggested="0.00000005000">
+        <podcast:valueRecipient name="Sovereign Feeds" type="lnaddress" address="steven@getalby.com" split="10"/>
+        <podcast:valueRecipient name="boostbot@fountain.fm" type="lnaddress" address="boostbot@fountain.fm" split="2"/>
+        <podcast:valueRecipient name="Dreb Scott - Chapters" type="lnaddress" address="drebscott@getalby.com" split="5"/>
+        <podcast:valueRecipient name="Podping" type="lnaddress" address="Podping@sats.v4v.app" split="2"/>
+        <podcast:valueRecipient name="Boost AC" type="lnaddress" address="adam@getalby.com" split="3"/>
+        <podcast:valueRecipient name="Alecks Gates Strike" type="lnaddress" address="agates@strike.me" split="20"/>
+        <podcast:valueRecipient name="PodcastIndex LN Wallet Test" type="lnaddress" address="podcastindex@getalby.com" split="58"/>
+      </podcast:value>
+      <podcast:chat server="irc.zeronode.net" protocol="irc" accountId="adamc1999" space="#Podcasting20" embedUrl="https://kiwiirc.com/nextclient/irc.zeronode.net/?nick=webtroll?#Podcasting20"/>
+      <podcast:socialInteract uri="https://podcastindex.social/@dave/110634382833124876" protocol="activitypub" accountId="adam" accountUrl="https://podcastindex.social/users/dave"/>
+      <podcast:liveValue uri="https://curiohoster.com/event?event_id=8a2cfa5a-7a4d-466a-9d32-362ad68f945e" protocol="socket.io"/>
+    </podcast:liveItem>
+    <item>
+      <title>Episode 266: Research Velocity</title>
+      <description><![CDATA[<h2>Podcasting 2.0 July 24th 2026 Episode 266 - "Research Velocity"</h2>
+<div>
+<p>Show Notes</p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>📌 FROM PREP.md &mdash; Adam's PC20 items</p>
+<p><a href="https://podnews.net/article/podcast-app-revenue" target="_blank" rel="noopener">Pod News &mdash; podcast app revenue (source for 'cut the apps into the money')</a></p>
+<p><a href="https://podnews.net/update/skipping-ad-player" target="_blank" rel="noopener">Pod News &mdash; the ad-skipping player</a></p>
+<p>Board Q (Adam): "If you go to another chapter, is that a new play?" &mdash; for the AMP play=30s definition.</p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>00 - DAVE'S WORLD: THE ALTERNATE ENCLOSURE FINALLY GETS PICKED UP + HLS-IN-RSS SURGE</p>
+<p>&lt;b&gt;Take the lap:&lt;/b&gt; Podbean and Buzzsprout are now testing/supporting the &lt;b&gt;alternate enclosure&lt;/b&gt; &mdash; letting other apps (Pocket Casts, Amazon Music, iHeart, TrueFans) reach the video/alt versions instead of everything vanishing into the Apple-only void. Lead the boardroom with the namespace win.</p>
+<p>&lt;b&gt;HLS video in RSS is accelerating:&lt;/b&gt; @js &mdash; "the rate of podcast hosts publishing high-quality video in podcast feeds using HLS has gone up quite a bit, thanks mostly to Transistor and Flightcast." The open path is winning adoption; watch it live.</p>
+<p>&lt;b&gt;Namespace repo status:&lt;/b&gt; attribution bylines merged for the &lt;i&gt;block&lt;/i&gt; and &lt;i&gt;alternate enclosure&lt;/i&gt; tags (PRs #772/#773). Quiet week on commits &mdash; the plumbing is holding.</p>
+<p>&lt;b&gt;Dave in the wild:&lt;/b&gt; on the LLM-vs-tags thread &mdash; "A 'weight' is just a form of heuristic. Regression is literally built into the LLM at a fundamental level. Re-weighting a model will always regress other weights." (Continues the on-device-AI vs authored-tags fight from 265.) Also: Hover auto-renews domains 2 days out &mdash; @genebean's alert script gets a Dave thumbs-up.</p>
+<p><a href="https://hls.livewire.io/" target="_blank" rel="noopener">HLS-in-RSS tracker (livewire)</a></p>
+<p><a href="https://daveverse.org/2026/07/22/11383/" target="_blank" rel="noopener">Dave Winer &mdash; distributable is not distributed</a></p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>BM - FROM THE TIMELINE &mdash; podcastindex.social this week (JS &amp; Dave)</p>
+<p>@js: "the rate of podcast hosts publishing high-quality video in podcast feeds using HLS has gone up quite a bit &mdash; thanks mostly to Transistor and Flightcast." (tracker: hls.livewire.io)</p>
+<p>@js: "Waves of new podcast listeners may exist, but they aren't downloading episodes via RSS, no matter how many podcast apps are being vibe-coded."</p>
+<p>@js shared Castro's "Podcast apps: a framework for dying" &mdash; his read: "well thought-out, but a bit too pessimistic imo &mdash; the next few years are going to be interesting." (Steven B: "anyone interested in the PC2.0 namespace read and consider this.")</p>
+<p>@js on Patreon's "painful update" (Conte, layoffs): "I'd love to know what change Patreon's operational market has undergone in the last six months."</p>
+<p>@js on the scraping wars: a court ruled aggregated search data (URLs, snippets, index facts) are "publicly accessible facts," not copyrightable &mdash; relevant to index/crawler rights.</p>
+<p>@js (amplifying Dave Winer): "Threads and Bluesky are not distributed. Distributable is not the same as being distributed."</p>
+<p>@dave: "A 'weight' is just a form of heuristic. Regression is literally built into the LLM at a fundamental level&hellip; one slider." &mdash; the on-device-abstraction vs authored-tags thread, continued from 265.</p>
+<p>@dave, namespace repo: merged the block-tag + alternate-enclosure attribution PRs (mid-May); no new commits this week &mdash; the action is in adoption, not spec.</p>
+<p>@csb &rarr; @dave @adam: "bros, I've just sent you $15.55 via bitcoin gram and amazingly only one split failed" &mdash; boosts still flow on-network (counter to 'streaming sats is over').</p>
+<p>@mgdell (Mike Dell): "21 years of podcasting: the thing I don't want us to lose."</p>
+<p><a href="https://mikedell.com/21-years-of-podcasting-the-thing-i-dont-want-us-to-lose/" target="_blank" rel="noopener">Mike Dell &mdash; 21 years of podcasting</a></p>
+<p><a href="https://www.uncommonapps.nyc/p/podcast-apps-a-framework-for-dying" target="_blank" rel="noopener">Castro &mdash; Podcast apps: a framework for dying</a></p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>01 - "WHAT IS A PODCAST?" &mdash; THE AMP ACCORDS PUT A FORMAL DEFINITION ON IT</p>
+<p>&lt;b&gt;The AMP Accords landed this week&lt;/b&gt; (Oxford Road's Dan Granger + Giles Martin), a year-long, commercial-end-of-the-industry group defining what a podcast IS, what a "play" is, and building exposure/attribution standards to replace the download. Note: the definition still names &lt;b&gt;open RSS feeds&lt;/b&gt;.</p>
+<p>&lt;b&gt;The formal definition:&lt;/b&gt; "an on-demand show rooted in the spoken word and fully intelligible as audio&hellip; accessed as audio or video via open RSS feeds and other distribution methods." The commercial world catching up to what this room has said for years.</p>
+<p>&lt;b&gt;The play = 30 consecutive seconds&lt;/b&gt; (audio OR video); Spotify already adopting it, YouTube ~same ballpark. No time-window qualifier yet. Downloads called "a faith-based metric" (Tom Webster). "Amen," says James.</p>
+<p>&lt;b&gt;It's in the air everywhere:&lt;/b&gt; Mike Dell (@mgdell) &mdash; "21 years of podcasting: the thing I don't want us to lose." And @js flagged Castro's @dabluck must-read "Podcast apps: a framework for dying" (@StevenB: "anyone interested in the PC2.0 namespace should read it") &mdash; @js pushes back: too pessimistic, "the next few years are going to be interesting."</p>
+<p><a href="https://mikedell.com/21-years-of-podcasting-the-thing-i-dont-want-us-to-lose/" target="_blank" rel="noopener">Mike Dell &mdash; 21 years of podcasting</a></p>
+<p><a href="https://www.uncommonapps.nyc/p/podcast-apps-a-framework-for-dying" target="_blank" rel="noopener">Castro &mdash; Podcast apps: a framework for dying</a></p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>06 - QUIPS / TRANSITIONS / LINK DUMP</p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+</div>
+<div><small>Last Modified 07/24/2026 14:52:27 by&nbsp;<a href="http://freedomcontroller.com/">Freedom Controller</a></small>&nbsp;<a title="Link to the opml for this document." href="http://adam.curry.com/opml/Podcasting20July24th-SjZmJq1VKg6nvwdZPVlrTtPpCc1GPd.opml">&nbsp;</a></div>]]></description>
+      <link>https://www.podpage.com/podcasting-20/research-velocity/</link>
+      <guid isPermaLink="false">PC20-266</guid>
+      <pubDate>Fri, 24 Jul 2026 19:52:43 +0000</pubDate>
+      <podcast:chapters url="https://reflex.livewire.io/chapters/podcast/917393e3-1b1e-5cef-ace4-edaa54e1f810/item/PC20-266/chapters/https://mp3s.nashownotes.com/PC20-266-Chapters.json" type="application/json"/>
+      <podcast:transcript url="https://mp3s.nashownotes.com/PC20-266-Captions.srt" type="application/srt" rel="captions"/>
+      <itunes:subtitle>Episode 266: Research Velocity</itunes:subtitle>
+      <itunes:summary><![CDATA[<h2>Podcasting 2.0 July 24th 2026 Episode 266 - "Research Velocity"</h2>
+<div>
+<p>Show Notes</p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>📌 FROM PREP.md &mdash; Adam's PC20 items</p>
+<p><a href="https://podnews.net/article/podcast-app-revenue" target="_blank" rel="noopener">Pod News &mdash; podcast app revenue (source for 'cut the apps into the money')</a></p>
+<p><a href="https://podnews.net/update/skipping-ad-player" target="_blank" rel="noopener">Pod News &mdash; the ad-skipping player</a></p>
+<p>Board Q (Adam): "If you go to another chapter, is that a new play?" &mdash; for the AMP play=30s definition.</p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>00 - DAVE'S WORLD: THE ALTERNATE ENCLOSURE FINALLY GETS PICKED UP + HLS-IN-RSS SURGE</p>
+<p>&lt;b&gt;Take the lap:&lt;/b&gt; Podbean and Buzzsprout are now testing/supporting the &lt;b&gt;alternate enclosure&lt;/b&gt; &mdash; letting other apps (Pocket Casts, Amazon Music, iHeart, TrueFans) reach the video/alt versions instead of everything vanishing into the Apple-only void. Lead the boardroom with the namespace win.</p>
+<p>&lt;b&gt;HLS video in RSS is accelerating:&lt;/b&gt; @js &mdash; "the rate of podcast hosts publishing high-quality video in podcast feeds using HLS has gone up quite a bit, thanks mostly to Transistor and Flightcast." The open path is winning adoption; watch it live.</p>
+<p>&lt;b&gt;Namespace repo status:&lt;/b&gt; attribution bylines merged for the &lt;i&gt;block&lt;/i&gt; and &lt;i&gt;alternate enclosure&lt;/i&gt; tags (PRs #772/#773). Quiet week on commits &mdash; the plumbing is holding.</p>
+<p>&lt;b&gt;Dave in the wild:&lt;/b&gt; on the LLM-vs-tags thread &mdash; "A 'weight' is just a form of heuristic. Regression is literally built into the LLM at a fundamental level. Re-weighting a model will always regress other weights." (Continues the on-device-AI vs authored-tags fight from 265.) Also: Hover auto-renews domains 2 days out &mdash; @genebean's alert script gets a Dave thumbs-up.</p>
+<p><a href="https://hls.livewire.io/" target="_blank" rel="noopener">HLS-in-RSS tracker (livewire)</a></p>
+<p><a href="https://daveverse.org/2026/07/22/11383/" target="_blank" rel="noopener">Dave Winer &mdash; distributable is not distributed</a></p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>BM - FROM THE TIMELINE &mdash; podcastindex.social this week (JS &amp; Dave)</p>
+<p>@js: "the rate of podcast hosts publishing high-quality video in podcast feeds using HLS has gone up quite a bit &mdash; thanks mostly to Transistor and Flightcast." (tracker: hls.livewire.io)</p>
+<p>@js: "Waves of new podcast listeners may exist, but they aren't downloading episodes via RSS, no matter how many podcast apps are being vibe-coded."</p>
+<p>@js shared Castro's "Podcast apps: a framework for dying" &mdash; his read: "well thought-out, but a bit too pessimistic imo &mdash; the next few years are going to be interesting." (Steven B: "anyone interested in the PC2.0 namespace read and consider this.")</p>
+<p>@js on Patreon's "painful update" (Conte, layoffs): "I'd love to know what change Patreon's operational market has undergone in the last six months."</p>
+<p>@js on the scraping wars: a court ruled aggregated search data (URLs, snippets, index facts) are "publicly accessible facts," not copyrightable &mdash; relevant to index/crawler rights.</p>
+<p>@js (amplifying Dave Winer): "Threads and Bluesky are not distributed. Distributable is not the same as being distributed."</p>
+<p>@dave: "A 'weight' is just a form of heuristic. Regression is literally built into the LLM at a fundamental level&hellip; one slider." &mdash; the on-device-abstraction vs authored-tags thread, continued from 265.</p>
+<p>@dave, namespace repo: merged the block-tag + alternate-enclosure attribution PRs (mid-May); no new commits this week &mdash; the action is in adoption, not spec.</p>
+<p>@csb &rarr; @dave @adam: "bros, I've just sent you $15.55 via bitcoin gram and amazingly only one split failed" &mdash; boosts still flow on-network (counter to 'streaming sats is over').</p>
+<p>@mgdell (Mike Dell): "21 years of podcasting: the thing I don't want us to lose."</p>
+<p><a href="https://mikedell.com/21-years-of-podcasting-the-thing-i-dont-want-us-to-lose/" target="_blank" rel="noopener">Mike Dell &mdash; 21 years of podcasting</a></p>
+<p><a href="https://www.uncommonapps.nyc/p/podcast-apps-a-framework-for-dying" target="_blank" rel="noopener">Castro &mdash; Podcast apps: a framework for dying</a></p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>01 - "WHAT IS A PODCAST?" &mdash; THE AMP ACCORDS PUT A FORMAL DEFINITION ON IT</p>
+<p>&lt;b&gt;The AMP Accords landed this week&lt;/b&gt; (Oxford Road's Dan Granger + Giles Martin), a year-long, commercial-end-of-the-industry group defining what a podcast IS, what a "play" is, and building exposure/attribution standards to replace the download. Note: the definition still names &lt;b&gt;open RSS feeds&lt;/b&gt;.</p>
+<p>&lt;b&gt;The formal definition:&lt;/b&gt; "an on-demand show rooted in the spoken word and fully intelligible as audio&hellip; accessed as audio or video via open RSS feeds and other distribution methods." The commercial world catching up to what this room has said for years.</p>
+<p>&lt;b&gt;The play = 30 consecutive seconds&lt;/b&gt; (audio OR video); Spotify already adopting it, YouTube ~same ballpark. No time-window qualifier yet. Downloads called "a faith-based metric" (Tom Webster). "Amen," says James.</p>
+<p>&lt;b&gt;It's in the air everywhere:&lt;/b&gt; Mike Dell (@mgdell) &mdash; "21 years of podcasting: the thing I don't want us to lose." And @js flagged Castro's @dabluck must-read "Podcast apps: a framework for dying" (@StevenB: "anyone interested in the PC2.0 namespace should read it") &mdash; @js pushes back: too pessimistic, "the next few years are going to be interesting."</p>
+<p><a href="https://mikedell.com/21-years-of-podcasting-the-thing-i-dont-want-us-to-lose/" target="_blank" rel="noopener">Mike Dell &mdash; 21 years of podcasting</a></p>
+<p><a href="https://www.uncommonapps.nyc/p/podcast-apps-a-framework-for-dying" target="_blank" rel="noopener">Castro &mdash; Podcast apps: a framework for dying</a></p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+<p>06 - QUIPS / TRANSITIONS / LINK DUMP</p>
+<p>-------------------------------------------------------------------------------------------------------------------------------------</p>
+</div>
+<div><small>Last Modified 07/24/2026 14:52:27 by&nbsp;<a href="http://freedomcontroller.com/">Freedom Controller</a></small>&nbsp;<a title="Link to the opml for this document." href="http://adam.curry.com/opml/Podcasting20July24th-SjZmJq1VKg6nvwdZPVlrTtPpCc1GPd.opml">&nbsp;</a></div>]]></itunes:summary>
+      <itunes:author>Podcast Index LLC</itunes:author>
+      <author>Podcast Index LLC</author>
+      <itunes:image href="https://noagendaassets.com/enc/1684513486.722_pcifeedimage.png"/>
+      <itunes:explicit>No</itunes:explicit>
+      <itunes:keywords>podcasting,curry,podfather,technology,developers</itunes:keywords>
+      <enclosure url="https://op3.dev/e/mp3s.nashownotes.com/PC20-266-2026-07-24-Final.mp3" type="audio/mpeg" length="67575006"/>
+      <podcast:person group="cast" role="host" img="https://feeds.podcastindex.org/adam_avatar.jpg" href="http://curry.com">Adam Curry</podcast:person>
+      <podcast:person href="http://dave.sobr.org" img="https://feeds.podcastindex.org/dave_avatar.jpg" group="cast" role="host">Dave Jones</podcast:person>
+      <podcast:value type="lightning" method="keysend" suggested="0.00000005000">
+        <podcast:valueRecipient name="Dreb Scott (Chapters)" type="lnaddress" address="drebscott@getalby.com" split="5"/>
+        <podcast:valueRecipient name="Sovereign Feeds" address="steven@getalby.com" type="lnaddress" split="10"/>
+        <podcast:valueRecipient name="Fountain Boost bot" type="lnaddress" address="boostbot@fountain.fm" split="1"/>
+        <podcast:valueRecipient name="Reflex.io" type="lnaddress" address="reflex@livewire.io" split="5"/>
+        <podcast:valueRecipient name="ericpp@getalby.com" type="lnaddress" address="ericpp@getalby.com" split="5"/>
+        <podcast:valueRecipient name="Strike Test" type="lnaddress" address="adamcurry@strike.me" split="3"/>
+        <podcast:valueRecipient name="Alecks Gates Strike" type="lnaddress" address="agates@strike.me" split="5"/>
+        <podcast:valueRecipient name="PodcastIndex LN Test Wallet" type="lnaddress" address="podcastindex@getalby.com" split="50"/>
+        <podcast:valueRecipient name="Pod Sage" type="lnaddress" address="dave@getalby.com" split="1"/>
+        <podcast:valueRecipient name="Boost Monitor" type="lnaddress" address="adam@getalby.com" split="5"/>
+      </podcast:value>
+      <podcast:socialInteract protocol="activitypub" uri="https://podcastindex.social/@PodcastsLive/116976112202281514" accountId="@adam" accountUrl="https://podcastindex.social/users/adam"/>
+      <itunes:duration>5629</itunes:duration>
+      <podcast:funding url="https://www.paypal.com/donate?token=-hvWBEXZQfp7oSFJz0TwT3QXYcjYuemZRPIOml3nrL-EhtiUPAwuVHS6DPN5cBat9wjqwYEtyW-K8zSS">Support us with Value 4 Value</podcast:funding>
+    </item>
+<item>
+      <title>Episode 238: Podherpes</title>
+      <description><![CDATA[<p><strong>Podcasting 2.0 October 17th 2025 Episode 238: "Podherpes"</strong></p>
+<p>Adam &amp; Dave are joined by Barry Luijbregts of Podhome.fm and The Podhome app</p>
+<div>
+<p><strong>ShowNotes</strong></p>
+<p><a href="https://www.musicbusinessworldwide.com/distrokid-faces-potential-class-action-lawsuit-over-how-it-handles-takedown-requests/" target="_blank" rel="noopener">We are LIT</a></p>
+<p><strong>Barry Luijbregts - Podhome.fm and app!</strong></p>
+<p><a href="https://finance.yahoo.com/news/spotify-partners-netflix-video-podcast-180000130.html" target="_blank" rel="noopener">Spotify partners with Netflix for video podcast distribution deal</a></p>
+<p><em>Everything Is Television A theory of culture and attention</em></p>
+<p>Location latest from Index</p>
+<p>&nbsp;</p>
+<p>This week in Vibe Coding - TWIV</p>
+<p>-------------------------------------</p>
+<p><a href="https://chat.podcastindex.org/?cid=dhDyU8U4y7ZX9" target="_blank" rel="noopener">MKUltra chat</a></p>
+<p><a href="https://transcript-search.vercel.app/" target="_blank" rel="noopener">Transcript Search</a></p>
+<p>What is&nbsp;<strong>Value4Value</strong>? - Read all about it at&nbsp;<a href="https://value4value.info/">Value4Value.info</a></p>
+<p><a href="https://stats.podcastindex.org/v4v" target="_blank" rel="noopener">V4V Stats</a></p>
+<p><small>Last Modified 10/17/2025 14:26:08 by <a href="http://freedomcontroller.com/">Freedom Controller</a></small>&nbsp;<a title="Link to the opml for this document." href="http://adam.curry.com/opml/PC2023820251017Podca-jdgCqX2R5253CZtFgW9pM2NZzC62KH.opml">&nbsp;</a></p>
+</div>]]></description>
+      <link>https://www.podpage.com/podcasting-20/podheerpes/</link>
+      <guid isPermaLink="false">PC20-238</guid>
+      <pubDate>Fri, 17 Oct 2025 19:29:06 +0000</pubDate>
+      <podcast:chapters url="https://reflex.livewire.io/chapters/podcast/917393e3-1b1e-5cef-ace4-edaa54e1f810/item/PC20-238/chapters/https://chapters.hypercatcher.com/http%3Amp3s.nashownotes.compc20rss.xml/PC20-238" type="application/json"/>
+      <podcast:transcript url="https://mp3s.nashownotes.com/PC20-238-Captions.srt" type="application/srt" rel="captions"/>
+      <itunes:subtitle>Episode 238: Podherpes</itunes:subtitle>
+      <itunes:summary><![CDATA[<p><strong>Podcasting 2.0 October 17th 2025 Episode 238: "Podherpes"</strong></p>
+<p>Adam &amp; Dave are joined by Barry Luijbregts of Podhome.fm and The Podhome app</p>
+<div>
+<p><strong>ShowNotes</strong></p>
+<p><a href="https://www.musicbusinessworldwide.com/distrokid-faces-potential-class-action-lawsuit-over-how-it-handles-takedown-requests/" target="_blank" rel="noopener">We are LIT</a></p>
+<p><strong>Barry Luijbregts - Podhome.fm and app!</strong></p>
+<p><a href="https://finance.yahoo.com/news/spotify-partners-netflix-video-podcast-180000130.html" target="_blank" rel="noopener">Spotify partners with Netflix for video podcast distribution deal</a></p>
+<p><em>Everything Is Television A theory of culture and attention</em></p>
+<p>Location latest from Index</p>
+<p>&nbsp;</p>
+<p>This week in Vibe Coding - TWIV</p>
+<p>-------------------------------------</p>
+<p><a href="https://chat.podcastindex.org/?cid=dhDyU8U4y7ZX9" target="_blank" rel="noopener">MKUltra chat</a></p>
+<p><a href="https://transcript-search.vercel.app/" target="_blank" rel="noopener">Transcript Search</a></p>
+<p>What is&nbsp;<strong>Value4Value</strong>? - Read all about it at&nbsp;<a href="https://value4value.info/">Value4Value.info</a></p>
+<p><a href="https://stats.podcastindex.org/v4v" target="_blank" rel="noopener">V4V Stats</a></p>
+<p><small>Last Modified 10/17/2025 14:26:08 by <a href="http://freedomcontroller.com/">Freedom Controller</a></small>&nbsp;<a title="Link to the opml for this document." href="http://adam.curry.com/opml/PC2023820251017Podca-jdgCqX2R5253CZtFgW9pM2NZzC62KH.opml">&nbsp;</a></p>
+</div>]]></itunes:summary>
+      <itunes:author>Podcast Index LLC</itunes:author>
+      <author>Podcast Index LLC</author>
+      <itunes:image href="https://noagendaassets.com/enc/1684513486.722_pcifeedimage.png"/>
+      <itunes:explicit>No</itunes:explicit>
+      <itunes:keywords>podcasting,curry,podfather,technology,developers</itunes:keywords>
+      <enclosure url="https://op3.dev/e/mp3s.nashownotes.com/PC20-238-2025-10-17-Final.mp3" type="audio/mpeg" length="73287097"/>
+      <podcast:person group="cast" role="host" img="https://feeds.podcastindex.org/adam_avatar.jpg" href="http://curry.com">Adam Curry</podcast:person>
+      <podcast:person href="http://dave.sobr.org" img="https://feeds.podcastindex.org/dave_avatar.jpg" group="cast" role="host">Dave Jones</podcast:person>
+      <podcast:person href="https://podhome.fm/" img="https://cdn.masto.host/podcastindexsocial/accounts/avatars/111/096/006/938/283/795/original/863d020942ca894f.png" group="cast" role="guest">Barry Luijbregts</podcast:person>
+      <podcast:value type="lightning" method="keysend" suggested="0.00000005000">
+        <podcast:valueRecipient name="Podcastindex@getalby.com" type="node" address="03ae9f91a0cb8ff43840e3c322c4c61f019d8c1c3cea15a25cfc425ac605e61a4a" split="50"/>
+        <podcast:valueRecipient name="Dreb Scott (Chapters)" type="lnaddress" address="drebscott@getalby.com" split="5"/>
+        <podcast:valueRecipient name="Sovereign Feeds" address="steven@getalby.com" type="lnaddress" split="10"/>
+        <podcast:valueRecipient name="Boostagram Monitor" type="node" address="021f548a8ab5eb8e7cf91e4c9777c388463e213485ece9a1808e3c6850084ee630" split="1"/>
+        <podcast:valueRecipient name="Fountain Boost bot" type="lnaddress" address="boostbot@fountain.fm" split="1"/>
+        <podcast:valueRecipient name="Reflex.io" type="lnaddress" address="reflex@getalby.com" split="5"/>
+        <podcast:valueRecipient name="ericpp@getalby.com" type="lnaddress" address="ericpp@getalby.com" split="5"/>
+        <podcast:valueRecipient name="Strike Test" type="lnaddress" address="adamcurry@strike.me" split="2"/>
+        <podcast:valueRecipient name="Alecks Gates Strike" type="lnaddress" address="agates@strike.me" split="1"/>
+        <podcast:valueRecipient name="Barry Luijbregts" type="lnaddress" address="podhome@primal.net" split="20"/>
+      </podcast:value>
+      <podcast:socialInteract protocol="activitypub" uri="https://podcastindex.social/@dave/115390711572213342" accountId="@adam" accountUrl="https://podcastindex.social/users/dave"/>
+      <itunes:duration>6102</itunes:duration>
+      <podcast:funding url="https://www.paypal.com/donate?token=-hvWBEXZQfp7oSFJz0TwT3QXYcjYuemZRPIOml3nrL-EhtiUPAwuVHS6DPN5cBat9wjqwYEtyW-K8zSS">Support us with Value 4 Value</podcast:funding>
+      <podcast:alternateEnclosure type="application.x-mpegURL" length="0" bitrate="1448974" height="720" lang="en" rel="alternate" title="Video">
+        <podcast:source uri="https://hls.podcastindex.org/pc20_236.m3u8"/>
+      </podcast:alternateEnclosure>
+    </item>
+</channel>
+</rss>

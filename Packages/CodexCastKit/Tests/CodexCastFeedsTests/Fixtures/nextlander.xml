@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://audioboom.com/feeds.xsl" media="screen" ?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:georss="http://www.georss.org/georss" xmlns:podcast="https://podcastindex.org/namespace/1.0" version="2.0" xml:base="https://audioboom.com/">
+<!--
+
+      ***************************************************************
+      * Hi! You're looking at an RSS feed. If you're not sure what  *
+      * to do here, you can visit our help center to find out more: *
+      *                https://support.audioboom.com                *
+      ***************************************************************
+
+-->
+<channel>
+<title>The Nextlander Podcast</title>
+<description><![CDATA[Longtime friends and games media colleagues Vinny Caravella, Brad Shoemaker, and Alex Navarro share their combined decades of knowledge, expertise, and passion for games with weekly discussions about what they're playing, what's happening in the industry, and whatever else they're up to.]]></description>
+<link>https://audioboom.com/channels/5116059</link>
+<generator>audioboom.com</generator>
+<atom:link href="https://audioboom.com/channels/5116059" rel="alternate" type="text/html" />
+<atom:link href="https://pubsubhubbub.appspot.com/" rel="hub" />
+<atom:link href="https://audioboom.com/channels/5116059.rss" rel="self" type="application/rss+xml" />
+<pubDate>Thu, 13 Aug 2026 13:00:00 +0000</pubDate>
+<language>en-US</language>
+<image>
+  <url>https://audioboom.com/i/40915237.jpg</url>
+  <title>The Nextlander Podcast</title>
+  <link>https://audioboom.com/channels/5116059</link>
+</image>
+<itunes:image href="https://audioboom.com/i/40915237.jpg" />
+<itunes:category text="Leisure"><itunes:category text="Hobbies" /></itunes:category>
+<itunes:explicit>true</itunes:explicit>
+<itunes:author>The Nextlander Podcast</itunes:author>
+<itunes:owner>
+  <itunes:name>The Nextlander Podcast</itunes:name>
+  <itunes:email>info@nextlander.com</itunes:email>
+</itunes:owner>
+<podcast:guid>a132557e-bdd2-59a2-b24e-f8905318db73</podcast:guid>
+<copyright>2023 Nextlander</copyright>
+<itunes:new-feed-url>https://audioboom.com/channels/5116059.rss</itunes:new-feed-url>
+<itunes:type>episodic</itunes:type>
+
+<item>
+  <title>260: The Straight Edge Continent</title>
+  <link>https://audioboom.com/posts/8939141</link>
+  <itunes:episode>260</itunes:episode>
+  <itunes:title>The Straight Edge Continent</itunes:title>
+  <enclosure url="https://prfx.byspotify.com/e/arttrk.com/p/ABMA5/clrtpod.com/m/pscrb.fm/rss/p/dts.podtrac.com/redirect.mp3/audioboom.com/posts/8939141.mp3?modified=1786583246&amp;sid=5116059&amp;source=rss" length="0" type="audio/mpeg" />
+  <itunes:image href="https://audioboom.com/i/42327576.jpg" />
+  <itunes:duration>9182</itunes:duration>
+  <itunes:explicit>false</itunes:explicit>
+  <itunes:episodeType>full</itunes:episodeType>
+  <description><![CDATA[<div>
+<p>Fighting games new and old feature heavily this week, from Marvel Tokon to printed Mortal Kombat II FAQs and Street Fighter II Turbo tournaments (and lots of other stuff from California Extreme). There's also plenty of other new games like Iron Nest, Agent 64, and The Incident at Galley House, plus the GTA 6/Netflix thing, Devolver yanking itself out of the stock market, the words "Psi-Ops 2" and plenty more.</p><p><strong>CHAPTERS<br></strong><br>(00:00:00) NOTE: Some timecodes may be inaccurate for versions other than the ad-free Patreon version due to dynamic ad insertions. Please use caution if skipping around to avoid spoilers. Thanks for listening.<br>(00:00:10) Intro<br>(00:02:44) Brad's first trip to California Extreme!<br>(00:46:19) First Break<br>(00:46:21) Marvel Tokon: Fighting Souls  |  [PC (Microsoft Windows), PlayStation 5]  |  Aug 06, 2026<br>(01:10:51) Iron Nest: Heavy Turret Simulator  |  [PC (Microsoft Windows)]  |  Aug 06, 2026<br>(01:15:28) Agent 64: Spies Never Die  |  [PC (Microsoft Windows)]  |  Aug 11, 2026<br>(01:20:37) The Incident at Galley House  |  [Linux, Mac, PC (Microsoft Windows)]  |  Jul 14, 2026<br>(01:25:53) Big Walk  |  [Mac, PC (Microsoft Windows), PlayStation 5, Nintendo Switch 2]  |  Aug 04, 2026<br>(01:29:13) Warhammer 40,000: Space Marine II  |  [PC (Microsoft Windows), PlayStation 5, Xbox Series X|S]  |  Sep 09, 2024<br>(01:36:18) Second Break<br>(01:36:35) Netflix debuting the next GTA 6 reveal<br>(01:46:34) Devolver Digital wants to stop being traded publicly<br>(01:55:23) Supermassive Games is laying off 75 people<br>(01:59:15) Halloween The Game banned in AU and NZ for... weed?<br>(02:06:53) Emails<br>(02:28:11) Wrapping up and thanks<br>(02:30:53) Mysterious Benefactor Shoutouts<br>(02:32:42) See ya!</p></div>]]></description>
+  <pubDate>Thu, 13 Aug 2026 13:00:00 +0000</pubDate>
+  <guid isPermaLink="false">audioboom-019ff8a5-49e9-7a22-a71b-806fba0548e2</guid>
+  <itunes:author>The Nextlander Podcast</itunes:author>
+  <dc:creator>The Nextlander Podcast</dc:creator>
+</item>
+<item>
+  <title>259: Art Installations by Playskool</title>
+  <link>https://audioboom.com/posts/8936589</link>
+  <itunes:episode>259</itunes:episode>
+  <itunes:title>Art Installations by Playskool</itunes:title>
+  <enclosure url="https://prfx.byspotify.com/e/arttrk.com/p/ABMA5/clrtpod.com/m/pscrb.fm/rss/p/dts.podtrac.com/redirect.mp3/audioboom.com/posts/8936589.mp3?modified=1785974098&amp;sid=5116059&amp;source=rss" length="0" type="audio/mpeg" />
+  <itunes:image href="https://audioboom.com/i/42327576.jpg" />
+  <itunes:duration>8373</itunes:duration>
+  <itunes:explicit>false</itunes:explicit>
+  <itunes:episodeType>full</itunes:episodeType>
+  <description><![CDATA[<div>
+<p>This week we embark on a Big Walk, spend some quality handheld time with the Switch 2, finish Heave Ho 2 and Road to Empress II, ponder news like the closing of the deal taking EA private (and what seems like pending layoffs), some gaming-on-Linux updates, and Dave Bautista's growing go-to status for video game television, run through the shockingly small catalog of AO-rated games, and more.</p><p><strong>CHAPTERS<br></strong><br>(00:00:00) NOTE: Some timecodes may be inaccurate for versions other than the ad-free Patreon version due to dynamic ad insertions. Please use caution if skipping around to avoid spoilers. Thanks for listening.<br>(00:00:10) Intro<br>(00:02:20) Make the loved ones in your life pay for your subscriptions<br>(00:04:13) Brad's looking for a new note-taking app<br>(00:07:34) Alex has (unwanted) water in his basement<br>(00:11:14) Big Walk  |  [Mac, PC (Microsoft Windows), PlayStation 5, Nintendo Switch 2]  |  Aug 04, 2026<br>(00:34:44) First Break<br>(00:34:46) Road to Empress II  |  [PC (Microsoft Windows)]  |  Jun 09, 2026<br>(00:43:57) Heave Ho 2  |  [Nintendo Switch, Nintendo Switch 2, PC (Microsoft Windows)]  |  Jul 16, 2026<br>(00:48:50) Brad's time with his Switch 2<br>(00:50:12) Tetris 99  |  [Nintendo Switch]  |  Feb 13, 2019<br>(00:54:33) Slay the Spire  |  [PC (Microsoft Windows), Mac, Linux]  |  Jan 23, 2019<br>(01:04:37) Second Break<br>(01:04:39) Saudi Arabia and Jared Kushner own Electronic Arts<br>(01:23:40) Xbox 360 titles coming to PC?<br>(01:33:48) Making your own Steam Machine with SteamOS<br>(01:45:41) Epic Games looking into Linux anti-cheat support<br>(01:50:16) There's a new Kratos coming to your TV...<br>(01:57:29) Emails<br>(02:13:54) Wrapping up and thanks<br>(02:16:05) Mysterious Benefactor Shoutouts<br>(02:19:20) See ya</p></div>]]></description>
+  <pubDate>Thu, 06 Aug 2026 13:00:00 +0000</pubDate>
+  <guid isPermaLink="false">audioboom-019fd456-fb8b-7667-a90d-36fd80317ef0</guid>
+  <itunes:author>The Nextlander Podcast</itunes:author>
+  <dc:creator>The Nextlander Podcast</dc:creator>
+</item>
+</channel>
+</rss>
