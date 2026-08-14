@@ -17,11 +17,6 @@ struct NowPlayingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Capsule()
-                .fill(.tertiary)
-                .frame(width: 38, height: 5)
-                .padding(.top, 10)
-
             Picker("", selection: $page) {
                 Text("Up Next").tag(Page.queue)
                 Text("Playing").tag(Page.player)
@@ -43,6 +38,8 @@ struct NowPlayingView: View {
         .overlay(alignment: .bottom) {
             UndoSkipBanner()
         }
+        .presentationDragIndicator(.visible)
+        .padding(.top, 6)
     }
 }
 
@@ -168,17 +165,20 @@ private struct PlayerPage: View {
             } label: {
                 Image(systemName: "gobackward.15").font(.title)
             }
+            .accessibilityLabel("Skip back 15 seconds")
             Button {
                 model.player.isPlaying ? model.player.pause() : model.player.play()
             } label: {
                 Image(systemName: model.player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 64))
             }
+            .accessibilityLabel(model.player.isPlaying ? "Pause" : "Play")
             Button {
                 model.player.seek(toMediaMs: model.player.mediaPositionMs + 30_000)
             } label: {
                 Image(systemName: "goforward.30").font(.title)
             }
+            .accessibilityLabel("Skip forward 30 seconds")
         }
         .buttonStyle(.plain)
     }
@@ -231,7 +231,7 @@ private struct PlayerPage: View {
                 } label: {
                     Label("End ad", systemImage: "flag.checkered")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .tint(.orange)
             }
         }
@@ -436,6 +436,7 @@ struct SegmentReviewRow: View {
                 }
                 .buttonStyle(.borderless)
                 .tint(.green)
+                .accessibilityLabel("Confirm as ad")
                 Button {
                     Task { await model.rejectSegment(segment, episode: episode) }
                 } label: {
@@ -443,6 +444,7 @@ struct SegmentReviewRow: View {
                 }
                 .buttonStyle(.borderless)
                 .tint(.red)
+                .accessibilityLabel("Not an ad")
             }
         }
         .swipeActions(edge: .leading) {
@@ -535,6 +537,29 @@ struct SegmentBar: View {
     /// Normalized peaks for downloaded episodes; nil falls back to a flat bar.
     var waveform: [Float]? = nil
 
+    /// §11.3: the one place custom drawing is sanctioned, which is exactly why
+    /// it must carry an accessible representation of the segments.
+    private var accessibilitySummary: String {
+        let active = segments.filter { $0.userState != .rejected }
+        guard !active.isEmpty else { return "No detected segments" }
+        let parts = active.map { segment in
+            let kind = switch segment.kind {
+            case .ad: "ad"
+            case .sponsorRead: "sponsor read"
+            case .selfPromo: "self promotion"
+            case .intro: "intro"
+            case .outro: "outro"
+            }
+            return "\(kind) from \(spoken(segment.startMs)) to \(spoken(segment.endMs))"
+        }
+        return "Detected segments: " + parts.joined(separator: "; ")
+    }
+
+    private func spoken(_ ms: Int) -> String {
+        let total = ms / 1000
+        return "\(total / 60) minutes \(total % 60) seconds"
+    }
+
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
@@ -575,6 +600,9 @@ struct SegmentBar: View {
                     .offset(x: fraction(positionMs) * proxy.size.width - 1)
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Episode timeline")
+        .accessibilityValue(accessibilitySummary)
     }
 
     private func fraction(_ ms: Int) -> CGFloat {

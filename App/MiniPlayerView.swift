@@ -36,6 +36,7 @@ struct MiniPlayerView: View {
                 } label: {
                     Image(systemName: "gobackward.15")
                 }
+                .accessibilityLabel("Skip back 15 seconds")
             }
 
             Button {
@@ -48,6 +49,7 @@ struct MiniPlayerView: View {
                 Image(systemName: model.player.isPlaying ? "pause.fill" : "play.fill")
                     .font(.title2)
             }
+            .accessibilityLabel(model.player.isPlaying ? "Pause" : "Play")
 
             if placement != .inline {
                 Button {
@@ -55,6 +57,7 @@ struct MiniPlayerView: View {
                 } label: {
                     Image(systemName: "goforward.30")
                 }
+                .accessibilityLabel("Skip forward 30 seconds")
             }
         }
         .padding(.horizontal, 14)

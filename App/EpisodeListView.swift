@@ -8,11 +8,17 @@ struct EpisodeListView: View {
 
     @State private var episodes: [EpisodeRecord] = []
     @State private var descriptionExpanded = false
+    @State private var searchText = ""
+
+    private var visibleEpisodes: [EpisodeRecord] {
+        guard !searchText.isEmpty else { return episodes }
+        return episodes.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+    }
 
     var body: some View {
         List {
             showHeader
-            ForEach(episodes, id: \.id) { episode in
+            ForEach(visibleEpisodes, id: \.id) { episode in
             NavigationLink {
                 EpisodeDetailView(episode: episode)
             } label: {
@@ -59,6 +65,7 @@ struct EpisodeListView: View {
             }
         }
         .listStyle(.plain)
+        .searchable(text: $searchText, prompt: "Search episodes")
         .navigationTitle(podcast.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
