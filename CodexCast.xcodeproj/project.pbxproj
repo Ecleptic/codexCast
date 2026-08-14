@@ -16,6 +16,7 @@
 		6A3596860916D14D9C72CF87 /* CodexCastTranscription in Frameworks */ = {isa = PBXBuildFile; productRef = B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */; };
 		831AB4FA8508AE4E4C7A8D8C /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD1188313195CBCBA224CDCE /* AudioSettings.swift */; };
 		85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */; };
+		907EAC666890080D4149551C /* CodexCastDetectionAFM in Frameworks */ = {isa = PBXBuildFile; productRef = C0E5F6D64EBAF513E79B555E /* CodexCastDetectionAFM */; };
 		91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA7694D224531A293462B9 /* DiscoverView.swift */; };
 		964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */; };
 		A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E01DDCDAB399DDADF254EB /* AppModel.swift */; };
@@ -63,6 +64,7 @@
 				6A3596860916D14D9C72CF87 /* CodexCastTranscription in Frameworks */,
 				DBA630E0541DABFEF58C8B77 /* CodexCastPipeline in Frameworks */,
 				D5E821C70D08C272C1EEA440 /* CodexCastDetection in Frameworks */,
+				907EAC666890080D4149551C /* CodexCastDetectionAFM in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,6 +141,7 @@
 				B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */,
 				25189ADD88E15C2C46F9169E /* CodexCastPipeline */,
 				DC64841B03CDBB942BB0D71F /* CodexCastDetection */,
+				C0E5F6D64EBAF513E79B555E /* CodexCastDetectionAFM */,
 			);
 			productName = CodexCast;
 			productReference = 101C9BCE3F871996CCC31BCC /* CodexCast.app */;
@@ -428,6 +431,10 @@
 		BC78C732AD3598A35D9D51E8 /* CodexCastPlayback */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CodexCastPlayback;
+		};
+		C0E5F6D64EBAF513E79B555E /* CodexCastDetectionAFM */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastDetectionAFM;
 		};
 		C676E321AA8E8076B4217FD2 /* CodexCastFeeds */ = {
 			isa = XCSwiftPackageProductDependency;

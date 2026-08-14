@@ -10,6 +10,7 @@ struct EpisodeDetailView: View {
     let episode: EpisodeRecord
 
     @State private var transcript: TimedTranscript?
+    @State private var segments: [DetectedSegment] = []
     @State private var isLoadingTranscript = false
     @State private var transcriptError: String?
 
@@ -50,6 +51,58 @@ struct EpisodeDetailView: View {
                     .padding(.top, 4)
                 }
                 .padding(.vertical, 4)
+            }
+
+            Section("Ad Detection") {
+                switch model.scanState[episode.id] {
+                case .scanning(let done, let total):
+                    HStack(spacing: 10) {
+                        ProgressView(value: Double(done), total: Double(max(1, total)))
+                        Text("\(done)/\(total)")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                case .unavailable(let reason):
+                    Text(reason).foregroundStyle(.orange).font(.callout)
+                case .done(let found, let seconds):
+                    Text(found == 0
+                        ? "No ads found (scanned in \(seconds)s)."
+                        : "Found \(found) segment\(found == 1 ? "" : "s") in \(seconds)s. They'll be skipped during playback.")
+                        .font(.callout)
+                case nil:
+                    EmptyView()
+                }
+
+                ForEach(segments, id: \.id) { segment in
+                    Button {
+                        model.play(episode, startAtMs: max(0, segment.startMs - 5_000))
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(segmentTitle(segment)).font(.callout.weight(.medium))
+                                if let rationale = segment.rationale {
+                                    Text(rationale).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                                }
+                            }
+                            Spacer()
+                            Text("\(timestamp(segment.startMs))–\(timestamp(segment.endMs))")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if transcript != nil, model.scanState[episode.id] == nil || segments.isEmpty {
+                    Button {
+                        Task {
+                            await model.scanForAds(episode)
+                            segments = (try? await model.segmentRepository.segments(episodeID: episode.id)) ?? []
+                        }
+                    } label: {
+                        Label("Scan for Ads", systemImage: "sparkle.magnifyingglass")
+                    }
+                }
             }
 
             if let summary = episode.summary, !summary.isEmpty {
@@ -132,6 +185,7 @@ struct EpisodeDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             transcript = try? await model.transcripts.transcript(episodeID: episode.id)
+            segments = (try? await model.segmentRepository.segments(episodeID: episode.id)) ?? []
             if transcript == nil, episode.feedTranscripts != nil {
                 await loadFeedTranscript()
             }
@@ -158,6 +212,18 @@ struct EpisodeDetailView: View {
     private func transcribeHere() async {
         await model.transcribeOnDevice(episode)
         transcript = try? await model.transcripts.transcript(episodeID: episode.id)
+    }
+
+    private func segmentTitle(_ segment: DetectedSegment) -> String {
+        let kind: String
+        switch segment.kind {
+        case .ad: kind = "Ad"
+        case .sponsorRead: kind = "Sponsor read"
+        case .selfPromo: kind = "Self-promo"
+        case .intro: kind = "Intro"
+        case .outro: kind = "Outro"
+        }
+        return "\(kind) · \(Int(segment.confidence * 100))%"
     }
 
     private func timestamp(_ ms: Int) -> String {

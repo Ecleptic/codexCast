@@ -27,6 +27,7 @@ targets:
           - CodexCastTranscription
           - CodexCastPipeline
           - CodexCastDetection
+          - CodexCastDetectionAFM
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.ckg.codexcast

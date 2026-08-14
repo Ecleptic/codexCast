@@ -2,6 +2,8 @@ import CodexCastCore
 import CodexCastFeeds
 import CodexCastPersistence
 import CodexCastPipeline
+import CodexCastDetection
+import CodexCastDetectionAFM
 import CodexCastPlayback
 import CodexCastTranscription
 import CryptoKit
@@ -23,6 +25,7 @@ final class AppModel {
     let player: PlaybackEngine
     let playlistRepository: PlaylistRepository
     let retention: RetentionPolicy
+    let segmentRepository: SegmentRepository
 
     private(set) var library: [PodcastRecord] = []
     private(set) var playlists: [Playlist] = []
@@ -45,6 +48,7 @@ final class AppModel {
         player = PlaybackEngine()
         playlistRepository = PlaylistRepository(database: database)
         retention = RetentionPolicy(database: database)
+        segmentRepository = SegmentRepository(database: database)
     }
 
     // MARK: - Library
@@ -233,6 +237,92 @@ final class AppModel {
         var errorDescription: String? { "This episode has no downloadable audio." }
     }
 
+    // MARK: - Ad detection (§5, first on-device pass)
+
+    enum ScanState: Equatable {
+        case scanning(windowsDone: Int, windowsTotal: Int)
+        case done(found: Int, seconds: Int)
+        case unavailable(String)
+    }
+
+    private(set) var scanState: [Episode.ID: ScanState] = [:]
+
+    /// Runs Stage 2 over an episode's transcript on this device and stores the
+    /// results. Sponsor hints from the show notes feed the model's context
+    /// (A6) — who to look for, known before any learning has happened.
+    func scanForAds(_ episode: EpisodeRecord) async {
+        guard let transcript = try? await transcripts.transcript(episodeID: episode.id) else {
+            scanState[episode.id] = .unavailable("Transcribe the episode first.")
+            return
+        }
+
+        let classifier = OnDeviceClassifier()
+        guard await classifier.isAvailable else {
+            scanState[episode.id] = .unavailable(
+                "Apple Intelligence isn't available on this device or isn't enabled."
+            )
+            return
+        }
+
+        let showName = library.first { $0.id == episode.podcastId }?.title ?? "this show"
+        let hints = SponsorHintExtractor.extract(from: episode.summary ?? "")
+        let context = ClassificationContext(
+            showName: showName,
+            knownSponsors: hints.map(\.name)
+        )
+
+        let started = Date()
+        let windows = TranscriptWindower.windows(for: transcript)
+        scanState[episode.id] = .scanning(windowsDone: 0, windowsTotal: windows.count)
+        classifier.prewarm(context: context)
+
+        var findings: [WindowFinding] = []
+        for (index, window) in windows.enumerated() {
+            // Thermal courtesy (§5.3.6): back off rather than cook the phone.
+            if ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue {
+                break
+            }
+            if let result = try? await classifier.classify(window: window, context: context) {
+                findings.append(contentsOf: result)
+            }
+            scanState[episode.id] = .scanning(windowsDone: index + 1, windowsTotal: windows.count)
+        }
+
+        // Snap, dedupe, gate — the same post-processing the harness uses.
+        var segments: [DetectedSegment] = []
+        for finding in TranscriptWindower.deduplicate(findings) {
+            guard let start = transcript.nearestBoundary(toMs: finding.startMs),
+                  let end = transcript.nearestBoundary(toMs: finding.endMs),
+                  end > start
+            else { continue }
+            segments.append(DetectedSegment(
+                episodeID: episode.id,
+                startMs: start, endMs: end,
+                kind: finding.kind,
+                confidence: finding.confidence,
+                provenance: .onDeviceModel(windowIndex: 0, modelTier: "afm-device"),
+                rationale: finding.rationale,
+                sponsorID: nil
+            ))
+        }
+
+        try? await segmentRepository.replaceMachineSegments(segments, episodeID: episode.id)
+
+        let elapsed = Int(Date().timeIntervalSince(started))
+        scanState[episode.id] = .done(found: segments.count, seconds: elapsed)
+    }
+
+    /// The gate's verdict for an episode, driving both the UI and skipping.
+    func gatedSegments(for episode: EpisodeRecord) async -> ValidationGate.Outcome? {
+        guard let segments = try? await segmentRepository.segments(episodeID: episode.id),
+              !segments.isEmpty
+        else { return nil }
+        return ValidationGate().evaluate(
+            segments: segments,
+            episodeDurationMs: episode.durationMs ?? segments.map(\.endMs).max() ?? 0
+        )
+    }
+
     // MARK: - Audio settings (A5.4)
 
     func applyAudioSettings() {
@@ -313,18 +403,33 @@ final class AppModel {
 
     private(set) var nowPlaying: EpisodeRecord?
 
-    /// Streams an episode's primary audio. Download-first arrives with the
-    /// pipeline UI; streaming makes the player usable immediately.
+    /// Streams an episode's primary audio, with any gated ad segments loaded
+    /// as skip blocks — detection's output becomes playback behavior here.
     func play(_ episode: EpisodeRecord, startAtMs: Int? = nil) {
+        Task {
+            await playWithSegments(episode, startAtMs: startAtMs)
+        }
+    }
+
+    private func playWithSegments(_ episode: EpisodeRecord, startAtMs: Int?) async {
+        let outcome = await gatedSegments(for: episode)
+        let blocks = (outcome?.autoSkippable ?? []).map { segment in
+            SkipBlock(startMs: segment.startMs, endMs: segment.endMs, segmentIDs: [segment.id])
+        }
+        startPlayback(episode, startAtMs: startAtMs, blocks: blocks)
+    }
+
+    private func startPlayback(_ episode: EpisodeRecord, startAtMs: Int?, blocks: [SkipBlock]) {
         guard let renditionData = episode.renditions?.data(using: .utf8),
               let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData),
               let url = renditions.first(where: \.isPrimaryEnclosure)?.sources.first
                 ?? renditions.first?.sources.first
         else { return }
 
-        // No detected segments yet, so the timeline is the identity mapping —
-        // exactly why DisplayTimeline was built before skipping existed.
-        let timeline = DisplayTimeline(mediaDurationMs: episode.durationMs ?? 0)
+        let timeline = DisplayTimeline(
+            mediaDurationMs: episode.durationMs ?? 0,
+            blocks: blocks
+        )
         player.load(url: url, timeline: timeline, startAtMs: startAtMs ?? episode.playbackPositionMs)
         player.play()
         nowPlaying = episode
