@@ -1150,10 +1150,19 @@ final class AppModel {
             guard let (data, _) = try? await URLSession.shared.data(from: url),
                   let image = UIImage(data: data)
             else { return }
-            let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+            // The artwork's image-provider closure is invoked by MediaPlayer
+            // on ITS queue. Built inline here it inherits main-actor isolation
+            // and the runtime's executor check traps (SIGTRAP on launch, seen
+            // in the field). Construct it in a nonisolated context instead.
+            let artwork = Self.makeArtwork(image)
             self?.lockScreenArtwork = (episode.id, artwork)
             self?.updateNowPlayingInfo()
         }
+    }
+
+    /// Nonisolated on purpose — see loadLockScreenArtwork.
+    nonisolated private static func makeArtwork(_ image: UIImage) -> MPMediaItemArtwork {
+        MPMediaItemArtwork(boundsSize: image.size) { _ in image }
     }
 
     /// Elapsed time on the lock screen comes from the display timeline, so it
