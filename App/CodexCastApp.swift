@@ -36,20 +36,28 @@ struct RootView: View {
         // TabView buries the tabs entirely, which is exactly what happened.
         // Applied conditionally: an empty accessory still draws its capsule.
         @Bindable var router = router
-        if model.nowPlaying != nil {
-            tabs
-                .tabViewBottomAccessory {
-                    MiniPlayerView()
-                }
-                .sheet(isPresented: $router.showPlayer) {
-                    // The sheet is hosted outside the tab hierarchy, so the
-                    // router injected inside `tabs` never reaches it — inject
-                    // it again here or the first environment read traps.
-                    NowPlayingView()
-                        .environment(router)
-                }
-        } else {
-            tabs
+        @Bindable var model = model
+        Group {
+            if model.nowPlaying != nil {
+                tabs
+                    .tabViewBottomAccessory {
+                        MiniPlayerView()
+                    }
+                    .sheet(isPresented: $router.showPlayer) {
+                        // The sheet is hosted outside the tab hierarchy, so the
+                        // router injected inside `tabs` never reaches it — inject
+                        // it again here or the first environment read traps.
+                        NowPlayingView()
+                            .environment(router)
+                    }
+            } else {
+                tabs
+            }
+        }
+        // End-of-episode review card (A3): appears whichever state playback
+        // lands in after an episode finishes.
+        .sheet(item: $model.pendingReview) { review in
+            ReviewCardView(review: review)
         }
     }
 

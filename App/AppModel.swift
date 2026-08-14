@@ -729,6 +729,43 @@ final class AppModel {
         )
     }
 
+    // MARK: - Learning export/import (§6.10, A3.3)
+
+    /// The whole learning store as pretty-printed JSON — the file that goes
+    /// to a frontier model for distillation.
+    func exportLearningJSON() async -> String? {
+        let notes = library.compactMap { podcast -> LearningTransfer.Archive.ShowNote? in
+            guard let note = classifierNotes(for: podcast.id) else { return nil }
+            return LearningTransfer.Archive.ShowNote(feedURL: podcast.feedURL, note: note)
+        }
+        guard let archive = try? await LearningTransfer(database: database).export(showNotes: notes)
+        else { return nil }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        guard let data = try? encoder.encode(archive) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    /// Imports a raw or distilled learning file. Returns a user-facing
+    /// summary line.
+    func importLearningJSON(from url: URL) async -> String {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        guard let data = try? Data(contentsOf: url),
+              let archive = try? decoder.decode(LearningTransfer.Archive.self, from: data)
+        else { return "Couldn't read that learning file." }
+        guard let summary = try? await LearningTransfer(database: database).importArchive(archive)
+        else { return "That file couldn't be imported." }
+        // Notes ride the archive too; apply any for shows we have.
+        for note in archive.showNotes {
+            if let podcast = library.first(where: { $0.feedURL == note.feedURL }) {
+                await saveClassifierNotes(note.note, podcastID: podcast.id)
+            }
+        }
+        return "Added \(summary.patternsAdded) patterns, \(summary.sponsorsAdded) sponsors, \(summary.rulesAdded) position rules."
+    }
+
     // MARK: - Position rules (§5.1/§6.3)
 
     /// Every confirmed ad teaches the show's position statistics: which
@@ -1397,6 +1434,19 @@ final class AppModel {
         installRemoteCommands()
     }
 
+    // MARK: - End-of-episode review (A3)
+
+    /// Queued when an episode finishes with unreviewed detections — the batch
+    /// version of the undo affordance, catching corrections the listener
+    /// didn't make in the moment.
+    struct EpisodeReview: Identifiable {
+        var id: Episode.ID { episode.id }
+        var episode: EpisodeRecord
+        var segments: [DetectedSegment]
+    }
+
+    var pendingReview: EpisodeReview?
+
     /// Episode finished: mark it played, drop it from Up Next, start the next
     /// queued episode. Listening is a session (ux-architecture invariant 2).
     private func advanceQueue() async {
@@ -1409,6 +1459,11 @@ final class AppModel {
             try? await episodes.setPlayed(true, episodeID: finished.id)
             if let queue = playlists.first(where: { $0.name == Playlist.upNextName }) {
                 try? await playlistRepository.remove(episodeID: finished.id, from: queue.id)
+            }
+            let unreviewed = ((try? await segmentRepository.segments(episodeID: finished.id)) ?? [])
+                .filter { $0.userState == .unreviewed }
+            if !unreviewed.isEmpty {
+                pendingReview = EpisodeReview(episode: finished, segments: unreviewed)
             }
         }
         guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }),
