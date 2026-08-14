@@ -52,6 +52,7 @@ let package = Package(
         .testTarget(name: "CodexCastPlaybackTests", dependencies: ["CodexCastPlayback"]),
         .testTarget(name: "CodexCastDetectionTests", dependencies: ["CodexCastDetection"]),
         .testTarget(name: "CodexCastTranscriptionTests", dependencies: ["CodexCastTranscription"]),
+        .testTarget(name: "CodexCastPipelineTests", dependencies: ["CodexCastPipeline"]),
     ],
     swiftLanguageModes: [.v6]
 )
