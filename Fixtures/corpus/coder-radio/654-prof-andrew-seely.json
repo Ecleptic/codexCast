@@ -1,0 +1,3890 @@
+{
+  "show": "Coder Radio",
+  "episodeTitle": "654 prof andrew seely",
+  "audioFileName": "02-654-prof-andrew-seely.mp3",
+  "durationMs": 3066507,
+  "labeledAt": "2026-08-14",
+  "segments": [
+    {
+      "startMs": 50159,
+      "endMs": 94980,
+      "kind": "sponsorRead",
+      "sponsor": "Alice Pro"
+    },
+    {
+      "startMs": 547679,
+      "endMs": 592379,
+      "kind": "ad",
+      "sponsor": "Alderon Games"
+    }
+  ],
+  "transcript": {
+    "source": "onDevice",
+    "segments": [
+      {
+        "startMs": 4019,
+        "endMs": 6960,
+        "text": "Hello and welcome to Coder Radio.",
+        "speaker": null
+      },
+      {
+        "startMs": 7019,
+        "endMs": 9119,
+        "text": "So I got a really interesting show for you today.",
+        "speaker": null
+      },
+      {
+        "startMs": 9179,
+        "endMs": 11580,
+        "text": "I've got Professor Andrew Sealey here.",
+        "speaker": null
+      },
+      {
+        "startMs": 11640,
+        "endMs": 19739,
+        "text": "We are talking all kinds of things, tech education, coder education, lots of Linux, so Penguins rejoice.",
+        "speaker": null
+      },
+      {
+        "startMs": 19800,
+        "endMs": 24179,
+        "text": "A little bit of how corporate partnerships can work and technical education.",
+        "speaker": null
+      },
+      {
+        "startMs": 24239,
+        "endMs": 25140,
+        "text": "This is higher education.",
+        "speaker": null
+      },
+      {
+        "startMs": 25199,
+        "endMs": 28379,
+        "text": "He is a college professor at Hillsboro County College.",
+        "speaker": null
+      },
+      {
+        "startMs": 28440,
+        "endMs": 30839,
+        "text": "Now apparently just called Hillsboro College.",
+        "speaker": null
+      },
+      {
+        "startMs": 30899,
+        "endMs": 31500,
+        "text": "So good on them.",
+        "speaker": null
+      },
+      {
+        "startMs": 31559,
+        "endMs": 38759,
+        "text": "This is, uh, yeah, another local guy here in Tampa, but really big in the community doing a lot with I Tripoli and students.",
+        "speaker": null
+      },
+      {
+        "startMs": 38820,
+        "endMs": 46859,
+        "text": "We do accidentally, tangentially, answer one of the mailbag emails, uh, that's supposed to come out next week, but that's okay.",
+        "speaker": null
+      },
+      {
+        "startMs": 46920,
+        "endMs": 50100,
+        "text": "I think it was very, very on the nose for this episode.",
+        "speaker": null
+      },
+      {
+        "startMs": 50159,
+        "endMs": 53520,
+        "text": "But before that, let me tell you what we're brought to today.",
+        "speaker": null
+      },
+      {
+        "startMs": 53579,
+        "endMs": 55200,
+        "text": "By Alice Pro.",
+        "speaker": null
+      },
+      {
+        "startMs": 55320,
+        "endMs": 56939,
+        "text": "It's my Alice, but as a SAS now.",
+        "speaker": null
+      },
+      {
+        "startMs": 57000,
+        "endMs": 58259,
+        "text": "You can just go to Alice.dev.",
+        "speaker": null
+      },
+      {
+        "startMs": 58320,
+        "endMs": 62039,
+        "text": "It is now a monthly sass if you want it to be.",
+        "speaker": null
+      },
+      {
+        "startMs": 62100,
+        "endMs": 66420,
+        "text": "You can bring your legacy data and pull that right into power BI.",
+        "speaker": null
+      },
+      {
+        "startMs": 66480,
+        "endMs": 78900,
+        "text": "So all you Microsoft shops out there that are still struggling with things like Fox Pro or Access, whatever Sumerian, ancient version of SQL you're using, we can make that happen at a nice affordable SAS Pride.",
+        "speaker": null
+      },
+      {
+        "startMs": 78959,
+        "endMs": 81120,
+        "text": "And if use the code coder, it's an additional 10% off.",
+        "speaker": null
+      },
+      {
+        "startMs": 81180,
+        "endMs": 85379,
+        "text": "If you still are needing on prem, which many people are.",
+        "speaker": null
+      },
+      {
+        "startMs": 85439,
+        "endMs": 89519,
+        "text": "We also have an enterprise offering, and that coder code gives you that 10% off.",
+        "speaker": null
+      },
+      {
+        "startMs": 89579,
+        "endMs": 91379,
+        "text": "This is a bit of a soft launch.",
+        "speaker": null
+      },
+      {
+        "startMs": 91439,
+        "endMs": 92519,
+        "text": "You can see a harder push.",
+        "speaker": null
+      },
+      {
+        "startMs": 92579,
+        "endMs": 94859,
+        "text": "Well, by the time this comes out, you'll probably see the harder push.",
+        "speaker": null
+      },
+      {
+        "startMs": 94980,
+        "endMs": 99900,
+        "text": "But I'm, yeah, so, you know, get the lower price while you can.",
+        "speaker": null
+      },
+      {
+        "startMs": 99959,
+        "endMs": 101879,
+        "text": "Additionally, some news.",
+        "speaker": null
+      },
+      {
+        "startMs": 101939,
+        "endMs": 105000,
+        "text": "So fable is continually back and gone.",
+        "speaker": null
+      },
+      {
+        "startMs": 105060,
+        "endMs": 108239,
+        "text": "There is some chance that by the time this airs, it will be gone again.",
+        "speaker": null
+      },
+      {
+        "startMs": 108299,
+        "endMs": 112200,
+        "text": "I don't understand what's going on with that, but a lot of people are written in.",
+        "speaker": null
+      },
+      {
+        "startMs": 112260,
+        "endMs": 112859,
+        "text": "It's weird.",
+        "speaker": null
+      },
+      {
+        "startMs": 112920,
+        "endMs": 114000,
+        "text": "We'll keep following that.",
+        "speaker": null
+      },
+      {
+        "startMs": 114060,
+        "endMs": 120780,
+        "text": "There is also a interesting development on the ChatGPT side of life.",
+        "speaker": null
+      },
+      {
+        "startMs": 120840,
+        "endMs": 121859,
+        "text": "Seoul.",
+        "speaker": null
+      },
+      {
+        "startMs": 121920,
+        "endMs": 122939,
+        "text": "I've been playing with it.",
+        "speaker": null
+      },
+      {
+        "startMs": 123000,
+        "endMs": 124560,
+        "text": "That would be 5.6.",
+        "speaker": null
+      },
+      {
+        "startMs": 124799,
+        "endMs": 127680,
+        "text": "Correct me if I'm wrong, but SOL, Soul is in the sun.",
+        "speaker": null
+      },
+      {
+        "startMs": 127739,
+        "endMs": 140400,
+        "text": "We're probably, I think I'm going to give it till the end of August, but we're probably going to have to do another coding assistant roundup because certainly there's been some changes and some leaps here, particularly for those of you who are.",
+        "speaker": null
+      },
+      {
+        "startMs": 140699,
+        "endMs": 147360,
+        "text": "I hate the term vibe coding, but where kind of, yeah, let's just say vibe coding too, because it's going to be a whole thing.",
+        "speaker": null
+      },
+      {
+        "startMs": 147419,
+        "endMs": 155340,
+        "text": "So it's great. Also, we're going to be doing a community project that will be announced fully in the next show.",
+        "speaker": null
+      },
+      {
+        "startMs": 155400,
+        "endMs": 164520,
+        "text": "But if you follow closely in the discord, you'll get a sneak peek and we're doing that in partnership, one of our great friends of the show, and we'll have that all for you next week.",
+        "speaker": null
+      },
+      {
+        "startMs": 164580,
+        "endMs": 168120,
+        "text": "So keep it going to be a full GitHub repo poll request.",
+        "speaker": null
+      },
+      {
+        "startMs": 168180,
+        "endMs": 169800,
+        "text": "So keep your ears out for that.",
+        "speaker": null
+      },
+      {
+        "startMs": 169860,
+        "endMs": 171960,
+        "text": "I'm just finishing setting it up.",
+        "speaker": null
+      },
+      {
+        "startMs": 172020,
+        "endMs": 176699,
+        "text": "That'll all be ready probably when this airs, but we're gonna start the clock on it on the next episode.",
+        "speaker": null
+      },
+      {
+        "startMs": 176759,
+        "endMs": 178080,
+        "text": "So it's a little more fair, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 178139,
+        "endMs": 178740,
+        "text": "So people can get in.",
+        "speaker": null
+      },
+      {
+        "startMs": 178800,
+        "endMs": 180780,
+        "text": "Other news, news.",
+        "speaker": null
+      },
+      {
+        "startMs": 180840,
+        "endMs": 181919,
+        "text": "A lot of you are pretty mad.",
+        "speaker": null
+      },
+      {
+        "startMs": 181979,
+        "endMs": 183479,
+        "text": "No more PS5 disc.",
+        "speaker": null
+      },
+      {
+        "startMs": 183599,
+        "endMs": 184740,
+        "text": "Yeah.",
+        "speaker": null
+      },
+      {
+        "startMs": 184800,
+        "endMs": 186419,
+        "text": "So they're doing that.",
+        "speaker": null
+      },
+      {
+        "startMs": 186479,
+        "endMs": 187979,
+        "text": "kind of inevitable, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 188099,
+        "endMs": 191340,
+        "text": "Brings up issues of archiving games as art.",
+        "speaker": null
+      },
+      {
+        "startMs": 191400,
+        "endMs": 198060,
+        "text": "ownership because Sony simultaneously deleted movies that people had quote unquote purchased on their platform.",
+        "speaker": null
+      },
+      {
+        "startMs": 198120,
+        "endMs": 198719,
+        "text": "Not great.",
+        "speaker": null
+      },
+      {
+        "startMs": 199020,
+        "endMs": 203879,
+        "text": "Microsoft's doing the same thing with Xbox, which brings us to our next news topic.",
+        "speaker": null
+      },
+      {
+        "startMs": 203939,
+        "endMs": 208800,
+        "text": "Massive layoffs from Microsoft, mostly in the Xbox division.",
+        "speaker": null
+      },
+      {
+        "startMs": 208860,
+        "endMs": 211020,
+        "text": "This is coming, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 211080,
+        "endMs": 219419,
+        "text": "You know, when you when you get rid of the CEO of Xbox and you put in someone who's a turnaround artist, that's what a turnaround artist does.",
+        "speaker": null
+      },
+      {
+        "startMs": 219479,
+        "endMs": 226379,
+        "text": "The good news is some of the more independent studios, the smaller studios that they purchased over, I don't know, let's say the last 5 years.",
+        "speaker": null
+      },
+      {
+        "startMs": 226439,
+        "endMs": 234300,
+        "text": "have been allowed to, in some form of the other continue to operate and regain their independence.",
+        "speaker": null
+      },
+      {
+        "startMs": 234360,
+        "endMs": 239159,
+        "text": "This is an evolving story because many of them are coming out saying, well, that's nice, but we don't have resources to do much.",
+        "speaker": null
+      },
+      {
+        "startMs": 239219,
+        "endMs": 244439,
+        "text": "My bet is there's a lot of PE money sloshing around the world right now.",
+        "speaker": null
+      },
+      {
+        "startMs": 244560,
+        "endMs": 247500,
+        "text": "And a lot of it wants to go into gaming.",
+        "speaker": null
+      },
+      {
+        "startMs": 247560,
+        "endMs": 248879,
+        "text": "I have a feeling you're going to see.",
+        "speaker": null
+      },
+      {
+        "startMs": 248939,
+        "endMs": 252719,
+        "text": "Some of these studios partner up with PE.",
+        "speaker": null
+      },
+      {
+        "startMs": 252780,
+        "endMs": 255120,
+        "text": "And of course, you're going to see folks like EA, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 255180,
+        "endMs": 258000,
+        "text": "The other big studios, but pick up these these folks.",
+        "speaker": null
+      },
+      {
+        "startMs": 258060,
+        "endMs": 264600,
+        "text": "You know, the reality is on the scale that Microsoft is operating to be a successful business within Microsoft.",
+        "speaker": null
+      },
+      {
+        "startMs": 264660,
+        "endMs": 267600,
+        "text": "You need to be a $1000000000 business.",
+        "speaker": null
+      },
+      {
+        "startMs": 267720,
+        "endMs": 272579,
+        "text": "And I'm using that as a kind of a short shorthand, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 272639,
+        "endMs": 273540,
+        "text": "I don't know what the real number is.",
+        "speaker": null
+      },
+      {
+        "startMs": 273600,
+        "endMs": 277560,
+        "text": "Uh, it's, it's just, I mean, I, I don't know.",
+        "speaker": null
+      },
+      {
+        "startMs": 277620,
+        "endMs": 279000,
+        "text": "I have fond memories of the 360",
+        "speaker": null
+      },
+      {
+        "startMs": 279300,
+        "endMs": 280560,
+        "text": "I think competition is good.",
+        "speaker": null
+      },
+      {
+        "startMs": 280620,
+        "endMs": 283379,
+        "text": "I think it's undeniable.",
+        "speaker": null
+      },
+      {
+        "startMs": 283620,
+        "endMs": 294660,
+        "text": "Especially if you listen to any of the, uh, kind of leaks or even the people from Microsoft talking about the rationale that that division has not hit their financial expectations.",
+        "speaker": null
+      },
+      {
+        "startMs": 294720,
+        "endMs": 303000,
+        "text": "Again, those of us running small businesses, it's kind of crazy, but you know, Asher's a big, big money maker.",
+        "speaker": null
+      },
+      {
+        "startMs": 303060,
+        "endMs": 308279,
+        "text": "So his office, uh, and just just when you're at that scale, it's kind of all relative, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 308339,
+        "endMs": 312360,
+        "text": "Think about it when you're a kid, you know, your dad hands you a $20 bill.",
+        "speaker": null
+      },
+      {
+        "startMs": 312420,
+        "endMs": 312779,
+        "text": "That great.",
+        "speaker": null
+      },
+      {
+        "startMs": 312839,
+        "endMs": 317279,
+        "text": "You know, you're 40 and your rent is whatever, 2 grand, 3 grand.",
+        "speaker": null
+      },
+      {
+        "startMs": 317339,
+        "endMs": 319680,
+        "text": "That $20 bill doesn't mean nearly as much.",
+        "speaker": null
+      },
+      {
+        "startMs": 319740,
+        "endMs": 322079,
+        "text": "So I think that's kind of where Microsoft is.",
+        "speaker": null
+      },
+      {
+        "startMs": 322139,
+        "endMs": 327120,
+        "text": "Other news, a lot of concern about the AI bubble stuff.",
+        "speaker": null
+      },
+      {
+        "startMs": 327180,
+        "endMs": 343740,
+        "text": "Again, I think we're probably going to do something deeper on this when we do the, uh, the 2nd look at the coding LLM tools, particularly because of some of the cost concerns around cost per token with fable, and kind of just where this is all probably going to go financially.",
+        "speaker": null
+      },
+      {
+        "startMs": 343800,
+        "endMs": 349500,
+        "text": "But yeah, there's, there's, uh, you know, IPO is about to happen.",
+        "speaker": null
+      },
+      {
+        "startMs": 349560,
+        "endMs": 350339,
+        "text": "Open AI, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 350399,
+        "endMs": 351540,
+        "text": "Anthropic rumors.",
+        "speaker": null
+      },
+      {
+        "startMs": 351839,
+        "endMs": 363360,
+        "text": "Now maybe Apple is trying to ran on open AI's parade, of course, our last news story is that Apple is suing open AI for effectively stealing hardware trade secrets.",
+        "speaker": null
+      },
+      {
+        "startMs": 363420,
+        "endMs": 367379,
+        "text": "Allegedly, a dude worked at, this is, this story is so crazy.",
+        "speaker": null
+      },
+      {
+        "startMs": 367439,
+        "endMs": 374040,
+        "text": "This is this is one of them where I kind of wanted to ignore it, but Uncle Tim's coming out so hard.",
+        "speaker": null
+      },
+      {
+        "startMs": 374100,
+        "endMs": 375360,
+        "text": "You just can't.",
+        "speaker": null
+      },
+      {
+        "startMs": 375420,
+        "endMs": 378600,
+        "text": "So Sky worked at Apple.",
+        "speaker": null
+      },
+      {
+        "startMs": 379019,
+        "endMs": 392579,
+        "text": "And somehow circumvented their security allegedly, took his Apple laptop with their trade secrets and allegedly gave them to open AI, who Apple is now suing.",
+        "speaker": null
+      },
+      {
+        "startMs": 392699,
+        "endMs": 397500,
+        "text": "This is all according to Apple. This is very weird.",
+        "speaker": null
+      },
+      {
+        "startMs": 397680,
+        "endMs": 411779,
+        "text": "This also sparked a Twitter slash X kind of spat between Elon Musk and Sam Altman, Sam Altman, of course, the head of open AI.",
+        "speaker": null
+      },
+      {
+        "startMs": 412019,
+        "endMs": 420899,
+        "text": "I can't believe this is reality, is all I can say, because, like, one, have you never seen the TV show Silicon Valley?",
+        "speaker": null
+      },
+      {
+        "startMs": 420959,
+        "endMs": 429360,
+        "text": "You can't steal your employer's laptop to either use for your own, you know, commercial desires or to give to a competitor.",
+        "speaker": null
+      },
+      {
+        "startMs": 429420,
+        "endMs": 431639,
+        "text": "If that indeed is what happened.",
+        "speaker": null
+      },
+      {
+        "startMs": 431699,
+        "endMs": 433680,
+        "text": "That's, that's, yeah, you just can't do that.",
+        "speaker": null
+      },
+      {
+        "startMs": 434100,
+        "endMs": 453779,
+        "text": "Also, why are 2, I think, Altman's a billionaire too, but why are 2 super rich dudes who are leading in some form or another in this new AI, uh, arena, having public, incredibly caddy arguments online?",
+        "speaker": null
+      },
+      {
+        "startMs": 453839,
+        "endMs": 455279,
+        "text": "It just seems weird.",
+        "speaker": null
+      },
+      {
+        "startMs": 455339,
+        "endMs": 461639,
+        "text": "So I would say we live in the kind of silliest timeline right now, you know, we don't know how true this is, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 461699,
+        "endMs": 467819,
+        "text": "It's gonna go, it's gonna go to court, what we do know is if it goes to discovery, there will be juicy, juicy emails.",
+        "speaker": null
+      },
+      {
+        "startMs": 467879,
+        "endMs": 471720,
+        "text": "So that's always embarrassing for them.",
+        "speaker": null
+      },
+      {
+        "startMs": 471779,
+        "endMs": 481439,
+        "text": "I should add that even though Uncle Elon is, again, in this weird public Twitter fight with Sam Altman, he is not part of this lawsuit.",
+        "speaker": null
+      },
+      {
+        "startMs": 481500,
+        "endMs": 484079,
+        "text": "It is Apple the open AI.",
+        "speaker": null
+      },
+      {
+        "startMs": 484139,
+        "endMs": 486480,
+        "text": "So, That's great.",
+        "speaker": null
+      },
+      {
+        "startMs": 486540,
+        "endMs": 491939,
+        "text": "I can't imagine that this is a good thing for open AI's IPO plans.",
+        "speaker": null
+      },
+      {
+        "startMs": 492000,
+        "endMs": 492839,
+        "text": "I almost forgot the word.",
+        "speaker": null
+      },
+      {
+        "startMs": 492899,
+        "endMs": 495000,
+        "text": "See, this is this stuff is so bizarre.",
+        "speaker": null
+      },
+      {
+        "startMs": 495060,
+        "endMs": 496740,
+        "text": "that it kind of addles my brain.",
+        "speaker": null
+      },
+      {
+        "startMs": 497040,
+        "endMs": 499139,
+        "text": "But who knows?",
+        "speaker": null
+      },
+      {
+        "startMs": 499259,
+        "endMs": 504540,
+        "text": "I mean, maybe, you know, they seem to get accused of a lot of stuff quite frequently.",
+        "speaker": null
+      },
+      {
+        "startMs": 504660,
+        "endMs": 507540,
+        "text": "So maybe that's kind of baked into the price.",
+        "speaker": null
+      },
+      {
+        "startMs": 507600,
+        "endMs": 508379,
+        "text": "I don't know.",
+        "speaker": null
+      },
+      {
+        "startMs": 508500,
+        "endMs": 510060,
+        "text": "This whole thing is weird.",
+        "speaker": null
+      },
+      {
+        "startMs": 510120,
+        "endMs": 511680,
+        "text": "I'll keep following it.",
+        "speaker": null
+      },
+      {
+        "startMs": 511740,
+        "endMs": 523799,
+        "text": "I do want to avoid a lot of this kind of weird tech billionaire cattiness because I don't think it's actually productive, but sometimes it's too absurd and too honestly funny to ignore.",
+        "speaker": null
+      },
+      {
+        "startMs": 523860,
+        "endMs": 524700,
+        "text": "Yeah.",
+        "speaker": null
+      },
+      {
+        "startMs": 524759,
+        "endMs": 528840,
+        "text": "Also, just the question, food for thought, what could they have stolen?",
+        "speaker": null
+      },
+      {
+        "startMs": 528899,
+        "endMs": 531960,
+        "text": "Like the overlap between open AI and Apple.",
+        "speaker": null
+      },
+      {
+        "startMs": 532019,
+        "endMs": 533639,
+        "text": "I don't know, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 533700,
+        "endMs": 535440,
+        "text": "Did they even really steal anything?",
+        "speaker": null
+      },
+      {
+        "startMs": 535500,
+        "endMs": 540600,
+        "text": "Is there somehow, some way this is, it's just all weird.",
+        "speaker": null
+      },
+      {
+        "startMs": 540659,
+        "endMs": 543480,
+        "text": "I mean, we'll just have to wait for the discovery and see if this proceeds.",
+        "speaker": null
+      },
+      {
+        "startMs": 543539,
+        "endMs": 545340,
+        "text": "So that's about it.",
+        "speaker": null
+      },
+      {
+        "startMs": 545399,
+        "endMs": 547620,
+        "text": "Again, a great conversation with Professor Seely.",
+        "speaker": null
+      },
+      {
+        "startMs": 547679,
+        "endMs": 551639,
+        "text": "And yeah, here's a note from our sponsor and we'll be right back.",
+        "speaker": null
+      },
+      {
+        "startMs": 551759,
+        "endMs": 561659,
+        "text": "We're brought to you today by Alderon Games, the makers of the hit, dinosaur massively multiplayer game that's available on just about every platform, Path of Titans.",
+        "speaker": null
+      },
+      {
+        "startMs": 561720,
+        "endMs": 562559,
+        "text": "Check it out.",
+        "speaker": null
+      },
+      {
+        "startMs": 562620,
+        "endMs": 565379,
+        "text": "If you like dinosaurs, if you like playing online, that is a hit.",
+        "speaker": null
+      },
+      {
+        "startMs": 565440,
+        "endMs": 566940,
+        "text": "They also make a number of other great games.",
+        "speaker": null
+      },
+      {
+        "startMs": 567000,
+        "endMs": 569820,
+        "text": "But what they really want to talk about today is their hiring.",
+        "speaker": null
+      },
+      {
+        "startMs": 569879,
+        "endMs": 576840,
+        "text": "They are an unreal shops when real experience is preferred, especially preferred, if you have anti-cheat experience.",
+        "speaker": null
+      },
+      {
+        "startMs": 576899,
+        "endMs": 584700,
+        "text": "However, they have multiple positions open, and they are willing to entertain junior developers who are keen to learn, and ready to rock.",
+        "speaker": null
+      },
+      {
+        "startMs": 584820,
+        "endMs": 587639,
+        "text": "Go ahead and reach out to them at Alderon games.",
+        "speaker": null
+      },
+      {
+        "startMs": 587700,
+        "endMs": 591419,
+        "text": "They're also in the discord, if you post yourself in the looking for work channel.",
+        "speaker": null
+      },
+      {
+        "startMs": 591480,
+        "endMs": 592320,
+        "text": "Enjoy.",
+        "speaker": null
+      },
+      {
+        "startMs": 592379,
+        "endMs": 592740,
+        "text": "Good luck.",
+        "speaker": null
+      },
+      {
+        "startMs": 592799,
+        "endMs": 602159,
+        "text": "All right, I am here with Professor Andrew Seely, a professor at Hillsboro College, which is my local college right here, and so many other things.",
+        "speaker": null
+      },
+      {
+        "startMs": 602220,
+        "endMs": 604500,
+        "text": "Andrew, you gotta list your resume.",
+        "speaker": null
+      },
+      {
+        "startMs": 604559,
+        "endMs": 606059,
+        "text": "I filled up a whole page here.",
+        "speaker": null
+      },
+      {
+        "startMs": 606120,
+        "endMs": 613379,
+        "text": "Well, hey, Michael, thanks for having me and to your esteemed listeners, thanks for taking some time to hear the, hear the sound of my voice.",
+        "speaker": null
+      },
+      {
+        "startMs": 613440,
+        "endMs": 635580,
+        "text": "I'm Andy Sealey in Sonny Tampa, Florida, and I'm full-time faculty for computer science at Hillsboro College in Tampa, which is a 2 year college with about, with about 47,000 students enrolled across 5 campuses, and they're on the, I'm the lead faculty for the Java programming courses and also for the Linux system administration courses.",
+        "speaker": null
+      },
+      {
+        "startMs": 635639,
+        "endMs": 643379,
+        "text": "Those are my specialties there, along with software engineering and some other cats and dogs type classes.",
+        "speaker": null
+      },
+      {
+        "startMs": 643440,
+        "endMs": 645299,
+        "text": "But I also teach part-time.",
+        "speaker": null
+      },
+      {
+        "startMs": 645360,
+        "endMs": 649139,
+        "text": "I am an adjunct professor at the University of Maryland global campus.",
+        "speaker": null
+      },
+      {
+        "startMs": 649200,
+        "endMs": 655019,
+        "text": "And UMGC is about 90,000 enrolled students, and it's exactly what it sounds like.",
+        "speaker": null
+      },
+      {
+        "startMs": 655080,
+        "endMs": 664919,
+        "text": "It's global in nature. That there's an online program and classes in the classroom around the world, specifically at U.S. military sites.",
+        "speaker": null
+      },
+      {
+        "startMs": 664980,
+        "endMs": 672899,
+        "text": "And that's where I got started when I was a UMGC student in Korea and in Germany back in the 90s.",
+        "speaker": null
+      },
+      {
+        "startMs": 672960,
+        "endMs": 679139,
+        "text": "Uh, and then ended up teaching in the classroom in the early 2000s in Germany as well.",
+        "speaker": null
+      },
+      {
+        "startMs": 679200,
+        "endMs": 683700,
+        "text": "And so I've taught with UMGC for about 20 25, 26 years.",
+        "speaker": null
+      },
+      {
+        "startMs": 683759,
+        "endMs": 690600,
+        "text": "And I also teach as an adjunct at Schiller International University, which is a really interesting school.",
+        "speaker": null
+      },
+      {
+        "startMs": 690659,
+        "endMs": 693000,
+        "text": "It's an American university with 4 campuses.",
+        "speaker": null
+      },
+      {
+        "startMs": 693059,
+        "endMs": 699840,
+        "text": "One is in Tampa, Florida, one is in Heidelberg, Germany, and in Madrid, Spain, and Paris, France.",
+        "speaker": null
+      },
+      {
+        "startMs": 699899,
+        "endMs": 716039,
+        "text": "And Schiller is largely business internationally relations, international relations type of school, but they have a small but growing computer science program, and they brought me on earlier, just here to help them grow that program here in Tampa.",
+        "speaker": null
+      },
+      {
+        "startMs": 716159,
+        "endMs": 718259,
+        "text": "Wow, that is a lot of teaching.",
+        "speaker": null
+      },
+      {
+        "startMs": 718320,
+        "endMs": 721259,
+        "text": "I mean. It is.",
+        "speaker": null
+      },
+      {
+        "startMs": 721320,
+        "endMs": 729659,
+        "text": "It's pretty interesting, and there's synergies across the whole thing too, because I'm able to see what students are doing at so many different levels.",
+        "speaker": null
+      },
+      {
+        "startMs": 729720,
+        "endMs": 736440,
+        "text": "I've got pure international students that are, you know, that are from outside the United States, that are coming to chiller.",
+        "speaker": null
+      },
+      {
+        "startMs": 736500,
+        "endMs": 750299,
+        "text": "But then I've got this whole host of military related students at UMGC, not, you know, people who are active duty, people who are veterans, people who are military family members, but also they're at UMGC.",
+        "speaker": null
+      },
+      {
+        "startMs": 750360,
+        "endMs": 769200,
+        "text": "There's this big cohort of, of new US people, people who have immigrated, uh, into the United States, and they're trying to get their, their start academically, and there's working professionals from a lot of different domains that are trying to build the academic credential for the, to grow their careers.",
+        "speaker": null
+      },
+      {
+        "startMs": 769259,
+        "endMs": 770879,
+        "text": "And at Hillsboro College.",
+        "speaker": null
+      },
+      {
+        "startMs": 770940,
+        "endMs": 774120,
+        "text": "We've got just such a wide range of students.",
+        "speaker": null
+      },
+      {
+        "startMs": 774179,
+        "endMs": 783840,
+        "text": "I adore teaching at Hillsborough College because I get to change a life with a conversation regularly because our students really, really need the guidance.",
+        "speaker": null
+      },
+      {
+        "startMs": 783899,
+        "endMs": 798000,
+        "text": "Oh, and one, uh, my, my favorite example of this, uh, this last semester in my, in my introduction to Linux class, I had 2 students sitting next to each other that describe the range that we have to teach too.",
+        "speaker": null
+      },
+      {
+        "startMs": 798059,
+        "endMs": 804120,
+        "text": "One was an 18 year old, fresh out of high school, 1st college class ever.",
+        "speaker": null
+      },
+      {
+        "startMs": 804179,
+        "endMs": 810419,
+        "text": "Who who told me was an ADHD person who, you know, struggled to concentrate.",
+        "speaker": null
+      },
+      {
+        "startMs": 810480,
+        "endMs": 822840,
+        "text": "Sitting next to that student was a 50 year old dude who worked at the headquarters, a special operations command, and was a professional Linux system administrator who was just checking the box to get a degree.",
+        "speaker": null
+      },
+      {
+        "startMs": 823200,
+        "endMs": 825840,
+        "text": "I had to teach both of those students.",
+        "speaker": null
+      },
+      {
+        "startMs": 825899,
+        "endMs": 830460,
+        "text": "At the same time in a way that made it meaningful for both of them.",
+        "speaker": null
+      },
+      {
+        "startMs": 830519,
+        "endMs": 833639,
+        "text": "That's a special, that's a special skill that I'm very proud of.",
+        "speaker": null
+      },
+      {
+        "startMs": 833700,
+        "endMs": 836460,
+        "text": "Yeah, that's that's quite the gamut.",
+        "speaker": null
+      },
+      {
+        "startMs": 836519,
+        "endMs": 839519,
+        "text": "I mean, how would you, uh, so 1st of all, you were definitely in the right place.",
+        "speaker": null
+      },
+      {
+        "startMs": 839580,
+        "endMs": 844440,
+        "text": "We have a disproportionate percentage of Linux fans here, myself included.",
+        "speaker": null
+      },
+      {
+        "startMs": 844500,
+        "endMs": 846600,
+        "text": "I'm actually on desktop Linux right now doing the recording.",
+        "speaker": null
+      },
+      {
+        "startMs": 846720,
+        "endMs": 848220,
+        "text": "Outstanding.",
+        "speaker": null
+      },
+      {
+        "startMs": 848279,
+        "endMs": 855960,
+        "text": "Yep, God, I got a little pop OS, a little cosmic desktop environment on my thale, system 76th Dale, plug, plug, plug, they should pay for an ad.",
+        "speaker": null
+      },
+      {
+        "startMs": 856200,
+        "endMs": 857759,
+        "text": "I love it.",
+        "speaker": null
+      },
+      {
+        "startMs": 857820,
+        "endMs": 860039,
+        "text": "So this is a question that comes up, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 860159,
+        "endMs": 862019,
+        "text": "Because we have a discord for the community.",
+        "speaker": null
+      },
+      {
+        "startMs": 862080,
+        "endMs": 876240,
+        "text": "Uh, I would say we are overrepresented of open source enthusiasts and particularly desktop Linux users, or at least, you know, Linux system administrators, uh, to the, you know, to the compared to the greater population.",
+        "speaker": null
+      },
+      {
+        "startMs": 876360,
+        "endMs": 881879,
+        "text": "What are you seeing in like your younger students or even your older students?",
+        "speaker": null
+      },
+      {
+        "startMs": 881940,
+        "endMs": 884639,
+        "text": "Is there renewed interest in Linux?",
+        "speaker": null
+      },
+      {
+        "startMs": 884700,
+        "endMs": 888240,
+        "text": "Like, from my perspective for my business, everything is Linux, basically, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 888299,
+        "endMs": 893220,
+        "text": "Even if it's running on Microsoft at the end of the day, there's a there's a Debian server in there somewhere.",
+        "speaker": null
+      },
+      {
+        "startMs": 894120,
+        "endMs": 905820,
+        "text": "You know, I, if I recall correctly, Debian is not only what one of, if not the oldest distributions, but I always considered it to be the romantic distribution.",
+        "speaker": null
+      },
+      {
+        "startMs": 905940,
+        "endMs": 906960,
+        "text": "Romantic.",
+        "speaker": null
+      },
+      {
+        "startMs": 907019,
+        "endMs": 915600,
+        "text": "Yes, because uh, at one point along the way, I read that Debian came out of a couple, Deb and Ian.",
+        "speaker": null
+      },
+      {
+        "startMs": 915659,
+        "endMs": 916379,
+        "text": "Really?",
+        "speaker": null
+      },
+      {
+        "startMs": 916440,
+        "endMs": 919860,
+        "text": "And that that was where the name of the distro came from.",
+        "speaker": null
+      },
+      {
+        "startMs": 919980,
+        "endMs": 922320,
+        "text": "Well, that, you know, I'd never heard that before.",
+        "speaker": null
+      },
+      {
+        "startMs": 922379,
+        "endMs": 925200,
+        "text": "That brings a whole new kind of flavor to it.",
+        "speaker": null
+      },
+      {
+        "startMs": 925259,
+        "endMs": 927360,
+        "text": "It makes it human, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 927480,
+        "endMs": 933360,
+        "text": "And especially in 2026, where we're surrounded by this AI pressure.",
+        "speaker": null
+      },
+      {
+        "startMs": 933419,
+        "endMs": 942480,
+        "text": "Yes. Anything that has that reminds us that we're human and things are made by humans for human use, I think, is important to highlight.",
+        "speaker": null
+      },
+      {
+        "startMs": 942539,
+        "endMs": 944700,
+        "text": "So I'm a I'm a fan of Debian for that purpose.",
+        "speaker": null
+      },
+      {
+        "startMs": 944759,
+        "endMs": 948600,
+        "text": "In the college, we actually last year, I'm very proud of this.",
+        "speaker": null
+      },
+      {
+        "startMs": 948659,
+        "endMs": 952019,
+        "text": "We signed an MOU agreement with red hat.",
+        "speaker": null
+      },
+      {
+        "startMs": 952080,
+        "endMs": 955019,
+        "text": "to become a red hat academy institution.",
+        "speaker": null
+      },
+      {
+        "startMs": 955139,
+        "endMs": 958559,
+        "text": "And what we know about what that what that means practically.",
+        "speaker": null
+      },
+      {
+        "startMs": 958620,
+        "endMs": 960120,
+        "text": "Absolutely.",
+        "speaker": null
+      },
+      {
+        "startMs": 960240,
+        "endMs": 965519,
+        "text": "I started with a college 2 years ago, so I'm still, I still consider myself to be a new guy here.",
+        "speaker": null
+      },
+      {
+        "startMs": 965580,
+        "endMs": 972419,
+        "text": "Um, the person that the professor that I took over for who had who had left the the college.",
+        "speaker": null
+      },
+      {
+        "startMs": 972600,
+        "endMs": 988080,
+        "text": "was teaching the Linux courses, kind of mostly using Susie Linux as the base, and using some powerfully outdated textbook materials, uh, like, like 15 year old books.",
+        "speaker": null
+      },
+      {
+        "startMs": 988139,
+        "endMs": 1003320,
+        "text": "Now, anybody who uses Linux beyond just the desktop would recognize that, okay, Bash hasn't really changed that much so that if you're learning something that was written 15 years ago, that's still valid today, it's just there's more things have been added to it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1003379,
+        "endMs": 1006740,
+        "text": "But I thought, you know, we really could do a lot, a lot better here.",
+        "speaker": null
+      },
+      {
+        "startMs": 1006799,
+        "endMs": 1009139,
+        "text": "And I looked at the job market.",
+        "speaker": null
+      },
+      {
+        "startMs": 1009200,
+        "endMs": 1028400,
+        "text": "And I think that the only true measure of a community college's success in a technical program is jobs. Because if you come and get an associate a science degree in some computing technology and you come through my classroom, you graduate the college, your intended next step is a job.",
+        "speaker": null
+      },
+      {
+        "startMs": 1028460,
+        "endMs": 1031519,
+        "text": "And if that doesn't happen for you, that's a failure.",
+        "speaker": null
+      },
+      {
+        "startMs": 1031640,
+        "endMs": 1033259,
+        "text": "That, in, in my opinion.",
+        "speaker": null
+      },
+      {
+        "startMs": 1033319,
+        "endMs": 1035480,
+        "text": "So what's the job market like?",
+        "speaker": null
+      },
+      {
+        "startMs": 1035539,
+        "endMs": 1038359,
+        "text": "Well, can you get a job being a Susie person?",
+        "speaker": null
+      },
+      {
+        "startMs": 1038420,
+        "endMs": 1038779,
+        "text": "Sure.",
+        "speaker": null
+      },
+      {
+        "startMs": 1038839,
+        "endMs": 1041240,
+        "text": "Can you get a job being a red hat person?",
+        "speaker": null
+      },
+      {
+        "startMs": 1041299,
+        "endMs": 1042380,
+        "text": "much more likely.",
+        "speaker": null
+      },
+      {
+        "startMs": 1042440,
+        "endMs": 1044180,
+        "text": "Yeah, much bigger, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1044240,
+        "endMs": 1045200,
+        "text": "Especially here in the States.",
+        "speaker": null
+      },
+      {
+        "startMs": 1045259,
+        "endMs": 1047119,
+        "text": "I maybe maybe Sousa's doing better in Europe.",
+        "speaker": null
+      },
+      {
+        "startMs": 1047180,
+        "endMs": 1048619,
+        "text": "I don't know, but right.",
+        "speaker": null
+      },
+      {
+        "startMs": 1048680,
+        "endMs": 1058759,
+        "text": "I mean, the sushi really came out of Germany and it's my understanding that the German government has a real a real bias towards Susie as a result in their compute.",
+        "speaker": null
+      },
+      {
+        "startMs": 1058880,
+        "endMs": 1062480,
+        "text": "But here, in the US, this is, uh, this is red hat territory.",
+        "speaker": null
+      },
+      {
+        "startMs": 1062539,
+        "endMs": 1063980,
+        "text": "Uh, for sure.",
+        "speaker": null
+      },
+      {
+        "startMs": 1064039,
+        "endMs": 1067880,
+        "text": "Now we can't just end the college, we can't just teach a technology.",
+        "speaker": null
+      },
+      {
+        "startMs": 1067940,
+        "endMs": 1071059,
+        "text": "We're not like a, we're not a training boot camp for a vendor.",
+        "speaker": null
+      },
+      {
+        "startMs": 1071119,
+        "endMs": 1077900,
+        "text": "So we have to teach operating system concepts and Linux operating system concepts kind of broadly.",
+        "speaker": null
+      },
+      {
+        "startMs": 1077960,
+        "endMs": 1081859,
+        "text": "But the reality is it has to be done on a distribution.",
+        "speaker": null
+      },
+      {
+        "startMs": 1081920,
+        "endMs": 1090259,
+        "text": "I actually called, uh, contacted a friend of mine at Red Hat, who is the the North American sales manager.",
+        "speaker": null
+      },
+      {
+        "startMs": 1090319,
+        "endMs": 1095359,
+        "text": "And I used to work with him years ago and said, hey, is there something we can do?",
+        "speaker": null
+      },
+      {
+        "startMs": 1095480,
+        "endMs": 1101059,
+        "text": "Here, and this was Jason Corey, who's the vice president, North American sales.",
+        "speaker": null
+      },
+      {
+        "startMs": 1101119,
+        "endMs": 1105140,
+        "text": "And I said, hey, you know, I'd like to get some sort of value out of red hat.",
+        "speaker": null
+      },
+      {
+        "startMs": 1105200,
+        "endMs": 1106220,
+        "text": "Can you give me something?",
+        "speaker": null
+      },
+      {
+        "startMs": 1106279,
+        "endMs": 1108019,
+        "text": "Because as a professor,",
+        "speaker": null
+      },
+      {
+        "startMs": 1108079,
+        "endMs": 1110119,
+        "text": "I'm all about people giving me things.",
+        "speaker": null
+      },
+      {
+        "startMs": 1111200,
+        "endMs": 1116180,
+        "text": "And he said, uh, stand by, let me introduce you to a friend.",
+        "speaker": null
+      },
+      {
+        "startMs": 1116240,
+        "endMs": 1123380,
+        "text": "He hooked me up with red hats education people. And they showed me this program that I was just amazed with.",
+        "speaker": null
+      },
+      {
+        "startMs": 1123440,
+        "endMs": 1125420,
+        "text": "Red hat academy.",
+        "speaker": null
+      },
+      {
+        "startMs": 1125480,
+        "endMs": 1132079,
+        "text": "If you're a Red Hat Academy Institution, you get access to the Red Hat Academy that otherwise you'd have to pay a significant amount of money for.",
+        "speaker": null
+      },
+      {
+        "startMs": 1132140,
+        "endMs": 1152119,
+        "text": "And all these courses, from introduction, system administration, answerable, all the different major technologies, they have these, these online learning platforms that have assessments and labs and videos and all these things. They say, well, you get all this at no cost.",
+        "speaker": null
+      },
+      {
+        "startMs": 1152240,
+        "endMs": 1155240,
+        "text": "To the student at no cost to the institution.",
+        "speaker": null
+      },
+      {
+        "startMs": 1155299,
+        "endMs": 1157220,
+        "text": "I'm like, well, what do you guys get out of it?",
+        "speaker": null
+      },
+      {
+        "startMs": 1157279,
+        "endMs": 1158660,
+        "text": "Why are you giving me this for free?",
+        "speaker": null
+      },
+      {
+        "startMs": 1158720,
+        "endMs": 1164119,
+        "text": "They said, well, we want we want to be influencing people at that early level of their education.",
+        "speaker": null
+      },
+      {
+        "startMs": 1164180,
+        "endMs": 1168019,
+        "text": "So when they exit the higher education to enter the workforce,",
+        "speaker": null
+      },
+      {
+        "startMs": 1168079,
+        "endMs": 1171680,
+        "text": "They're looking for red hat jobs and they're supporting the red hat ecosystem.",
+        "speaker": null
+      },
+      {
+        "startMs": 1171740,
+        "endMs": 1173299,
+        "text": "Like, well, that sounds like a win to everybody.",
+        "speaker": null
+      },
+      {
+        "startMs": 1173359,
+        "endMs": 1175700,
+        "text": "So we signed the agreement.",
+        "speaker": null
+      },
+      {
+        "startMs": 1175759,
+        "endMs": 1187279,
+        "text": "Now, we're a school that uses canvas, the in structure tool canvas for education, which a lot of schools do. There's no integration between Red Hat Academy platforms and canvas platforms.",
+        "speaker": null
+      },
+      {
+        "startMs": 1187339,
+        "endMs": 1191000,
+        "text": "So I have a little bit of a little bit of sneaker net.",
+        "speaker": null
+      },
+      {
+        "startMs": 1191059,
+        "endMs": 1195079,
+        "text": "You know, I have to manually do some transfer of grades back and forth.",
+        "speaker": null
+      },
+      {
+        "startMs": 1195140,
+        "endMs": 1199579,
+        "text": "I've got a 3 course progression in Linux in the college.",
+        "speaker": null
+      },
+      {
+        "startMs": 1199640,
+        "endMs": 1203900,
+        "text": "I've got an intro, assist admin one, and assist admin too.",
+        "speaker": null
+      },
+      {
+        "startMs": 1203960,
+        "endMs": 1211759,
+        "text": "Well, it turns out that in Red Hat Academy, RH 104 is introduction to Linux, and RH 124 is this admin one.",
+        "speaker": null
+      },
+      {
+        "startMs": 1211819,
+        "endMs": 1215720,
+        "text": "And so there's a good mapping between the courses.",
+        "speaker": null
+      },
+      {
+        "startMs": 1215779,
+        "endMs": 1228920,
+        "text": "And then what I do is, I build my own midterm and final exam, and I have additional assignments that are more broadly about Linux in the workforce, Linux as a technology.",
+        "speaker": null
+      },
+      {
+        "startMs": 1228980,
+        "endMs": 1235279,
+        "text": "Linux with respect to cybersecurity, Linux with respect to artificial intelligence that are not red hat, specific.",
+        "speaker": null
+      },
+      {
+        "startMs": 1235339,
+        "endMs": 1256220,
+        "text": "So the combination, when you finish the course, you've gone through the red hat academy, formal courses, you've earned badges, that go, you know, that integrate with your LinkedIn profile, you've earned credit towards taking the certification tests if you, if you choose to, and you've gotten this broad exposure to, to Linux at large.",
+        "speaker": null
+      },
+      {
+        "startMs": 1256279,
+        "endMs": 1260000,
+        "text": "You've written a short essay on open source software, things like this.",
+        "speaker": null
+      },
+      {
+        "startMs": 1260059,
+        "endMs": 1261740,
+        "text": "So I'm really pleased.",
+        "speaker": null
+      },
+      {
+        "startMs": 1261799,
+        "endMs": 1267319,
+        "text": "And if it works out well, so we're only in our 2nd semester, I'm only in the 2nd semester of doing this.",
+        "speaker": null
+      },
+      {
+        "startMs": 1267380,
+        "endMs": 1269299,
+        "text": "If it goes according to plan.",
+        "speaker": null
+      },
+      {
+        "startMs": 1269359,
+        "endMs": 1273740,
+        "text": "As students come through intros, the admin wants this admin too.",
+        "speaker": null
+      },
+      {
+        "startMs": 1273799,
+        "endMs": 1284180,
+        "text": "In my courses, but doing the red hat academy course materials, they'll be prepared and met all the requirements to sit for the red hat certified system administrator.",
+        "speaker": null
+      },
+      {
+        "startMs": 1284240,
+        "endMs": 1294799,
+        "text": "And a year from now, I'd like to start seeing the 1st certified people coming off my conveyor belt at this factory and then start really influencing the job market here.",
+        "speaker": null
+      },
+      {
+        "startMs": 1294859,
+        "endMs": 1295940,
+        "text": "Oh, that's great.",
+        "speaker": null
+      },
+      {
+        "startMs": 1296000,
+        "endMs": 1298460,
+        "text": "I know for the cis admin folks, those certifications.",
+        "speaker": null
+      },
+      {
+        "startMs": 1298519,
+        "endMs": 1302000,
+        "text": "We get them writing all the time are huge, taking the exams, passing the test.",
+        "speaker": null
+      },
+      {
+        "startMs": 1302059,
+        "endMs": 1307279,
+        "text": "Now, question, is there a red hat outpost here in Tampa or have I lost my mind?",
+        "speaker": null
+      },
+      {
+        "startMs": 1307339,
+        "endMs": 1309740,
+        "text": "There's, there's not an office.",
+        "speaker": null
+      },
+      {
+        "startMs": 1309799,
+        "endMs": 1313160,
+        "text": "There's not a place where you can go knock on the door and say, hi, I'd like some red hat, please.",
+        "speaker": null
+      },
+      {
+        "startMs": 1313220,
+        "endMs": 1321259,
+        "text": "But there is a significant, there are a significant number of individuals who work uh, who work in the area here.",
+        "speaker": null
+      },
+      {
+        "startMs": 1321319,
+        "endMs": 1326660,
+        "text": "And in fact, just as recently as this morning, collaborating with.",
+        "speaker": null
+      },
+      {
+        "startMs": 1326720,
+        "endMs": 1336440,
+        "text": "So we've got, uh, there's a red hat certified architect, uh, Justin Heron, who lives here in town, and he and I, he and I are friends and collaborators, and he's come talked to my classes in the past.",
+        "speaker": null
+      },
+      {
+        "startMs": 1336500,
+        "endMs": 1339380,
+        "text": "And it's, this is this is brand new.",
+        "speaker": null
+      },
+      {
+        "startMs": 1339500,
+        "endMs": 1343819,
+        "text": "Like, I'm, I'm launching this in this podcast right now.",
+        "speaker": null
+      },
+      {
+        "startMs": 1343880,
+        "endMs": 1348200,
+        "text": "He told me last year, he said, Andy, you're not teaching the right things.",
+        "speaker": null
+      },
+      {
+        "startMs": 1348259,
+        "endMs": 1350599,
+        "text": "If you're not teaching automation.",
+        "speaker": null
+      },
+      {
+        "startMs": 1350660,
+        "endMs": 1357619,
+        "text": "If you're not teaching answerable, if you're not teaching orchestration, then students aren't having the skills we they need to get hired.",
+        "speaker": null
+      },
+      {
+        "startMs": 1357680,
+        "endMs": 1361880,
+        "text": "And I said, well, this is the challenge for me at a community college.",
+        "speaker": null
+      },
+      {
+        "startMs": 1361940,
+        "endMs": 1364579,
+        "text": "There's only so much room in the curriculum.",
+        "speaker": null
+      },
+      {
+        "startMs": 1364640,
+        "endMs": 1365180,
+        "text": "Yes.",
+        "speaker": null
+      },
+      {
+        "startMs": 1365240,
+        "endMs": 1389779,
+        "text": "We have to meet state, state framework requirements so that when you take a course here, it's equivalent to and you learn the same kinds of things, if you took it in Broward County or a Scambia County or anyplace else in the state, and it has to be transferable, if you're, if you're going from the community college to the, to the state universities, you know, there has to be this articulation mapping of the course content.",
+        "speaker": null
+      },
+      {
+        "startMs": 1389839,
+        "endMs": 1392180,
+        "text": "So I have to do certain things in a certain way.",
+        "speaker": null
+      },
+      {
+        "startMs": 1392240,
+        "endMs": 1398240,
+        "text": "And none of those things and ways include what you just said in terms of what I should be teaching.",
+        "speaker": null
+      },
+      {
+        "startMs": 1398299,
+        "endMs": 1403099,
+        "text": "So what we're going to do in fall, and we haven't hammered out the details yet.",
+        "speaker": null
+      },
+      {
+        "startMs": 1403220,
+        "endMs": 1417079,
+        "text": "But what we're planning on doing is taking Justin, the red hat architect, and a set of other red hat, senior, senior cis admin's architects, professionals, solution architects, et cetera, from the Bay Area here.",
+        "speaker": null
+      },
+      {
+        "startMs": 1417140,
+        "endMs": 1423799,
+        "text": "And we're going to build an after hours training program, probably undercover of our club.",
+        "speaker": null
+      },
+      {
+        "startMs": 1423859,
+        "endMs": 1437180,
+        "text": "So I'm one of the faculty advisors for the coding club, which is our like our general computing interest club for the college, what we're going, what we're planning on doing is making the club have a training activity weekly.",
+        "speaker": null
+      },
+      {
+        "startMs": 1437240,
+        "endMs": 1440059,
+        "text": "And every week through the course of the term.",
+        "speaker": null
+      },
+      {
+        "startMs": 1440119,
+        "endMs": 1447740,
+        "text": "We'll have a different red hat professional come in. And do a workshop on these additional technologies.",
+        "speaker": null
+      },
+      {
+        "startMs": 1447799,
+        "endMs": 1453200,
+        "text": "Now there's, there's a challenge here is we can't build the roof on a house where we haven't built the walls yet.",
+        "speaker": null
+      },
+      {
+        "startMs": 1453319,
+        "endMs": 1459380,
+        "text": "So students taking advantage of this, they're going to have to have some fundamental skills.",
+        "speaker": null
+      },
+      {
+        "startMs": 1459440,
+        "endMs": 1469519,
+        "text": "We haven't worked this out all the way yet on what we're going to teach in the after hours thing that would tie back to what we're doing into 4 credit class.",
+        "speaker": null
+      },
+      {
+        "startMs": 1469579,
+        "endMs": 1478579,
+        "text": "Now, if you're a student coming to this, this club training activity, in the evening, you're not going to pay any money for that because it's just a club meeting.",
+        "speaker": null
+      },
+      {
+        "startMs": 1478640,
+        "endMs": 1494539,
+        "text": "We're not going to be charged by nor pay for the efforts of the red hat folks, because they have, in red hat, they have a desire to give back to the community, and that's actually part of your, I think, like a performance evaluation, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1494599,
+        "endMs": 1496640,
+        "text": "Where, hey, have you done any give back to the community?",
+        "speaker": null
+      },
+      {
+        "startMs": 1496700,
+        "endMs": 1499880,
+        "text": "Which speaks highly of red hat as a company.",
+        "speaker": null
+      },
+      {
+        "startMs": 1499940,
+        "endMs": 1512180,
+        "text": "Well, we're going to give the opportunity for these professionals to give back to their community in a programmatic way, a documented way where there'll be tangible results for them, tangible results for us.",
+        "speaker": null
+      },
+      {
+        "startMs": 1512240,
+        "endMs": 1520279,
+        "text": "And the students at the end when they graduate, if it all works according to this, this, this plan that I've painted in front of you.",
+        "speaker": null
+      },
+      {
+        "startMs": 1520339,
+        "endMs": 1524599,
+        "text": "They will have completed the academic credit.",
+        "speaker": null
+      },
+      {
+        "startMs": 1524660,
+        "endMs": 1542779,
+        "text": "They will have completed the certification requirements to be able to sit for the test, and they will have had some documented training outside of the academic, academic credit environment that will, they'll be able to point to on their resume and say, I have learned how to do these tasks.",
+        "speaker": null
+      },
+      {
+        "startMs": 1542839,
+        "endMs": 1545539,
+        "text": "that are desired in the industry.",
+        "speaker": null
+      },
+      {
+        "startMs": 1545599,
+        "endMs": 1547640,
+        "text": "Man, who's not going to hire them?",
+        "speaker": null
+      },
+      {
+        "startMs": 1547700,
+        "endMs": 1553279,
+        "text": "That's that's such a leg up, especially, yeah, going for that entry level job, that 1st job.",
+        "speaker": null
+      },
+      {
+        "startMs": 1553339,
+        "endMs": 1554299,
+        "text": "Wow.",
+        "speaker": null
+      },
+      {
+        "startMs": 1554359,
+        "endMs": 1556460,
+        "text": "Let me ask you a question.",
+        "speaker": null
+      },
+      {
+        "startMs": 1556519,
+        "endMs": 1559339,
+        "text": "How enthusiastic are you finding the students?",
+        "speaker": null
+      },
+      {
+        "startMs": 1559400,
+        "endMs": 1563059,
+        "text": "I imagine they're pretty, I mean, they got to see this as a great opportunity.",
+        "speaker": null
+      },
+      {
+        "startMs": 1563119,
+        "endMs": 1564559,
+        "text": "It's mixed.",
+        "speaker": null
+      },
+      {
+        "startMs": 1564619,
+        "endMs": 1571339,
+        "text": "It's really, really mixed. If I describe it to a student in this way, they get excited, but they only get excited because I'm excited.",
+        "speaker": null
+      },
+      {
+        "startMs": 1571460,
+        "endMs": 1575480,
+        "text": "And, you know, like excitement and enthusiasm and optimism.",
+        "speaker": null
+      },
+      {
+        "startMs": 1575539,
+        "endMs": 1580339,
+        "text": "They're infectious. And I get told from time to time that I'm so optimistic.",
+        "speaker": null
+      },
+      {
+        "startMs": 1580400,
+        "endMs": 1582140,
+        "text": "Well, I'm consciously optimistic.",
+        "speaker": null
+      },
+      {
+        "startMs": 1582200,
+        "endMs": 1588079,
+        "text": "I want you to be excited about the same thing I am, and I'm not going to achieve that by being an EOR about it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1588140,
+        "endMs": 1590839,
+        "text": "I will say you are the happiest person on LinkedIn.",
+        "speaker": null
+      },
+      {
+        "startMs": 1590900,
+        "endMs": 1593119,
+        "text": "Every time I refresh my feet and you're there.",
+        "speaker": null
+      },
+      {
+        "startMs": 1593180,
+        "endMs": 1595279,
+        "text": "It's always a party for the professor.",
+        "speaker": null
+      },
+      {
+        "startMs": 1595339,
+        "endMs": 1596240,
+        "text": "Yeah.",
+        "speaker": null
+      },
+      {
+        "startMs": 1596299,
+        "endMs": 1597740,
+        "text": "I love it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1597799,
+        "endMs": 1598400,
+        "text": "I love it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1598460,
+        "endMs": 1610460,
+        "text": "Well, the students that are, that are, a student has to have a certain degree of professional maturity to recognize the opportunity. That's the challenge, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1610519,
+        "endMs": 1618500,
+        "text": "Is if I have an 18 year old right out of high school, and, And they're not sure what they want to be when they grow up.",
+        "speaker": null
+      },
+      {
+        "startMs": 1618619,
+        "endMs": 1621980,
+        "text": "This is, they're not going to see this as an opportunity.",
+        "speaker": null
+      },
+      {
+        "startMs": 1622039,
+        "endMs": 1626119,
+        "text": "They're going to see it as cutting into into their free time.",
+        "speaker": null
+      },
+      {
+        "startMs": 1626180,
+        "endMs": 1632720,
+        "text": "So maybe maybe they're not a great target audience, but over time, hopefully it grows on them.",
+        "speaker": null
+      },
+      {
+        "startMs": 1632779,
+        "endMs": 1637160,
+        "text": "If you're in any of my classes, not just uh, not just the Linux ones.",
+        "speaker": null
+      },
+      {
+        "startMs": 1637220,
+        "endMs": 1641720,
+        "text": "I give extra credit assignments for attending external events.",
+        "speaker": null
+      },
+      {
+        "startMs": 1641779,
+        "endMs": 1648079,
+        "text": "If you attend Tampa, Tampa Bay Devs, there's all the B sites events, all of these, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1648140,
+        "endMs": 1649819,
+        "text": "You get 50 points extra credit.",
+        "speaker": null
+      },
+      {
+        "startMs": 1649880,
+        "endMs": 1660440,
+        "text": "So one of my colleagues, uh, who leads their cyber security programs, um, somebody told me that she gives 5 points extra credit to join the cyber club, I'm like, well, I'm going to get 50 points.",
+        "speaker": null
+      },
+      {
+        "startMs": 1662059,
+        "endMs": 1665599,
+        "text": "I'm gonna not because I need to win.",
+        "speaker": null
+      },
+      {
+        "startMs": 1665660,
+        "endMs": 1666740,
+        "text": "I just like being 1st.",
+        "speaker": null
+      },
+      {
+        "startMs": 1666799,
+        "endMs": 1669380,
+        "text": "And of course, her points basis is less than mine.",
+        "speaker": null
+      },
+      {
+        "startMs": 1669440,
+        "endMs": 1677240,
+        "text": "I'm giving you 50 points out of a total of like 10,000, so it really... I bet we have some 17 year olds listening to this, like, wait a minute.",
+        "speaker": null
+      },
+      {
+        "startMs": 1677299,
+        "endMs": 1678259,
+        "text": "He just gives 50 points.",
+        "speaker": null
+      },
+      {
+        "startMs": 1678319,
+        "endMs": 1679519,
+        "text": "That's half the grade, halfway to 100.",
+        "speaker": null
+      },
+      {
+        "startMs": 1679700,
+        "endMs": 1680960,
+        "text": "I could get an A, go to 2 events.",
+        "speaker": null
+      },
+      {
+        "startMs": 1681079,
+        "endMs": 1683059,
+        "text": "Well, and what I do is",
+        "speaker": null
+      },
+      {
+        "startMs": 1683240,
+        "endMs": 1690140,
+        "text": "I've got certain assignments that are a whole assignments are worth 50 points and so you go to an event and you can skip an assignment if you were to choose.",
+        "speaker": null
+      },
+      {
+        "startMs": 1690200,
+        "endMs": 1694579,
+        "text": "But like as recently as this morning, I was just posting in my Java classes.",
+        "speaker": null
+      },
+      {
+        "startMs": 1694640,
+        "endMs": 1706279,
+        "text": "There's a, the Tampa Java users group, uh, which is, um, Amar runs that, and he's a, he's a good friend, and I really try to support port that support that activity.",
+        "speaker": null
+      },
+      {
+        "startMs": 1706339,
+        "endMs": 1717200,
+        "text": "So I take as many students as I can to go to those and they get the extra credit and they have fun and they get pizza and sometimes they realize they just learned a lot too.",
+        "speaker": null
+      },
+      {
+        "startMs": 1717259,
+        "endMs": 1719299,
+        "text": "So you got to do it by accident, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1719359,
+        "endMs": 1720559,
+        "text": "That's what is it?",
+        "speaker": null
+      },
+      {
+        "startMs": 1720619,
+        "endMs": 1723859,
+        "text": "It's like putting the uh, putting the medicine in a cookie or something.",
+        "speaker": null
+      },
+      {
+        "startMs": 1723920,
+        "endMs": 1725180,
+        "text": "Absolutely.",
+        "speaker": null
+      },
+      {
+        "startMs": 1725240,
+        "endMs": 1729440,
+        "text": "And, uh, well, I like giving out a lot of cookies and sometimes they have that medicine in.",
+        "speaker": null
+      },
+      {
+        "startMs": 1729559,
+        "endMs": 1739279,
+        "text": "So the question of students like, how are they reacting to this, some, some are super excited, they see, they see this.",
+        "speaker": null
+      },
+      {
+        "startMs": 1739400,
+        "endMs": 1744680,
+        "text": "They see the value, and they see the future and they recognize that there's steps they have to take.",
+        "speaker": null
+      },
+      {
+        "startMs": 1744740,
+        "endMs": 1755779,
+        "text": "They have to get from who they are today, to who they want to become, through a series of steps and they're seeing those steps gel in front of them with this, with this program, this thing that we're doing.",
+        "speaker": null
+      },
+      {
+        "startMs": 1755839,
+        "endMs": 1762980,
+        "text": "Others are learning that this is important to them along the way, and some, some, it doesn't matter to them at all.",
+        "speaker": null
+      },
+      {
+        "startMs": 1763039,
+        "endMs": 1769279,
+        "text": "So, you know, you, I'm not going to have every single person that comes into my class, exit my class being.",
+        "speaker": null
+      },
+      {
+        "startMs": 1769460,
+        "endMs": 1774740,
+        "text": "Oh, world-class Linux person or a Java Dev or something like that.",
+        "speaker": null
+      },
+      {
+        "startMs": 1774799,
+        "endMs": 1779240,
+        "text": "Although they're going to come in young and clean cut and walk out as Richard Stallman.",
+        "speaker": null
+      },
+      {
+        "startMs": 1779299,
+        "endMs": 1781519,
+        "text": "That's the goal, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1782299,
+        "endMs": 1783680,
+        "text": "Right.",
+        "speaker": null
+      },
+      {
+        "startMs": 1783740,
+        "endMs": 1785960,
+        "text": "And well, to get them excited about it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1786019,
+        "endMs": 1789799,
+        "text": "And every now and then I'll have a student, you know, they'll do one of my.",
+        "speaker": null
+      },
+      {
+        "startMs": 1789859,
+        "endMs": 1800480,
+        "text": "I'll have an assignment about, hey, you know, uh, research open source software and talk about it in these different ways. And every now and then somebody will come back and say, that's the coolest thing I ever heard.",
+        "speaker": null
+      },
+      {
+        "startMs": 1800539,
+        "endMs": 1801740,
+        "text": "I had no idea this existed.",
+        "speaker": null
+      },
+      {
+        "startMs": 1801799,
+        "endMs": 1804859,
+        "text": "And maybe it's a tiny little hook.",
+        "speaker": null
+      },
+      {
+        "startMs": 1804920,
+        "endMs": 1810500,
+        "text": "That draws them in. It gets them, especially, especially in 2026.",
+        "speaker": null
+      },
+      {
+        "startMs": 1810740,
+        "endMs": 1813619,
+        "text": "Open source software when it started.",
+        "speaker": null
+      },
+      {
+        "startMs": 1813680,
+        "endMs": 1820039,
+        "text": "was this counterbalance to the big corporate things.",
+        "speaker": null
+      },
+      {
+        "startMs": 1820220,
+        "endMs": 1823700,
+        "text": "Well, proprietary, yeah, Apache web server, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1823759,
+        "endMs": 1824599,
+        "text": "Big revolution there.",
+        "speaker": null
+      },
+      {
+        "startMs": 1824660,
+        "endMs": 1825799,
+        "text": "Huge.",
+        "speaker": null
+      },
+      {
+        "startMs": 1825859,
+        "endMs": 1841460,
+        "text": "And the whole Apache Webster became the Apache Foundation with this vast, vast, uh, uh, amount of software that runs the world, and it's all this open source stuff with the Apache licensing and all this, super important.",
+        "speaker": null
+      },
+      {
+        "startMs": 1841519,
+        "endMs": 1854059,
+        "text": "But now in 2026, we have these big corporate interests, again, counterbalancing that, and I'm talking about the, the, the metas and the Googles and the apples and all this.",
+        "speaker": null
+      },
+      {
+        "startMs": 1854119,
+        "endMs": 1876440,
+        "text": "When students who have grown up, consuming the product that was given to them for their entire lives, and then they get this tiny little pinhole view into an alternate universe, sometimes that engages them, and sometimes we might create a future open source champion out of that.",
+        "speaker": null
+      },
+      {
+        "startMs": 1876559,
+        "endMs": 1878839,
+        "text": "I think it's very likely, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 1878900,
+        "endMs": 1886759,
+        "text": "Especially as the, uh, you know, you know, say the goodwill towards some of these larger tech companies seems to be in a state of erosion.",
+        "speaker": null
+      },
+      {
+        "startMs": 1886819,
+        "endMs": 1889579,
+        "text": "That's a good word to use there, I think.",
+        "speaker": null
+      },
+      {
+        "startMs": 1889640,
+        "endMs": 1916519,
+        "text": "And hopefully it is because when we, when we put our whole lives, become beholden to a single entity like a meta, there's a loss of agency, there's a loss of autonomy that, as our privacy and our boundaries around who we are as people, get eroded, and we are encouraged to, and we easily outsource, things that used to be kind of core to our personhood.",
+        "speaker": null
+      },
+      {
+        "startMs": 1916579,
+        "endMs": 1923119,
+        "text": "When I have students, I have, there's a bubble moving, a bubble of students moving through time is how I picture it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1923240,
+        "endMs": 1929059,
+        "text": "that were young and influenced by the COVID era.",
+        "speaker": null
+      },
+      {
+        "startMs": 1929180,
+        "endMs": 1933740,
+        "text": "And then they come out of that and they get hit by the AI era.",
+        "speaker": null
+      },
+      {
+        "startMs": 1933920,
+        "endMs": 1940759,
+        "text": "There's a set of people in the world that are moving through time, who are incapable of thinking their own thoughts.",
+        "speaker": null
+      },
+      {
+        "startMs": 1940819,
+        "endMs": 1946940,
+        "text": "Because they, at the right moment, they didn't have to, and they never built it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1947000,
+        "endMs": 1953839,
+        "text": "It's just like, um, I had, I read about butterflies emerging from the chrysalis.",
+        "speaker": null
+      },
+      {
+        "startMs": 1953900,
+        "endMs": 1955339,
+        "text": "They have to struggle.",
+        "speaker": null
+      },
+      {
+        "startMs": 1955400,
+        "endMs": 1959000,
+        "text": "If you help them, they'll die because the struggle.",
+        "speaker": null
+      },
+      {
+        "startMs": 1959839,
+        "endMs": 1967039,
+        "text": "Well, the struggle forces their lymphatic or blood fluids or whatever it is, they're hydraulics basically.",
+        "speaker": null
+      },
+      {
+        "startMs": 1967099,
+        "endMs": 1972259,
+        "text": "It forces the fluids through the chambers in their in their wings and their torsos.",
+        "speaker": null
+      },
+      {
+        "startMs": 1972319,
+        "endMs": 1977420,
+        "text": "And if they're not struggling, then they're not forcing those fluids, you crack that open for them, they'll never fly.",
+        "speaker": null
+      },
+      {
+        "startMs": 1977480,
+        "endMs": 1982160,
+        "text": "Oh, man, that's so counterintuitive and so essential.",
+        "speaker": null
+      },
+      {
+        "startMs": 1982220,
+        "endMs": 1989299,
+        "text": "And we have this whole set of people who are moving through time who maybe suffer that fate.",
+        "speaker": null
+      },
+      {
+        "startMs": 1989359,
+        "endMs": 1993799,
+        "text": "And I, and I, and I fear for them, and I fear, I fear for their, their futures.",
+        "speaker": null
+      },
+      {
+        "startMs": 1993859,
+        "endMs": 2004779,
+        "text": "When I've got a student who can't send me a message saying they don't under, they don't understand an assignment without using an AI to formulate the message, that's, that's a real challenge.",
+        "speaker": null
+      },
+      {
+        "startMs": 2004839,
+        "endMs": 2012700,
+        "text": "So this whole conversation about, hey, let's get, uh, let's show people open source software as an alternative as a counterbalance to this.",
+        "speaker": null
+      },
+      {
+        "startMs": 2012759,
+        "endMs": 2019059,
+        "text": "It feels very counterculture to put it this way, but we might be saving some people's lives.",
+        "speaker": null
+      },
+      {
+        "startMs": 2019119,
+        "endMs": 2020859,
+        "text": "Not maybe not like that.",
+        "speaker": null
+      },
+      {
+        "startMs": 2020980,
+        "endMs": 2030400,
+        "text": "It's so funny that you mentioned that. Every about month and a half I do a show where I read out listener emails and answer questions and for this coming one, for the one for August.",
+        "speaker": null
+      },
+      {
+        "startMs": 2030519,
+        "endMs": 2049659,
+        "text": "I got a very long, I think, slightly, hmm, I'd say shurty, if I could use her Britishism a little bit. I'm a young fellow who kind of was just, 1st of all, why you listen to a show if you hate coding called coder radio is weird to me, but that's fine.",
+        "speaker": null
+      },
+      {
+        "startMs": 2049719,
+        "endMs": 2052360,
+        "text": "Uh, I appreciate the numbers.",
+        "speaker": null
+      },
+      {
+        "startMs": 2052420,
+        "endMs": 2064960,
+        "text": "Basically just riffing in, saying, well, why do I have to worry about pointers and I, you know, I, some, I used to be an objective C developer and I, sometimes, you know, rant about pointers and why you should still know about them, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2065019,
+        "endMs": 2068440,
+        "text": "And, you know, all these concepts.",
+        "speaker": null
+      },
+      {
+        "startMs": 2068500,
+        "endMs": 2069699,
+        "text": "The details don't matter.",
+        "speaker": null
+      },
+      {
+        "startMs": 2069760,
+        "endMs": 2073239,
+        "text": "But his endpoint was because I have Codex.",
+        "speaker": null
+      },
+      {
+        "startMs": 2073300,
+        "endMs": 2074139,
+        "text": "Right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2074199,
+        "endMs": 2077260,
+        "text": "And you can replace Codex with whatever you want, clawed code, deepseek, whatever.",
+        "speaker": null
+      },
+      {
+        "startMs": 2077320,
+        "endMs": 2082780,
+        "text": "And I've been trying to come up with a good response.",
+        "speaker": null
+      },
+      {
+        "startMs": 2082840,
+        "endMs": 2083920,
+        "text": "I guess I'm doing it now, huh?",
+        "speaker": null
+      },
+      {
+        "startMs": 2083980,
+        "endMs": 2090880,
+        "text": "Um, that isn't mean because I don't, I really don't think being mean to people works in most cases.",
+        "speaker": null
+      },
+      {
+        "startMs": 2090940,
+        "endMs": 2092440,
+        "text": "Not productive, yeah.",
+        "speaker": null
+      },
+      {
+        "startMs": 2092500,
+        "endMs": 2093039,
+        "text": "Right.",
+        "speaker": null
+      },
+      {
+        "startMs": 2093099,
+        "endMs": 2107920,
+        "text": "But I truly believe, I think, I think your, uh, your chrysalis analogy is actually perfect because the way, the direction I was going to take it in is, you may be able to, uh, vibe code up something similar to some commercial product that somebody sell.",
+        "speaker": null
+      },
+      {
+        "startMs": 2107980,
+        "endMs": 2108579,
+        "text": "Right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2108639,
+        "endMs": 2110860,
+        "text": "Especially if it's a product by like a small vendor.",
+        "speaker": null
+      },
+      {
+        "startMs": 2111340,
+        "endMs": 2118179,
+        "text": "But what happens when you get an enterprise who wants to use that and they have all kinds of custom SOC2.",
+        "speaker": null
+      },
+      {
+        "startMs": 2118420,
+        "endMs": 2121840,
+        "text": "Uh, they want custom integrations, they want custom components.",
+        "speaker": null
+      },
+      {
+        "startMs": 2121900,
+        "endMs": 2126159,
+        "text": "Maybe they tell you, love, love this idea, love this product.",
+        "speaker": null
+      },
+      {
+        "startMs": 2126219,
+        "endMs": 2126940,
+        "text": "We want to buy it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2127000,
+        "endMs": 2128619,
+        "text": "By the way, we're a Microsoft shop.",
+        "speaker": null
+      },
+      {
+        "startMs": 2128679,
+        "endMs": 2129820,
+        "text": "It has to run on IAS.",
+        "speaker": null
+      },
+      {
+        "startMs": 2130059,
+        "endMs": 2132099,
+        "text": "Uh-oh, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2132159,
+        "endMs": 2136480,
+        "text": "Are you going to go back into Codex that just blindly accept whatever it does?",
+        "speaker": null
+      },
+      {
+        "startMs": 2136960,
+        "endMs": 2142480,
+        "text": "You know, port my app to uh, to Microsoft server instead of uh, Debian.",
+        "speaker": null
+      },
+      {
+        "startMs": 2142539,
+        "endMs": 2154539,
+        "text": "I mean, and also, I think there's, I don't want to sound too Greek philosopher here, but there is some sort of virtue and actually understanding what you're doing instead of just having an automaton.",
+        "speaker": null
+      },
+      {
+        "startMs": 2154599,
+        "endMs": 2156760,
+        "text": "Uh, basically poop it out.",
+        "speaker": null
+      },
+      {
+        "startMs": 2156820,
+        "endMs": 2158019,
+        "text": "I don't even I don't know how to put it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2158079,
+        "endMs": 2162099,
+        "text": "Um, I'm, I'm on the exact same page with you on this.",
+        "speaker": null
+      },
+      {
+        "startMs": 2162159,
+        "endMs": 2168340,
+        "text": "And my um, metaphor I've been kind of working with to describe this as uh, being an electrician.",
+        "speaker": null
+      },
+      {
+        "startMs": 2168460,
+        "endMs": 2172780,
+        "text": "So I'm competent enough to change a light bulb.",
+        "speaker": null
+      },
+      {
+        "startMs": 2172840,
+        "endMs": 2177400,
+        "text": "And if I have to, I can change a bad wall socket in my house.",
+        "speaker": null
+      },
+      {
+        "startMs": 2177460,
+        "endMs": 2179019,
+        "text": "But with some risk.",
+        "speaker": null
+      },
+      {
+        "startMs": 2179079,
+        "endMs": 2188019,
+        "text": "But if I needed to change the main panel in my house, that's an incredibly complicated thing that has significant safety risk.",
+        "speaker": null
+      },
+      {
+        "startMs": 2188079,
+        "endMs": 2191739,
+        "text": "not just at the point of me doing it, but afterwards.",
+        "speaker": null
+      },
+      {
+        "startMs": 2191800,
+        "endMs": 2197679,
+        "text": "And, you know, in operations, it becomes, uh, if it's not done to code, burn your house down.",
+        "speaker": null
+      },
+      {
+        "startMs": 2197739,
+        "endMs": 2201880,
+        "text": "And so I can, I can do these simple things and get away with it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2201940,
+        "endMs": 2204340,
+        "text": "But the larger scale things.",
+        "speaker": null
+      },
+      {
+        "startMs": 2204400,
+        "endMs": 2206980,
+        "text": "You can't just get away with it without without understanding.",
+        "speaker": null
+      },
+      {
+        "startMs": 2207099,
+        "endMs": 2209019,
+        "text": "And that's what you're subscribing.",
+        "speaker": null
+      },
+      {
+        "startMs": 2209079,
+        "endMs": 2209500,
+        "text": "is like this.",
+        "speaker": null
+      },
+      {
+        "startMs": 2209559,
+        "endMs": 2211300,
+        "text": "You're you're getting away with it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2211360,
+        "endMs": 2219940,
+        "text": "vibe coding at a low at a at a small scale. And I always think from like a software and engineering kind of sensibility.",
+        "speaker": null
+      },
+      {
+        "startMs": 2220000,
+        "endMs": 2223719,
+        "text": "Any system that gets developed, you've got to think about capacity.",
+        "speaker": null
+      },
+      {
+        "startMs": 2223780,
+        "endMs": 2226719,
+        "text": "You've got to think about resilience.",
+        "speaker": null
+      },
+      {
+        "startMs": 2226780,
+        "endMs": 2239559,
+        "text": "You've got to think about scalability, all these different vectors like that, and a vibe coded product that you is built without understanding is not is going to be fragile on its absolute best day.",
+        "speaker": null
+      },
+      {
+        "startMs": 2239619,
+        "endMs": 2242199,
+        "text": "And that's before you even talk about cyber security.",
+        "speaker": null
+      },
+      {
+        "startMs": 2242559,
+        "endMs": 2244360,
+        "text": "And what happens?",
+        "speaker": null
+      },
+      {
+        "startMs": 2244420,
+        "endMs": 2249940,
+        "text": "I mean, this is my, see, I always think of things through the ISV commercial lens because that's, you know, what I am, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2250000,
+        "endMs": 2255219,
+        "text": "Uh, what happens, like, Claude, Claude code is not going to be $200 a month forever.",
+        "speaker": null
+      },
+      {
+        "startMs": 2255940,
+        "endMs": 2258579,
+        "text": "The math doesn't math, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2258639,
+        "endMs": 2262840,
+        "text": "My 10 year old could figure out that you can't just lose 1000000000s of dollars a year and be fine.",
+        "speaker": null
+      },
+      {
+        "startMs": 2262900,
+        "endMs": 2268239,
+        "text": "So what happens when let's say you do make some successful.",
+        "speaker": null
+      },
+      {
+        "startMs": 2268300,
+        "endMs": 2271239,
+        "text": "Uh, I like widget, who cares, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2271300,
+        "endMs": 2273039,
+        "text": "Some successful app that you're selling to people.",
+        "speaker": null
+      },
+      {
+        "startMs": 2273099,
+        "endMs": 2275019,
+        "text": "Well, I see 2 major failure points.",
+        "speaker": null
+      },
+      {
+        "startMs": 2275079,
+        "endMs": 2281860,
+        "text": "At some point, these companies have to make money and your entire revenue and cost structure is gonna get demolished.",
+        "speaker": null
+      },
+      {
+        "startMs": 2281920,
+        "endMs": 2287800,
+        "text": "Too, when those enterprises, if you're lucky enough that they do want your product, you are never.",
+        "speaker": null
+      },
+      {
+        "startMs": 2287860,
+        "endMs": 2291039,
+        "text": "It's my opinion, but I know it's a little risky.",
+        "speaker": null
+      },
+      {
+        "startMs": 2291099,
+        "endMs": 2296380,
+        "text": "You're never going to be able to guarantee things like SOC 2 if you vibe code or anything because you legitimately don't know.",
+        "speaker": null
+      },
+      {
+        "startMs": 2296440,
+        "endMs": 2297460,
+        "text": "You don't know.",
+        "speaker": null
+      },
+      {
+        "startMs": 2297519,
+        "endMs": 2301480,
+        "text": "And, and uh, regulatory compliance frameworks.",
+        "speaker": null
+      },
+      {
+        "startMs": 2301599,
+        "endMs": 2305920,
+        "text": "Are, you know, that's something I feel is a gap in the academic world.",
+        "speaker": null
+      },
+      {
+        "startMs": 2305980,
+        "endMs": 2307539,
+        "text": "I don't know that we teach those very well.",
+        "speaker": null
+      },
+      {
+        "startMs": 2307599,
+        "endMs": 2308980,
+        "text": "I do.",
+        "speaker": null
+      },
+      {
+        "startMs": 2309039,
+        "endMs": 2311079,
+        "text": "And when I'm not teaching.",
+        "speaker": null
+      },
+      {
+        "startMs": 2311139,
+        "endMs": 2315280,
+        "text": "I also have a small consulting activity that I do.",
+        "speaker": null
+      },
+      {
+        "startMs": 2315340,
+        "endMs": 2325119,
+        "text": "And I do a lot of, uh, cybersecurity maturity model certification, consulting type things, and that's a department of defense, framework, not unlike sock too.",
+        "speaker": null
+      },
+      {
+        "startMs": 2325179,
+        "endMs": 2342880,
+        "text": "And to be able to build an application that is integrable into a security framework governed enterprise is, is an order of magnitude above what a vibe coder is thing even thinking about.",
+        "speaker": null
+      },
+      {
+        "startMs": 2343059,
+        "endMs": 2346599,
+        "text": "So I, yeah, I think that there's there's so much risk there.",
+        "speaker": null
+      },
+      {
+        "startMs": 2346659,
+        "endMs": 2349719,
+        "text": "And you mentioned like the math, the math doesn't math.",
+        "speaker": null
+      },
+      {
+        "startMs": 2349780,
+        "endMs": 2362260,
+        "text": "There's, um, one of my, uh, favorite authors, uh, Corey Doctoro, uh, has, and his blog, he talks about how this is the most money losingest venture ever.",
+        "speaker": null
+      },
+      {
+        "startMs": 2362320,
+        "endMs": 2365500,
+        "text": "At some point, there's a bubble that pops there.",
+        "speaker": null
+      },
+      {
+        "startMs": 2365619,
+        "endMs": 2368260,
+        "text": "And it makes me think of cloud.",
+        "speaker": null
+      },
+      {
+        "startMs": 2368380,
+        "endMs": 2371320,
+        "text": "When a cloud computing 1st came out.",
+        "speaker": null
+      },
+      {
+        "startMs": 2371380,
+        "endMs": 2384880,
+        "text": "All these, uh, all the enterprises started just rushing to cloud, because, oh, well, we can, we, we can. Eliminate our, our capital investment.",
+        "speaker": null
+      },
+      {
+        "startMs": 2384940,
+        "endMs": 2394599,
+        "text": "We can get rid of our data center, we can lower our headcount, we can lower our electricity, we can reduce and remove our lifecycle replacement costs.",
+        "speaker": null
+      },
+      {
+        "startMs": 2394659,
+        "endMs": 2399280,
+        "text": "We can increase our resilience and increase our flexibility and we're going to save money.",
+        "speaker": null
+      },
+      {
+        "startMs": 2399340,
+        "endMs": 2401559,
+        "text": "And then the cloud bill came in.",
+        "speaker": null
+      },
+      {
+        "startMs": 2401619,
+        "endMs": 2409780,
+        "text": "And they're like, holy smokes, cloud is so much more expensive than being on Prem, and it turns out it's not that easy answer.",
+        "speaker": null
+      },
+      {
+        "startMs": 2409840,
+        "endMs": 2429219,
+        "text": "It's not like, oh, it's just better because, it's better if, if you build an application that's cloud-mative and built for resilience and built for efficiencies, you can cause a business function to happen cheaper than if you did it in your own data center where you're paying for power, power pipe, ping, and all that.",
+        "speaker": null
+      },
+      {
+        "startMs": 2429280,
+        "endMs": 2433539,
+        "text": "But you can't run the enterprise cheaper if you just lift and shift it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2433599,
+        "endMs": 2436599,
+        "text": "So there's this huge lesson that was learned about cloud.",
+        "speaker": null
+      },
+      {
+        "startMs": 2436659,
+        "endMs": 2440260,
+        "text": "We have failed to learn that lesson about AI yet.",
+        "speaker": null
+      },
+      {
+        "startMs": 2440320,
+        "endMs": 2442659,
+        "text": "Well, I don't know if you saw the story.",
+        "speaker": null
+      },
+      {
+        "startMs": 2442719,
+        "endMs": 2445300,
+        "text": "It actually came out as we're talking right now.",
+        "speaker": null
+      },
+      {
+        "startMs": 2445360,
+        "endMs": 2446380,
+        "text": "I think it was 2 days ago.",
+        "speaker": null
+      },
+      {
+        "startMs": 2446619,
+        "endMs": 2449199,
+        "text": "Meta fired, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2449260,
+        "endMs": 2454360,
+        "text": "They laid off a bunch of engineers, and they very sheepishly rehired 11,000 of them.",
+        "speaker": null
+      },
+      {
+        "startMs": 2455139,
+        "endMs": 2457059,
+        "text": "Probably very quietly.",
+        "speaker": null
+      },
+      {
+        "startMs": 2457119,
+        "endMs": 2458079,
+        "text": "Very quietly.",
+        "speaker": null
+      },
+      {
+        "startMs": 2458139,
+        "endMs": 2459219,
+        "text": "They didn't make any announcement.",
+        "speaker": null
+      },
+      {
+        "startMs": 2459280,
+        "endMs": 2464800,
+        "text": "It was on the information, which is a subscription, uh, you know, kind of tech startup periodical.",
+        "speaker": null
+      },
+      {
+        "startMs": 2464860,
+        "endMs": 2471639,
+        "text": "Uh, and it turned, this reporter, I forgot her name, forgive me, but, uh, she found out that they've all done it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2471699,
+        "endMs": 2478059,
+        "text": "All these companies come out with these big layoff announcements because they're, I would argue they're kind of goosing their stock price.",
+        "speaker": null
+      },
+      {
+        "startMs": 2478119,
+        "endMs": 2479019,
+        "text": "whatever.",
+        "speaker": null
+      },
+      {
+        "startMs": 2479079,
+        "endMs": 2485260,
+        "text": "That's the big story that's under the story is for a large corporation.",
+        "speaker": null
+      },
+      {
+        "startMs": 2485320,
+        "endMs": 2491619,
+        "text": "What's the, what's the big, uh, the big hit on the on, on the cost is labor.",
+        "speaker": null
+      },
+      {
+        "startMs": 2491679,
+        "endMs": 2499300,
+        "text": "And especially labor of highly compensated, highly technical, highly skilled people like software developers.",
+        "speaker": null
+      },
+      {
+        "startMs": 2499360,
+        "endMs": 2502300,
+        "text": "People that can get another good job relatively easily.",
+        "speaker": null
+      },
+      {
+        "startMs": 2502360,
+        "endMs": 2505239,
+        "text": "Yeah, so we reduce head count.",
+        "speaker": null
+      },
+      {
+        "startMs": 2505300,
+        "endMs": 2515980,
+        "text": "And I've been through, in my, in my corporate life, before, before I was full-time faculty, I was, I worked in a defense and federal contracting for 30 years for, for some very large companies.",
+        "speaker": null
+      },
+      {
+        "startMs": 2516039,
+        "endMs": 2523599,
+        "text": "And I've been through more than one, what if drill on what if we reduced our headcount by 10%?",
+        "speaker": null
+      },
+      {
+        "startMs": 2523659,
+        "endMs": 2526420,
+        "text": "Yep. What if we really used it by 20%?",
+        "speaker": null
+      },
+      {
+        "startMs": 2526480,
+        "endMs": 2528159,
+        "text": "What if we reduced it by 30%?",
+        "speaker": null
+      },
+      {
+        "startMs": 2528219,
+        "endMs": 2534460,
+        "text": "It's all about the bottom line of the cost and not about the capability.",
+        "speaker": null
+      },
+      {
+        "startMs": 2534519,
+        "endMs": 2537280,
+        "text": "So these companies are the.",
+        "speaker": null
+      },
+      {
+        "startMs": 2537340,
+        "endMs": 2541599,
+        "text": "I mean, Microsoft just let loose 4800 people 3 days ago.",
+        "speaker": null
+      },
+      {
+        "startMs": 2542139,
+        "endMs": 2542980,
+        "text": "I saw that.",
+        "speaker": null
+      },
+      {
+        "startMs": 2543039,
+        "endMs": 2546579,
+        "text": "I saw that most of them uh, I think we're game developers, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2546639,
+        "endMs": 2555519,
+        "text": "And what's funny is at Hillsborough College, we've got, no, we've talked a lot about our, our great partnership with Red Hat.",
+        "speaker": null
+      },
+      {
+        "startMs": 2555579,
+        "endMs": 2558400,
+        "text": "We haven't talked about our great partnership with Microsoft.",
+        "speaker": null
+      },
+      {
+        "startMs": 2558460,
+        "endMs": 2560800,
+        "text": "Who does have a campus in Tampa because I've been there.",
+        "speaker": null
+      },
+      {
+        "startMs": 2560860,
+        "endMs": 2563079,
+        "text": "They actually closed that office.",
+        "speaker": null
+      },
+      {
+        "startMs": 2563139,
+        "endMs": 2564219,
+        "text": "You're killing me.",
+        "speaker": null
+      },
+      {
+        "startMs": 2564639,
+        "endMs": 2566619,
+        "text": "COVID really wrecked me.",
+        "speaker": null
+      },
+      {
+        "startMs": 2566679,
+        "endMs": 2567400,
+        "text": "so behind the times.",
+        "speaker": null
+      },
+      {
+        "startMs": 2567460,
+        "endMs": 2569679,
+        "text": "Yeah, that you're talking about that office.",
+        "speaker": null
+      },
+      {
+        "startMs": 2569739,
+        "endMs": 2573280,
+        "text": "They had where Kennedy goes across to Howard Franklin.",
+        "speaker": null
+      },
+      {
+        "startMs": 2573340,
+        "endMs": 2574179,
+        "text": "Yep, that's the one",
+        "speaker": null
+      },
+      {
+        "startMs": 2574300,
+        "endMs": 2576820,
+        "text": "Yeah, they they closed that a couple years ago.",
+        "speaker": null
+      },
+      {
+        "startMs": 2576880,
+        "endMs": 2580780,
+        "text": "Um, because of, I'm quite sure because of COVID.",
+        "speaker": null
+      },
+      {
+        "startMs": 2580900,
+        "endMs": 2588760,
+        "text": "What we're doing. At Hillsboro College, um, is is phenomenal and I'm so proud of it and I'm so proud of Microsoft for it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2588820,
+        "endMs": 2593320,
+        "text": "In Microsoft, they have a business resource group that's called Black at Microsoft.",
+        "speaker": null
+      },
+      {
+        "startMs": 2593380,
+        "endMs": 2597039,
+        "text": "And there's a chat, Florida chapter of Bam.",
+        "speaker": null
+      },
+      {
+        "startMs": 2597159,
+        "endMs": 2601960,
+        "text": "Bam, the worldwide organization of this business resource group.",
+        "speaker": null
+      },
+      {
+        "startMs": 2602019,
+        "endMs": 2605440,
+        "text": "They do an annual mentorship program.",
+        "speaker": null
+      },
+      {
+        "startMs": 2605500,
+        "endMs": 2606820,
+        "text": "It's largely at high schools.",
+        "speaker": null
+      },
+      {
+        "startMs": 2606880,
+        "endMs": 2611260,
+        "text": "Um, but here, we're doing, they're doing it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2611320,
+        "endMs": 2616539,
+        "text": "This is the only one they're doing at a college, and they're tuning it as a result to make it appropriate for the level.",
+        "speaker": null
+      },
+      {
+        "startMs": 2616599,
+        "endMs": 2619960,
+        "text": "It's a month long program, 4 days a week.",
+        "speaker": null
+      },
+      {
+        "startMs": 2620019,
+        "endMs": 2622000,
+        "text": "And it's happening right now.",
+        "speaker": null
+      },
+      {
+        "startMs": 2622059,
+        "endMs": 2623980,
+        "text": "Today's the 3rd day of the week.",
+        "speaker": null
+      },
+      {
+        "startMs": 2624340,
+        "endMs": 2648820,
+        "text": "And it's training, uh, coding, AI, prompt engineering, building bots, doing Hackathon's career development, uh, they do mock interviews and headshots, professional headshots, a LinkedIn, uh, LinkedIn workshop, this whole thing to build future professionals.",
+        "speaker": null
+      },
+      {
+        "startMs": 2648880,
+        "endMs": 2654760,
+        "text": "And these students, they get tied one to one with a Microsoft mentor.",
+        "speaker": null
+      },
+      {
+        "startMs": 2654820,
+        "endMs": 2667659,
+        "text": "One of our students from last year when we did this program told me last week that she was working on a, uh, at her job and nobody knew how to fix the active directory problem. So she called her mentor from a year ago and he helped her.",
+        "speaker": null
+      },
+      {
+        "startMs": 2667719,
+        "endMs": 2668920,
+        "text": "That's awesome.",
+        "speaker": null
+      },
+      {
+        "startMs": 2668980,
+        "endMs": 2672099,
+        "text": "And here's another thing where Microsoft, they're not charging us for this.",
+        "speaker": null
+      },
+      {
+        "startMs": 2672159,
+        "endMs": 2674320,
+        "text": "And so we're not charging the students.",
+        "speaker": null
+      },
+      {
+        "startMs": 2674380,
+        "endMs": 2682239,
+        "text": "They just have to be willing to commit to a fairly significant amount of time over the course of the, uh, of the month.",
+        "speaker": null
+      },
+      {
+        "startMs": 2682300,
+        "endMs": 2688780,
+        "text": "What a great opportunity for them, though, just like the red hat program, they're coming out totally more competitive, better equipped for the market.",
+        "speaker": null
+      },
+      {
+        "startMs": 2688960,
+        "endMs": 2690820,
+        "text": "all over all around.",
+        "speaker": null
+      },
+      {
+        "startMs": 2690880,
+        "endMs": 2695019,
+        "text": "They they're building these these multi-dimensional skills.",
+        "speaker": null
+      },
+      {
+        "startMs": 2695079,
+        "endMs": 2704440,
+        "text": "And it was great to, it's great to talk about this because we tell students, and in the industry broadly, we talk about professional networking, how important that is.",
+        "speaker": null
+      },
+      {
+        "startMs": 2704500,
+        "endMs": 2715119,
+        "text": "Well, if you're 20 years old, and all you've ever done is go to school and you have a kid's, you know, a kid's job somewhere, um, you know, part-time job.",
+        "speaker": null
+      },
+      {
+        "startMs": 2715179,
+        "endMs": 2716679,
+        "text": "Professional networking.",
+        "speaker": null
+      },
+      {
+        "startMs": 2716739,
+        "endMs": 2718179,
+        "text": "Oh, I have to have a LinkedIn page.",
+        "speaker": null
+      },
+      {
+        "startMs": 2718239,
+        "endMs": 2719980,
+        "text": "Well, that's just like my dad's Facebook.",
+        "speaker": null
+      },
+      {
+        "startMs": 2720039,
+        "endMs": 2721119,
+        "text": "I'm not interested in that.",
+        "speaker": null
+      },
+      {
+        "startMs": 2721179,
+        "endMs": 2728679,
+        "text": "Here's where, here's a tangible example and for our listeners, I'll give you, here's, here's why professional networking matters.",
+        "speaker": null
+      },
+      {
+        "startMs": 2728739,
+        "endMs": 2736119,
+        "text": "I worked with a dude named, dude named Reggie Davis at, uh, down on McDill Air Force Base 15 years ago.",
+        "speaker": null
+      },
+      {
+        "startMs": 2736179,
+        "endMs": 2740800,
+        "text": "We worked together in the same company in the same, in the same team, and we were friends.",
+        "speaker": null
+      },
+      {
+        "startMs": 2740860,
+        "endMs": 2751239,
+        "text": "Hadn't talked to him for years, but he followed me on LinkedIn, and I posted that I was going to a, uh, I think it was a Tampa Bay Techies event.",
+        "speaker": null
+      },
+      {
+        "startMs": 2751300,
+        "endMs": 2751840,
+        "text": "Okay.",
+        "speaker": null
+      },
+      {
+        "startMs": 2751900,
+        "endMs": 2755079,
+        "text": "And he said, And he's going to that.",
+        "speaker": null
+      },
+      {
+        "startMs": 2755139,
+        "endMs": 2757960,
+        "text": "I'm going to go to that too and see what's up with him and we ran into each other.",
+        "speaker": null
+      },
+      {
+        "startMs": 2758019,
+        "endMs": 2760360,
+        "text": "We got to talk and I'm teaching at Hillsboro College.",
+        "speaker": null
+      },
+      {
+        "startMs": 2760420,
+        "endMs": 2763900,
+        "text": "He's at Microsoft now, and a pretty big shot there.",
+        "speaker": null
+      },
+      {
+        "startMs": 2763960,
+        "endMs": 2768039,
+        "text": "And he says, uh, you know, we've got this program, this mentor program.",
+        "speaker": null
+      },
+      {
+        "startMs": 2768099,
+        "endMs": 2772179,
+        "text": "We've been wanting to do it someplace in Florida, and I said, I've got a place where you could do it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2772239,
+        "endMs": 2777280,
+        "text": "And because of that, because of our professional network that we maintained.",
+        "speaker": null
+      },
+      {
+        "startMs": 2777519,
+        "endMs": 2780099,
+        "text": "This whole program erupted.",
+        "speaker": null
+      },
+      {
+        "startMs": 2780159,
+        "endMs": 2786340,
+        "text": "And has served, served a bunch of students last year, serving a bunch of students, even as I'm speaking to you right now.",
+        "speaker": null
+      },
+      {
+        "startMs": 2786400,
+        "endMs": 2790719,
+        "text": "They're in one of my uh students in one of my classes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2790780,
+        "endMs": 2792760,
+        "text": "I just rescheduled a meeting with her.",
+        "speaker": null
+      },
+      {
+        "startMs": 2792820,
+        "endMs": 2794860,
+        "text": "She said, I got to do stuff for Microsoft today.",
+        "speaker": null
+      },
+      {
+        "startMs": 2794980,
+        "endMs": 2795820,
+        "text": "Nice.",
+        "speaker": null
+      },
+      {
+        "startMs": 2795880,
+        "endMs": 2797980,
+        "text": "what professional networking does.",
+        "speaker": null
+      },
+      {
+        "startMs": 2798039,
+        "endMs": 2798760,
+        "text": "That's great.",
+        "speaker": null
+      },
+      {
+        "startMs": 2798820,
+        "endMs": 2800019,
+        "text": "It really is.",
+        "speaker": null
+      },
+      {
+        "startMs": 2800079,
+        "endMs": 2802059,
+        "text": "So a lot of opportunities.",
+        "speaker": null
+      },
+      {
+        "startMs": 2802119,
+        "endMs": 2804159,
+        "text": "We're running up on time here.",
+        "speaker": null
+      },
+      {
+        "startMs": 2804219,
+        "endMs": 2806500,
+        "text": "What would you, just the last question.",
+        "speaker": null
+      },
+      {
+        "startMs": 2806559,
+        "endMs": 2807760,
+        "text": "It's a little more silly.",
+        "speaker": null
+      },
+      {
+        "startMs": 2807820,
+        "endMs": 2809500,
+        "text": "I ask everybody before wrapping up.",
+        "speaker": null
+      },
+      {
+        "startMs": 2809559,
+        "endMs": 2811780,
+        "text": "What is one tool can be anything?",
+        "speaker": null
+      },
+      {
+        "startMs": 2811840,
+        "endMs": 2818440,
+        "text": "People have said e-bikes, coffee makers, one guy, it was like a multi-purpose tool, kind of like a Swiss army knife sort of thing.",
+        "speaker": null
+      },
+      {
+        "startMs": 2818500,
+        "endMs": 2821619,
+        "text": "What is one tool, anything you want that you can't live without?",
+        "speaker": null
+      },
+      {
+        "startMs": 2821679,
+        "endMs": 2823179,
+        "text": "I'm going to say a pen.",
+        "speaker": null
+      },
+      {
+        "startMs": 2823300,
+        "endMs": 2825099,
+        "text": "I feel the same way.",
+        "speaker": null
+      },
+      {
+        "startMs": 2825159,
+        "endMs": 2826900,
+        "text": "I take all my notes by hand.",
+        "speaker": null
+      },
+      {
+        "startMs": 2827260,
+        "endMs": 2835659,
+        "text": "I'm a big believer in this, and I tell, and this is a, this is a regular lesson in my classes, especially programming classes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2835719,
+        "endMs": 2844719,
+        "text": "Oh, and I've I've had to suffer with, through existential dread, like, like any dev has had to do, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 2844780,
+        "endMs": 2850420,
+        "text": "But I teach introducting introductory programming is what I'm teaching even matter.",
+        "speaker": null
+      },
+      {
+        "startMs": 2850480,
+        "endMs": 2851920,
+        "text": "And it turns out it does.",
+        "speaker": null
+      },
+      {
+        "startMs": 2851980,
+        "endMs": 2856780,
+        "text": "It does, yeah. It turns out that just like we were saying about vibe coding.",
+        "speaker": null
+      },
+      {
+        "startMs": 2856840,
+        "endMs": 2864820,
+        "text": "If you don't understand code, then vibe coding, all you are is you're just pushing buttons and pulling levers and getting a banana at the end.",
+        "speaker": null
+      },
+      {
+        "startMs": 2864880,
+        "endMs": 2868179,
+        "text": "It doesn't, you're not demonstrating any knowledge.",
+        "speaker": null
+      },
+      {
+        "startMs": 2868239,
+        "endMs": 2876219,
+        "text": "But, I tell students, you've got to type the code in by hand, if you're struggle, especially if you're struggling.",
+        "speaker": null
+      },
+      {
+        "startMs": 2876280,
+        "endMs": 2879820,
+        "text": "You've got a book or an example online, don't copy and paste anything.",
+        "speaker": null
+      },
+      {
+        "startMs": 2879880,
+        "endMs": 2881380,
+        "text": "Look at it with your eyes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2881440,
+        "endMs": 2899860,
+        "text": "Let your mind, take that, that optical signal, translate it into understanding in your mind, and then retranslate it into nerve, you know, nerve pulses that go down to your fingers and type, and students invariably say, well, I'm going to make mistakes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2899920,
+        "endMs": 2901659,
+        "text": "I'm like, no kidding, you're going to make mistakes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2901719,
+        "endMs": 2904659,
+        "text": "What do you think? Helps you learn?",
+        "speaker": null
+      },
+      {
+        "startMs": 2904719,
+        "endMs": 2907179,
+        "text": "Learning doesn't come for free?",
+        "speaker": null
+      },
+      {
+        "startMs": 2907239,
+        "endMs": 2909579,
+        "text": "Learning requires time.",
+        "speaker": null
+      },
+      {
+        "startMs": 2909639,
+        "endMs": 2911199,
+        "text": "It requires effort.",
+        "speaker": null
+      },
+      {
+        "startMs": 2911260,
+        "endMs": 2913179,
+        "text": "You want big muscles on your body.",
+        "speaker": null
+      },
+      {
+        "startMs": 2913239,
+        "endMs": 2915099,
+        "text": "What do you, what do you need?",
+        "speaker": null
+      },
+      {
+        "startMs": 2915159,
+        "endMs": 2915760,
+        "text": "You need reps.",
+        "speaker": null
+      },
+      {
+        "startMs": 2915880,
+        "endMs": 2918099,
+        "text": "You want big muscles in your brain?",
+        "speaker": null
+      },
+      {
+        "startMs": 2918159,
+        "endMs": 2918760,
+        "text": "What do you need?",
+        "speaker": null
+      },
+      {
+        "startMs": 2918820,
+        "endMs": 2919599,
+        "text": "You need the same thing.",
+        "speaker": null
+      },
+      {
+        "startMs": 2919659,
+        "endMs": 2927820,
+        "text": "You need reps, and you need to force your brain to slow down and process and translate and process this information.",
+        "speaker": null
+      },
+      {
+        "startMs": 2927880,
+        "endMs": 2931480,
+        "text": "Yes, you'll make mistakes, and then you'll learn about debugging.",
+        "speaker": null
+      },
+      {
+        "startMs": 2931539,
+        "endMs": 2937119,
+        "text": "In fact, this is one of my favorite things in class that students, especially early in the semester.",
+        "speaker": null
+      },
+      {
+        "startMs": 2937179,
+        "endMs": 2938860,
+        "text": "They don't realize it's happening.",
+        "speaker": null
+      },
+      {
+        "startMs": 2938980,
+        "endMs": 2943000,
+        "text": "I do a lot of live coding on the fly.",
+        "speaker": null
+      },
+      {
+        "startMs": 2943059,
+        "endMs": 2945340,
+        "text": "I don't practice, I don't pre-plan.",
+        "speaker": null
+      },
+      {
+        "startMs": 2945400,
+        "endMs": 2946360,
+        "text": "I'll just do an example.",
+        "speaker": null
+      },
+      {
+        "startMs": 2946420,
+        "endMs": 2949480,
+        "text": "Here's how an array works or here's how a method works or something like this.",
+        "speaker": null
+      },
+      {
+        "startMs": 2949539,
+        "endMs": 2951400,
+        "text": "And I constantly make mistakes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2951460,
+        "endMs": 2959019,
+        "text": "And then we as the class go through the stack trace from the compiler and debug the mistakes and learn to understand them.",
+        "speaker": null
+      },
+      {
+        "startMs": 2959079,
+        "endMs": 2964719,
+        "text": "That's an important skill, but it doesn't ever happen if you copy and paste code.",
+        "speaker": null
+      },
+      {
+        "startMs": 2964780,
+        "endMs": 2966699,
+        "text": "It only happens when you do it by hand.",
+        "speaker": null
+      },
+      {
+        "startMs": 2966820,
+        "endMs": 2975880,
+        "text": "So when I talk about a pen as the tool, if you take notes on a piece of paper with a pen, just like it's, I don't know, 100 years ago, what are you doing?",
+        "speaker": null
+      },
+      {
+        "startMs": 2975940,
+        "endMs": 2980260,
+        "text": "You're taking information that's coming into your ears and your eyes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2980320,
+        "endMs": 2982420,
+        "text": "You're translating it.",
+        "speaker": null
+      },
+      {
+        "startMs": 2982480,
+        "endMs": 2987760,
+        "text": "You're formatting into the native data type that your brain uses, then you're retranslating it out.",
+        "speaker": null
+      },
+      {
+        "startMs": 2987880,
+        "endMs": 2992559,
+        "text": "Through these nerve pulses that go down to your hands and all, and all this.",
+        "speaker": null
+      },
+      {
+        "startMs": 2992619,
+        "endMs": 2994420,
+        "text": "I take notes that I never read.",
+        "speaker": null
+      },
+      {
+        "startMs": 2994480,
+        "endMs": 2995440,
+        "text": "I take notes.",
+        "speaker": null
+      },
+      {
+        "startMs": 2995500,
+        "endMs": 3003059,
+        "text": "I can't even read because that whole physical act of translating this information space into the physical space.",
+        "speaker": null
+      },
+      {
+        "startMs": 3003179,
+        "endMs": 3006119,
+        "text": "It improves your cognitive uptake.",
+        "speaker": null
+      },
+      {
+        "startMs": 3006179,
+        "endMs": 3011699,
+        "text": "It improves your comprehension and it makes you, it makes it stick to you better.",
+        "speaker": null
+      },
+      {
+        "startMs": 3011760,
+        "endMs": 3014880,
+        "text": "I don't think there's any more important tool than a pen.",
+        "speaker": null
+      },
+      {
+        "startMs": 3014940,
+        "endMs": 3016920,
+        "text": "Professor, I completely agree.",
+        "speaker": null
+      },
+      {
+        "startMs": 3016980,
+        "endMs": 3017400,
+        "text": "I love it.",
+        "speaker": null
+      },
+      {
+        "startMs": 3017460,
+        "endMs": 3018719,
+        "text": "Outstanding.",
+        "speaker": null
+      },
+      {
+        "startMs": 3018780,
+        "endMs": 3020340,
+        "text": "It's been the best hour I've spent all day.",
+        "speaker": null
+      },
+      {
+        "startMs": 3020400,
+        "endMs": 3021239,
+        "text": "You know what?",
+        "speaker": null
+      },
+      {
+        "startMs": 3021300,
+        "endMs": 3022739,
+        "text": "This is probably going to be the highlight of my day.",
+        "speaker": null
+      },
+      {
+        "startMs": 3023340,
+        "endMs": 3026699,
+        "text": "I have client sales meetings all coming up after this.",
+        "speaker": null
+      },
+      {
+        "startMs": 3026820,
+        "endMs": 3031559,
+        "text": "I surely appreciate the invitation. Oh, you got to come on again.",
+        "speaker": null
+      },
+      {
+        "startMs": 3031619,
+        "endMs": 3033179,
+        "text": "We have so much more to talk about.",
+        "speaker": null
+      },
+      {
+        "startMs": 3033239,
+        "endMs": 3034199,
+        "text": "This was amazing.",
+        "speaker": null
+      },
+      {
+        "startMs": 3034260,
+        "endMs": 3037139,
+        "text": "Let's um, let's make it a regular occurrence.",
+        "speaker": null
+      },
+      {
+        "startMs": 3037199,
+        "endMs": 3044400,
+        "text": "As you can tell, I don't mind at all talking about the college, the students and the opportunities we're creating in Tampa Bay.",
+        "speaker": null
+      },
+      {
+        "startMs": 3044460,
+        "endMs": 3045719,
+        "text": "This is the best place in town right here.",
+        "speaker": null
+      },
+      {
+        "startMs": 3045780,
+        "endMs": 3046739,
+        "text": "Let's do it.",
+        "speaker": null
+      },
+      {
+        "startMs": 3046800,
+        "endMs": 3049199,
+        "text": "Actually, my daughter goes to Hillsboro.",
+        "speaker": null
+      },
+      {
+        "startMs": 3049260,
+        "endMs": 3049800,
+        "text": "She just started.",
+        "speaker": null
+      },
+      {
+        "startMs": 3049860,
+        "endMs": 3051840,
+        "text": "I'll be looking out for her.",
+        "speaker": null
+      },
+      {
+        "startMs": 3051900,
+        "endMs": 3054119,
+        "text": "She comes through my classes, I'll be extra tough on her.",
+        "speaker": null
+      },
+      {
+        "startMs": 3054179,
+        "endMs": 3055500,
+        "text": "Good, she deserves it.",
+        "speaker": null
+      },
+      {
+        "startMs": 3055559,
+        "endMs": 3057780,
+        "text": "All right, outstanding.",
+        "speaker": null
+      },
+      {
+        "startMs": 3057840,
+        "endMs": 3059219,
+        "text": "All right, Andrew, I'll talk to you later.",
+        "speaker": null
+      },
+      {
+        "startMs": 3059280,
+        "endMs": 3060059,
+        "text": "You have a great day.",
+        "speaker": null
+      }
+    ]
+  }
+}

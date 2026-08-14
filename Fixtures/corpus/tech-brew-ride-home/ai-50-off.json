@@ -1,0 +1,920 @@
+{
+  "show": "Tech Brew Ride Home",
+  "episodeTitle": "ai 50 off",
+  "audioFileName": "01-ai-50-off.mp3",
+  "durationMs": 1142726,
+  "labeledAt": "2026-08-14",
+  "segments": [
+    {
+      "startMs": 544,
+      "endMs": 32331,
+      "kind": "intro",
+      "sponsor": "No Sponsor. Just intro"
+    },
+    {
+      "startMs": 34508,
+      "endMs": 74922,
+      "kind": "ad",
+      "sponsor": "Vanguard Investors"
+    },
+    {
+      "startMs": 531516,
+      "endMs": 581415,
+      "kind": "ad",
+      "sponsor": "8 sleep"
+    },
+    {
+      "startMs": 582118,
+      "endMs": 612642,
+      "kind": "ad",
+      "sponsor": "Rubrik .com"
+    },
+    {
+      "startMs": 1099931,
+      "endMs": 1142726,
+      "kind": "outro",
+      "sponsor": "No Sponsor. just outtro"
+    }
+  ],
+  "transcript": {
+    "source": "onDevice",
+    "segments": [
+      {
+        "startMs": 3299,
+        "endMs": 7559,
+        "text": "Welcome to the Tech Brew Ride Home for Thursday, August 13th, 2026.",
+        "speaker": null
+      },
+      {
+        "startMs": 7740,
+        "endMs": 8519,
+        "text": "I am Brian McCullough.",
+        "speaker": null
+      },
+      {
+        "startMs": 8580,
+        "endMs": 16679,
+        "text": "Today, Anthropic Investors talked up a $2000000000000 plus October IPO, even as data showed table 5, maybe has hit a price ceiling.",
+        "speaker": null
+      },
+      {
+        "startMs": 16739,
+        "endMs": 22079,
+        "text": "Google Cut prices on Gemini 3.7 flash, open AI previewed a 14 X faster tier.",
+        "speaker": null
+      },
+      {
+        "startMs": 22140,
+        "endMs": 27780,
+        "text": "Trump enlisted private hackers, and Twitch wants to feed Amazon's AI with your videos.",
+        "speaker": null
+      },
+      {
+        "startMs": 27839,
+        "endMs": 30059,
+        "text": "Here's what you missed today in the world of tech.",
+        "speaker": null
+      },
+      {
+        "startMs": 33899,
+        "endMs": 39240,
+        "text": "Every day, shareholders meet to discuss important matters about the companies you invest in.",
+        "speaker": null
+      },
+      {
+        "startMs": 39299,
+        "endMs": 42299,
+        "text": "Now you can make your voice heard too.",
+        "speaker": null
+      },
+      {
+        "startMs": 42359,
+        "endMs": 59460,
+        "text": "Vanguard Investor Choice makes it easy to set your proxy voting preference for your eligible Vanguard index funds, whether you hold a Vanguard fund directly or through another brokerage firm, all it takes is a few clicks to select your proxy voting preference and be heard on important shareholder topics like executive pay and director elections.",
+        "speaker": null
+      },
+      {
+        "startMs": 59520,
+        "endMs": 63240,
+        "text": "Visit vanguard.com slash investor choice to learn more.",
+        "speaker": null
+      },
+      {
+        "startMs": 63299,
+        "endMs": 64439,
+        "text": "It's your shares.",
+        "speaker": null
+      },
+      {
+        "startMs": 64500,
+        "endMs": 66180,
+        "text": "It's your voice, it's easy.",
+        "speaker": null
+      },
+      {
+        "startMs": 66239,
+        "endMs": 71700,
+        "text": "Vanguard investors own shares of our index funds, and those funds own shares of the companies they invest in.",
+        "speaker": null
+      },
+      {
+        "startMs": 71760,
+        "endMs": 74159,
+        "text": "Vanguard Marketing Corporation distributor.",
+        "speaker": null
+      },
+      {
+        "startMs": 75840,
+        "endMs": 80340,
+        "text": "Well, I mean, this is what we're going to have every day for the foreseeable future, right?",
+        "speaker": null
+      },
+      {
+        "startMs": 80400,
+        "endMs": 81659,
+        "text": "More models, new models.",
+        "speaker": null
+      },
+      {
+        "startMs": 81719,
+        "endMs": 91319,
+        "text": "Google has unveiled Gemini 3.7 flash what it calls its most intelligent workhorse model for coding at agents, but what's interesting is the price saying.",
+        "speaker": null
+      },
+      {
+        "startMs": 91379,
+        "endMs": 100560,
+        "text": "They are pricing it at $75 per 1000000 input and $3.75 per 1000000 output tokens at launch, and let me underline that.",
+        "speaker": null
+      },
+      {
+        "startMs": 100620,
+        "endMs": 105000,
+        "text": "We're seeing the race to compete on pricing in real time now, aren't we?",
+        "speaker": null
+      },
+      {
+        "startMs": 105060,
+        "endMs": 113939,
+        "text": "People online seem to be at least at 1st blush, gushing about the capability of this model, and then loving the price, at which they can do that capability.",
+        "speaker": null
+      },
+      {
+        "startMs": 114000,
+        "endMs": 118799,
+        "text": "Remember, Google has the advantage that they can basically subsidize this sort of thing.",
+        "speaker": null
+      },
+      {
+        "startMs": 118859,
+        "endMs": 120719,
+        "text": "Quoting Venture Beat.",
+        "speaker": null
+      },
+      {
+        "startMs": 120780,
+        "endMs": 132000,
+        "text": "Google is rolling out Gemini 3.7 flash, a new version of its workhorse AI model that puts coding agentic workloads and knowledge work at the center of the upgrade while temporarily cutting API prices in half.",
+        "speaker": null
+      },
+      {
+        "startMs": 132060,
+        "endMs": 142740,
+        "text": "The release arrives just 3 weeks after the release of Gemini 3.6 flash and unusually short turnaround that Google attributed to developer feedback and algorithmic improvements.",
+        "speaker": null
+      },
+      {
+        "startMs": 142860,
+        "endMs": 149340,
+        "text": "For enterprise developers, the more consequential story may be the combination of those intelligence gains with the lower inference costs.",
+        "speaker": null
+      },
+      {
+        "startMs": 149460,
+        "endMs": 157919,
+        "text": "Through the end of 2026, Gemini 3.7 flash costs $75 per 1000000 input tokens and $3.75 per 1000000 output tokens.",
+        "speaker": null
+      },
+      {
+        "startMs": 157979,
+        "endMs": 166500,
+        "text": "Starting January 1st, pricing rises to $1.50 per 1000000 input tokens, and $7.50 per 1000000 output tokens.",
+        "speaker": null
+      },
+      {
+        "startMs": 166560,
+        "endMs": 179879,
+        "text": "That means the current discount is temporary, but it gives teams deploying high volume coding and business agents several months to evaluate whether Google's claimed reductions in retries and manual oversight translate into lower total operating costs.",
+        "speaker": null
+      },
+      {
+        "startMs": 179939,
+        "endMs": 187500,
+        "text": "The launch also underscores Google's rapid iteration on its flashlight while its next flagship pro model remains absent.",
+        "speaker": null
+      },
+      {
+        "startMs": 187560,
+        "endMs": 192780,
+        "text": "Google did not provide a release date for Gemini 3.5 Pro with Thursday's announcement.",
+        "speaker": null
+      },
+      {
+        "startMs": 192840,
+        "endMs": 203340,
+        "text": "Writers reported, despite the model having previously been described as undergoing partner testing, axio similarly noted that 3.7 flash arrives before the anticipated pro release.",
+        "speaker": null
+      },
+      {
+        "startMs": 203400,
+        "endMs": 209159,
+        "text": "Google describes Gemini 3.7 flash as its most intelligent workhorse model yet for coding and agents.",
+        "speaker": null
+      },
+      {
+        "startMs": 209219,
+        "endMs": 216659,
+        "text": "The company says the model is better at adapting when it encounters roadblocks, clarifying intent when necessary, and following instructions with greater fidelity.",
+        "speaker": null
+      },
+      {
+        "startMs": 216719,
+        "endMs": 231300,
+        "text": "Those improvements matter beyond benchmark scores, and an enterprise coding agent, a model that makes fewer unnecessary changes, recovers from errors and executes multi-step plans more reliably, can reduce the number of human interventions needed to complete a task.",
+        "speaker": null
+      },
+      {
+        "startMs": 231360,
+        "endMs": 241439,
+        "text": "The same principle applies to business agents operating across documents and applications, where an incorrect tool call or poorly interpreted instruction can derail an otherwise useful workflow.",
+        "speaker": null
+      },
+      {
+        "startMs": 241500,
+        "endMs": 247919,
+        "text": "Google sets 3.7 flash thinks more diligently applying more effort to multi-step planning and tool calls.",
+        "speaker": null
+      },
+      {
+        "startMs": 247979,
+        "endMs": 253500,
+        "text": "Its stated goal is more disciplined execution with fewer retries and less manual supervision.",
+        "speaker": null
+      },
+      {
+        "startMs": 253560,
+        "endMs": 257939,
+        "text": "That represents an interesting evolution from Gemini 3.6 flash.",
+        "speaker": null
+      },
+      {
+        "startMs": 258000,
+        "endMs": 269339,
+        "text": "Google's developer documentation to describe 3.6 as reducing reasoning steps, conversational turns, and tool calls compared with earlier models while attempting to limit execution loop spiraling.",
+        "speaker": null
+      },
+      {
+        "startMs": 269399,
+        "endMs": 280800,
+        "text": "With 3.7, the emphasis shifts toward putting sufficient effort into planning, while improving the quality of execution, potentially a more useful optimization than simply minimizing the number of steps an agent takes.",
+        "speaker": null
+      },
+      {
+        "startMs": 280860,
+        "endMs": 296519,
+        "text": "Google DeepMind said in a post accompanying the release, that 3.7 flash shows gains and debugging and issue resolution generates more functional web layouts and applications with fewer prompts and improves reasoning and accuracy on real world business workflows, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 302699,
+        "endMs": 312360,
+        "text": "Well, you know, competing on price can also mean competing on execution and speed, because those can all mean the same thing in the end, quoting 9 to 5 Mac.",
+        "speaker": null
+      },
+      {
+        "startMs": 312420,
+        "endMs": 319019,
+        "text": "OpenAI is previewing a new way to run its most capable GPT 5.6 model at dramatically higher speeds.",
+        "speaker": null
+      },
+      {
+        "startMs": 319079,
+        "endMs": 328079,
+        "text": "The company says its new ultra-fast service tier can run GPD 5.6 soul up to 14 times faster than standard processing.",
+        "speaker": null
+      },
+      {
+        "startMs": 328139,
+        "endMs": 334680,
+        "text": "Ultrafast mode launches 1st through the opening AI API, and it's powered by cerebrus.",
+        "speaker": null
+      },
+      {
+        "startMs": 334740,
+        "endMs": 343560,
+        "text": "It can generate up to 750 output tokens per second, potentially bringing frontier level performance to workflows where latency matters as much as model intelligence.",
+        "speaker": null
+      },
+      {
+        "startMs": 343620,
+        "endMs": 350699,
+        "text": "Open AI introduced GPD 5.6 soul in June alongside the balanced terra and speed focused Luna models.",
+        "speaker": null
+      },
+      {
+        "startMs": 350759,
+        "endMs": 356519,
+        "text": "The full family became broadly available in July, including through ChatGPT, Codex and the API.",
+        "speaker": null
+      },
+      {
+        "startMs": 356579,
+        "endMs": 366000,
+        "text": "The company sees ultrafast supporting live or near production tasks, including voice, customer support, commerce, developer agents, financial research, and security response.",
+        "speaker": null
+      },
+      {
+        "startMs": 366060,
+        "endMs": 377040,
+        "text": "Open AI says its own developers have used it to analyze logs and traces during incidents as well as compressed research cycles that previously ran overnight into multiple iterations during the workday.",
+        "speaker": null
+      },
+      {
+        "startMs": 377100,
+        "endMs": 386040,
+        "text": "Access remains limited to a select group of customers while OpenI evaluates how the added speed changes real world products and expands capacity.",
+        "speaker": null
+      },
+      {
+        "startMs": 386100,
+        "endMs": 392639,
+        "text": "Businesses can join the ultra fast waitlist by sharing their workload, latency requirements, expected usage, and other details, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 398819,
+        "endMs": 402839,
+        "text": "Want to get into the Nation State hacking game?",
+        "speaker": null
+      },
+      {
+        "startMs": 402899,
+        "endMs": 405959,
+        "text": "Well, the US government will now employ you to do just that.",
+        "speaker": null
+      },
+      {
+        "startMs": 406019,
+        "endMs": 419220,
+        "text": "Quoting Bloomberg, the U.S. government is partnering with private sector firms to launch cyber attacks abroad, expanding the scope of national security operations that until now had been largely conducted by government agencies.",
+        "speaker": null
+      },
+      {
+        "startMs": 419279,
+        "endMs": 435240,
+        "text": "Private companies under the direct control and oversight of the federal government will be able to conduct offensive cyber operations aimed at disrupting criminal organizations that target Americans according to a national security presidential memorandum, signed by President Donald Trump, and released Wednesday.",
+        "speaker": null
+      },
+      {
+        "startMs": 435300,
+        "endMs": 445620,
+        "text": "The memo, which will create a new program run by the Department of Homeland Security marks a significant shift for the U.S. where such operations are usually carried out by the government.",
+        "speaker": null
+      },
+      {
+        "startMs": 445680,
+        "endMs": 448860,
+        "text": "The program will be overseen in coordination with the Justice Department.",
+        "speaker": null
+      },
+      {
+        "startMs": 448920,
+        "endMs": 456420,
+        "text": "For months, the Trump administration has been laying the groundwork for private sector firms to legally conduct offensive cyber operations.",
+        "speaker": null
+      },
+      {
+        "startMs": 456540,
+        "endMs": 463439,
+        "text": "The idea is highly polarizing due to fears that such activities could lead to unintended consequences and escalation.",
+        "speaker": null
+      },
+      {
+        "startMs": 463500,
+        "endMs": 470759,
+        "text": "Advocates argue that tapping a larger pool of professionals would expand the country's ability to counter cyber threats.",
+        "speaker": null
+      },
+      {
+        "startMs": 470819,
+        "endMs": 489000,
+        "text": "The move is about granting cyber letters of mark, said Ari Redboard, head of government affairs at the blockchain intelligence firm TMR Labs, referring to a 19th century government license that allowed privately owned ships to attack pirates and other designated threats.",
+        "speaker": null
+      },
+      {
+        "startMs": 489060,
+        "endMs": 491879,
+        "text": "Sorry, this is me cutting in here to put on the history hat.",
+        "speaker": null
+      },
+      {
+        "startMs": 491939,
+        "endMs": 497639,
+        "text": "No, letters of mark were government sponsored piracy, essentially, quoting again.",
+        "speaker": null
+      },
+      {
+        "startMs": 497699,
+        "endMs": 507480,
+        "text": "The federal government's partners would be able to conduct surveillance operations and cyber attacks against foreign cyber enabled transnational criminal organizations, the memo said, to qualify for the program.",
+        "speaker": null
+      },
+      {
+        "startMs": 507540,
+        "endMs": 514919,
+        "text": "Companies will have to maintain a bond or escrow of at least $1000000 that will be forfeited if they don't comply with contractual agreements end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 515039,
+        "endMs": 523980,
+        "text": "I guess right now, somewhere on a discord channel, the modern version of Francis Drake just got their marching orders.",
+        "speaker": null
+      },
+      {
+        "startMs": 531299,
+        "endMs": 534299,
+        "text": "With this summer's record breaking heat.",
+        "speaker": null
+      },
+      {
+        "startMs": 534360,
+        "endMs": 536580,
+        "text": "It's hard to cool down enough to get a good night's sleep.",
+        "speaker": null
+      },
+      {
+        "startMs": 536639,
+        "endMs": 538500,
+        "text": "That's where the pod comes in.",
+        "speaker": null
+      },
+      {
+        "startMs": 538559,
+        "endMs": 546539,
+        "text": "The pod by 8 sleep is a smart mattress cover that goes over your existing mattress and actively heats or cools each side of your bed independently.",
+        "speaker": null
+      },
+      {
+        "startMs": 546600,
+        "endMs": 550200,
+        "text": "It connects to your wearable, analyzing your daily activity.",
+        "speaker": null
+      },
+      {
+        "startMs": 550259,
+        "endMs": 554220,
+        "text": "Then it predicts how you'll sleep, and adjusts the pod's temperature automatically.",
+        "speaker": null
+      },
+      {
+        "startMs": 554279,
+        "endMs": 561600,
+        "text": "What I love about the 8 sleep is the simplest of things, the ability to be cool when it's time to go to sleep and warm when it's time to wake up.",
+        "speaker": null
+      },
+      {
+        "startMs": 561720,
+        "endMs": 564000,
+        "text": "And my side is entirely under my control.",
+        "speaker": null
+      },
+      {
+        "startMs": 564059,
+        "endMs": 567539,
+        "text": "My wife can be whatever temperature she wants on her side of the bed too.",
+        "speaker": null
+      },
+      {
+        "startMs": 567600,
+        "endMs": 574620,
+        "text": "Use code ride home at 8sleep.com slash ride home for up to $350 off.",
+        "speaker": null
+      },
+      {
+        "startMs": 574679,
+        "endMs": 580019,
+        "text": "That's code ride home at 8sleep.com slash ride home.",
+        "speaker": null
+      },
+      {
+        "startMs": 583320,
+        "endMs": 594480,
+        "text": "AI threats are like a hydra that learned how to type, cut one head down, and 2 more pop right back up, which means the old way we've been handling cybersecurity just won't cut it anymore.",
+        "speaker": null
+      },
+      {
+        "startMs": 594539,
+        "endMs": 596399,
+        "text": "That's where rubric comes in.",
+        "speaker": null
+      },
+      {
+        "startMs": 596460,
+        "endMs": 600899,
+        "text": "They've engineered a platform that secures your data, controls your AI and protects your identity.",
+        "speaker": null
+      },
+      {
+        "startMs": 600960,
+        "endMs": 607139,
+        "text": "See how rubric helps you stay ahead of threats at rubric.com slash MB.",
+        "speaker": null
+      },
+      {
+        "startMs": 607200,
+        "endMs": 610919,
+        "text": "That's R-U-B-R-Ik.com slash MB.",
+        "speaker": null
+      },
+      {
+        "startMs": 612179,
+        "endMs": 620220,
+        "text": "In a different time, data bricks would be the most famous startup in all the land, quoting CNBC.",
+        "speaker": null
+      },
+      {
+        "startMs": 620279,
+        "endMs": 628799,
+        "text": "Data bricks on Thursday said, it closed a $500000000000 funding round at a $1900000000 valuation to invest in enterprise capabilities.",
+        "speaker": null
+      },
+      {
+        "startMs": 628860,
+        "endMs": 636059,
+        "text": "The company said that it crossed $7000000000 in revenue run rate and grew more than 80% year over year in its 2nd quarter.",
+        "speaker": null
+      },
+      {
+        "startMs": 636120,
+        "endMs": 642059,
+        "text": "CEO Ali Gozzi told CNBC's John Fort on Thursday that demand is crazy.",
+        "speaker": null
+      },
+      {
+        "startMs": 642120,
+        "endMs": 652080,
+        "text": "What's happening basically is everybody's using these agents, AI agents, and the whole world is laser focused on agents, AI, and the sort of, you know, that core part of it.",
+        "speaker": null
+      },
+      {
+        "startMs": 652139,
+        "endMs": 665700,
+        "text": "Go to said on CNBC's squawk on the street, go to see highlighted, strength in the AI software company's lake-based database unit, Genie Business Agent, and its AI gateway tool, which helps control model use and costs.",
+        "speaker": null
+      },
+      {
+        "startMs": 665759,
+        "endMs": 673500,
+        "text": "The company's recent lake-based database for AI agents has already surpassed $100 million in revenue run rate, Data Brick said.",
+        "speaker": null
+      },
+      {
+        "startMs": 673559,
+        "endMs": 678059,
+        "text": "The company said, it's lake house data, warehousing tool has surpassed a one.",
+        "speaker": null
+      },
+      {
+        "startMs": 678179,
+        "endMs": 679740,
+        "text": "$1500000000 run rate.",
+        "speaker": null
+      },
+      {
+        "startMs": 679799,
+        "endMs": 690840,
+        "text": "The funding round comes 6 months after the private data analytics software company raised $5000000000 in funding and $2000000000 in new debt at a $134 billion valuation, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 696840,
+        "endMs": 707759,
+        "text": "We're now getting that steady drumbeat of rumblings about the Anthropic IPO that usually means the IPO is probably coming to tweet, quoting the FT.",
+        "speaker": null
+      },
+      {
+        "startMs": 707879,
+        "endMs": 720840,
+        "text": "Anthropic investors expect the AI startup to float at a valuation of $20000000000 or more in October, a dizzying figure that would eclipse SpaceX and make the AI Labs debut the largest ever initial public offering.",
+        "speaker": null
+      },
+      {
+        "startMs": 720960,
+        "endMs": 729539,
+        "text": "Half a dozen of the company's backers told the FT that Anthropic's rapidly rising revenue would enable it to more than double its current valuation in a planned autumn float.",
+        "speaker": null
+      },
+      {
+        "startMs": 729659,
+        "endMs": 739139,
+        "text": "A listing at that level could unlock 1000000000s of dollars in gains for the five-year-old company's early investors, but would also test public markets that are growing more nervous about the AI boom.",
+        "speaker": null
+      },
+      {
+        "startMs": 739200,
+        "endMs": 745740,
+        "text": "Anthropics backers say booming demand for the lab's advanced AI models and tools justifies their lefty expectations.",
+        "speaker": null
+      },
+      {
+        "startMs": 745799,
+        "endMs": 762419,
+        "text": "Investors expect the clodmaker's annualized revenue to be between $120 billion by the end of 2026 using the startup's preferred measure, which infers full year sales from recent performance, up by more than 10 times over the course of 2026.",
+        "speaker": null
+      },
+      {
+        "startMs": 762600,
+        "endMs": 773820,
+        "text": "If Anthropic is growing 800% a year, you'd think at the incredibly low end, they would trade at 30 times revenue, said one investor in the group that would make them a $30000000000 company.",
+        "speaker": null
+      },
+      {
+        "startMs": 773879,
+        "endMs": 791519,
+        "text": "Anthropics lack of a publicly listed U.S. peer that would provide a benchmark for its valuation is an issue, but companies that are seen as AI beneficiaries, such as data intelligence group palanteer and cloud company Nebius have traded this year at roughly 55 times revenue.",
+        "speaker": null
+      },
+      {
+        "startMs": 791580,
+        "endMs": 802320,
+        "text": "Several investors said senior anthropic executives had yet to fix the valuation target for the IPO even in private conversations, but investors have built their own financial models, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 802379,
+        "endMs": 809519,
+        "text": "Well, helping or hampering that, I guess, is this, quoting the decoder.",
+        "speaker": null
+      },
+      {
+        "startMs": 809580,
+        "endMs": 818340,
+        "text": "Anthropics Fable 5 is considered the most capable AI model on the market, but new sales data shows US companies are barely adopting it.",
+        "speaker": null
+      },
+      {
+        "startMs": 818399,
+        "endMs": 826440,
+        "text": "Spending data from financial services provider ramp shows that companies are barely buying anthropic's most powerful model through its API.",
+        "speaker": null
+      },
+      {
+        "startMs": 826500,
+        "endMs": 833039,
+        "text": "In its 1st month after launch, Fable 5 accounted for only about 6% of the tokens purchased from Anthropic.",
+        "speaker": null
+      },
+      {
+        "startMs": 833100,
+        "endMs": 837960,
+        "text": "Measured against total spending on anthropic models, that number set at 11.4%.",
+        "speaker": null
+      },
+      {
+        "startMs": 838019,
+        "endMs": 844679,
+        "text": "Open AIs, flagship model, GPT 5.6, Seoul, captured 25% of tokens and 23% of spending at open AI.",
+        "speaker": null
+      },
+      {
+        "startMs": 844860,
+        "endMs": 855539,
+        "text": "Overall, according to Ramp, table 5 brought in only about 75% of the model related revenue, that GPD 5.6 soul generated, despite costing significantly more per token.",
+        "speaker": null
+      },
+      {
+        "startMs": 855600,
+        "endMs": 862200,
+        "text": "Ramp economists are at Karazanian attributes Fable 5's slow uptake to its price.",
+        "speaker": null
+      },
+      {
+        "startMs": 862259,
+        "endMs": 874019,
+        "text": "The model costs about $10 per 1000000 input tokens and $50 per 1000000 output tokens, making it roughly twice as expensive as GPD 5.6 soul or other anthropic flagship models.",
+        "speaker": null
+      },
+      {
+        "startMs": 874080,
+        "endMs": 882000,
+        "text": "Karzanian sees this as a new ceiling on what companies are willing to spend on AI arguing that the extra performance simply isn't worth the cost.",
+        "speaker": null
+      },
+      {
+        "startMs": 882059,
+        "endMs": 884879,
+        "text": "It's likely more complicated than that, though.",
+        "speaker": null
+      },
+      {
+        "startMs": 884940,
+        "endMs": 891059,
+        "text": "The performance edge Fable 5 offers may not matter for many use cases, or it's barely measurable and daily work.",
+        "speaker": null
+      },
+      {
+        "startMs": 891120,
+        "endMs": 895139,
+        "text": "This points to a basic problem with calculating AI return on investment.",
+        "speaker": null
+      },
+      {
+        "startMs": 895200,
+        "endMs": 902519,
+        "text": "How does a company put a number on the value an AI model delivers, especially when trying to measure the gap between one model generation and the next?",
+        "speaker": null
+      },
+      {
+        "startMs": 902580,
+        "endMs": 904860,
+        "text": "It's a complicated and messy equation.",
+        "speaker": null
+      },
+      {
+        "startMs": 904919,
+        "endMs": 918480,
+        "text": "But the data doesn't say that a Fable 5 class model represents the upper limit of what companies would pay for AI per se, models that are dramatically more capable could also deliver dramatically higher and more importantly, tangible value.",
+        "speaker": null
+      },
+      {
+        "startMs": 918539,
+        "endMs": 920580,
+        "text": "Companies will buy what pays off.",
+        "speaker": null
+      },
+      {
+        "startMs": 920639,
+        "endMs": 925679,
+        "text": "But as long as that value stays abstract, their willingness to pay appears to be limited.",
+        "speaker": null
+      },
+      {
+        "startMs": 925740,
+        "endMs": 932700,
+        "text": "According to Ramp, 43.5% of U.S. companies paid for anthropic subscriptions or tokens in July up one.",
+        "speaker": null
+      },
+      {
+        "startMs": 932879,
+        "endMs": 942720,
+        "text": "percentage points from the previous month, OpenAI reached 39.7% but grew only by 0.23 percentage points, lagging overall AI adoption growth.",
+        "speaker": null
+      },
+      {
+        "startMs": 942779,
+        "endMs": 949200,
+        "text": "XAI posted its fastest growth since July 2025, rising .94 percentage points up 4%.",
+        "speaker": null
+      },
+      {
+        "startMs": 949320,
+        "endMs": 959879,
+        "text": "New customers keep signing up with American model providers, but advanced users whose growing spending open AI and anthropic increasingly depend on are shifting toward open source models.",
+        "speaker": null
+      },
+      {
+        "startMs": 959940,
+        "endMs": 969059,
+        "text": "Ramp's data shows those models now trail frontier models by only a few months, and as a result, growth at the 2 leading AI labs is slowing, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 969299,
+        "endMs": 974940,
+        "text": "Ooh, might want to have that IPO happen sooner rather than later.",
+        "speaker": null
+      },
+      {
+        "startMs": 981059,
+        "endMs": 991860,
+        "text": "Finally, today, Twitch says it intends to use video streamed on its platform to help train Amazon's generative AI content models, but has added a setting for creators to opt out.",
+        "speaker": null
+      },
+      {
+        "startMs": 991919,
+        "endMs": 999480,
+        "text": "Quoting Tech Crutch, the streaming platform Twitch will now use crater's content to help train generative AI models for its parent company Amazon.",
+        "speaker": null
+      },
+      {
+        "startMs": 999539,
+        "endMs": 1008659,
+        "text": "This move has inspired Swift and concentrated backlash from the Twitch community, especially because creators are opted in to having their content used for this AI training by default.",
+        "speaker": null
+      },
+      {
+        "startMs": 1008720,
+        "endMs": 1025700,
+        "text": "For Amazon, these stream recordings are incredibly valuable offering 1000s of hours of audio and video content to help train AI models, but Twitch users worry that since craters have to manually opt out, they might be surrendering their content to train Amazon's AI content models without even knowing it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1025759,
+        "endMs": 1033799,
+        "text": "This is especially concerning on a platform like Twitch, where craters are often recording live streams of themselves and their voices for many hours per week.",
+        "speaker": null
+      },
+      {
+        "startMs": 1033859,
+        "endMs": 1047059,
+        "text": "And a stream of the official Twitch channel Twitch head of community, Mary Kish, and chief product officer Mike Minton, addressed a live audience of nearly 3000 aggrieved users, many of whom were posting anti-AI sentiments in the chat.",
+        "speaker": null
+      },
+      {
+        "startMs": 1047119,
+        "endMs": 1049279,
+        "text": "Why is it not opt in?",
+        "speaker": null
+      },
+      {
+        "startMs": 1049339,
+        "endMs": 1051920,
+        "text": "That's what everybody is spamming and chat.",
+        "speaker": null
+      },
+      {
+        "startMs": 1051980,
+        "endMs": 1052519,
+        "text": "I get it.",
+        "speaker": null
+      },
+      {
+        "startMs": 1052579,
+        "endMs": 1056900,
+        "text": "Let me opt in versus making me opt out, Minton said, well, there's an honest answer.",
+        "speaker": null
+      },
+      {
+        "startMs": 1056960,
+        "endMs": 1060380,
+        "text": "If this was opt in, nobody would opt in.",
+        "speaker": null
+      },
+      {
+        "startMs": 1060440,
+        "endMs": 1061940,
+        "text": "That's honestly the answer.",
+        "speaker": null
+      },
+      {
+        "startMs": 1062000,
+        "endMs": 1092539,
+        "text": "Twitch knows that its community of streamers is largely opposed to the use of generative AI, since the most prevalent generative AI products are trained on books, images, videos, and other materials scraped from the internet without consent, even twitches approach to breaking this news, shows that the company is braced for backlash, instead of telling the community that Amazon would begin training on Twitch users, content, Twitch, frame this change as, quote, adding a setting that lets you opt out of having your channel content used to train generative AI content models",
+        "speaker": null
+      },
+      {
+        "startMs": 1092720,
+        "endMs": 1094519,
+        "text": "across Amazon, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 1103579,
+        "endMs": 1111500,
+        "text": "So in our new house, we have a smart lock for the 1st time ever, and that means I find myself with an empty pocket for the 1st time.",
+        "speaker": null
+      },
+      {
+        "startMs": 1111559,
+        "endMs": 1112400,
+        "text": "For 30 years.",
+        "speaker": null
+      },
+      {
+        "startMs": 1112460,
+        "endMs": 1118339,
+        "text": "I kept my keys in my right pocket and my phone in my left so as not to scratch my phone with my keys.",
+        "speaker": null
+      },
+      {
+        "startMs": 1118460,
+        "endMs": 1132319,
+        "text": "Well, now with the empty pocket, I thought, why not move the phone to my right, since I am right handed, but, dear listener, I am here to tell you, it is basically impossible to change 30 years of muscle memory overnight.",
+        "speaker": null
+      },
+      {
+        "startMs": 1132440,
+        "endMs": 1137180,
+        "text": "The amount of times each day, I think I've lost my phone because I hit my left pocket and it's not there.",
+        "speaker": null
+      },
+      {
+        "startMs": 1138319,
+        "endMs": 1140119,
+        "text": "Talk to you tomorrow.",
+        "speaker": null
+      }
+    ]
+  }
+}

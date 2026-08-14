@@ -1,0 +1,848 @@
+{
+  "show": "Tech Brew Ride Home",
+  "episodeTitle": "new pixels",
+  "audioFileName": "02-new-pixels.mp3",
+  "durationMs": 999863,
+  "labeledAt": "2026-08-14",
+  "segments": [
+    {
+      "startMs": 0,
+      "endMs": 32830,
+      "kind": "intro",
+      "sponsor": "No Ad. Just Intro"
+    },
+    {
+      "startMs": 33741,
+      "endMs": 76205,
+      "kind": "ad",
+      "sponsor": "Vanguard Investor"
+    },
+    {
+      "startMs": 985927,
+      "endMs": 998361,
+      "kind": "outro",
+      "sponsor": "No Ad. Just Outro"
+    }
+  ],
+  "transcript": {
+    "source": "onDevice",
+    "segments": [
+      {
+        "startMs": 3419,
+        "endMs": 7740,
+        "text": "Welcome to the Tech Boo Ride Home for Wednesday, August 12th, 2026.",
+        "speaker": null
+      },
+      {
+        "startMs": 7860,
+        "endMs": 12240,
+        "text": "I am Brian McCullough today, another pixel day with the release of the Pixel 11 line.",
+        "speaker": null
+      },
+      {
+        "startMs": 12300,
+        "endMs": 19260,
+        "text": "Also a $1900 Pixel Pro fold and a $400 Watch 5 packed with Gemini and Health Trends.",
+        "speaker": null
+      },
+      {
+        "startMs": 19320,
+        "endMs": 28980,
+        "text": "And SpaceX AI made sure we couldn't go even a single day without mentioning a new AI model by dropping Grock 4.6, which it says matches GPT 5.6 soul.",
+        "speaker": null
+      },
+      {
+        "startMs": 29039,
+        "endMs": 31019,
+        "text": "Here's what you missed today in the world of tech.",
+        "speaker": null
+      },
+      {
+        "startMs": 35100,
+        "endMs": 40380,
+        "text": "Every day, shareholders meet to discuss important matters about the companies you invest in.",
+        "speaker": null
+      },
+      {
+        "startMs": 40439,
+        "endMs": 42840,
+        "text": "Now you can make your voice heard too.",
+        "speaker": null
+      },
+      {
+        "startMs": 42899,
+        "endMs": 52020,
+        "text": "Vanguard Investor Choice makes it easy to set your proxy voting preference for your eligible Vanguard index funds, whether you hold a Vanguard fund directly or through another brokerage firm.",
+        "speaker": null
+      },
+      {
+        "startMs": 52079,
+        "endMs": 59759,
+        "text": "All it takes is a few clicks to select your proxy voting preference and be heard on important shareholder topics like executive pay and director elections.",
+        "speaker": null
+      },
+      {
+        "startMs": 59820,
+        "endMs": 63179,
+        "text": "Visit vanguard.com slash investor choice to learn more.",
+        "speaker": null
+      },
+      {
+        "startMs": 63240,
+        "endMs": 64379,
+        "text": "It's your shares.",
+        "speaker": null
+      },
+      {
+        "startMs": 64439,
+        "endMs": 65340,
+        "text": "It's your voice.",
+        "speaker": null
+      },
+      {
+        "startMs": 65400,
+        "endMs": 65879,
+        "text": "It's easy.",
+        "speaker": null
+      },
+      {
+        "startMs": 65939,
+        "endMs": 73500,
+        "text": "Vanguard investors, own shares of our index funds, and those funds, own shares of the companies they invest in, Vanguard Marketing Corporation Distributor.",
+        "speaker": null
+      },
+      {
+        "startMs": 76560,
+        "endMs": 97739,
+        "text": "Pixel event this morning, where Google unveiled the $899 plus Pixel 11, the $1,099 plus 11 pro and the $1,299 plus 11 pro XL with a tensor G6 chip, new Gemini features, magic capture to pick the best frames and photos and more, quoting Tech Crunch.",
+        "speaker": null
+      },
+      {
+        "startMs": 97799,
+        "endMs": 104819,
+        "text": "For the last few years, Google's pixel has been a showcase of new AI features with few hardware changes from the previous year's devices.",
+        "speaker": null
+      },
+      {
+        "startMs": 104879,
+        "endMs": 110040,
+        "text": "Similarly, the Pixel 11 series isn't too different in design and internals from its predecessor.",
+        "speaker": null
+      },
+      {
+        "startMs": 110099,
+        "endMs": 124019,
+        "text": "However, this year's devices have more Gemini features to complete tasks in the background, including a new whisper flow like transcription feature, a live translation feature that works across content, and a new camera feature that captures the right frames.",
+        "speaker": null
+      },
+      {
+        "startMs": 124079,
+        "endMs": 130199,
+        "text": "With this year's Pixel 11 series launch, Google is thinking more agentic AI to complete your task.",
+        "speaker": null
+      },
+      {
+        "startMs": 130259,
+        "endMs": 140520,
+        "text": "With Gemini, US-based users will be able to order groceries, book rides, or get coffee, for instance, plus Gemini can call businesses on users' behalf for table reservations or appointments.",
+        "speaker": null
+      },
+      {
+        "startMs": 140580,
+        "endMs": 147960,
+        "text": "Google said that users can take over or stop tasks at any point in time and also review transcripts for AI operated calls.",
+        "speaker": null
+      },
+      {
+        "startMs": 148020,
+        "endMs": 164639,
+        "text": "Over the next few weeks, a new slate of connected apps will be able to work with Gemini to get things done, including granola, Otter AI, Wicks, Fever, Get Your Guide, Localiza, Open Table, Ticketmaster, iHeartRadio, Pandora, Angie, Thumbtack, and Zock Doc.",
+        "speaker": null
+      },
+      {
+        "startMs": 164699,
+        "endMs": 177539,
+        "text": "The company has also evolved the magic cue feature from last year to use Gemini, which proactively surfaces contextual information to now display information from across your apps to help you find suggestions for things like a dinner spot or a show.",
+        "speaker": null
+      },
+      {
+        "startMs": 177599,
+        "endMs": 184979,
+        "text": "In May, Google announced a dictation product called Rambler to take on competitors like Whisper Flow and Aqua.",
+        "speaker": null
+      },
+      {
+        "startMs": 185039,
+        "endMs": 187800,
+        "text": "Now that product is making its way to the pixel phones.",
+        "speaker": null
+      },
+      {
+        "startMs": 187860,
+        "endMs": 192840,
+        "text": "The new pixel series phones have some other helpful features that might be handy for daily usage too.",
+        "speaker": null
+      },
+      {
+        "startMs": 192900,
+        "endMs": 197580,
+        "text": "First, the device can translate videos, podcasts, and voice messages in the target language.",
+        "speaker": null
+      },
+      {
+        "startMs": 197639,
+        "endMs": 207419,
+        "text": "The company is also making its circle to search, gesture-based feature available directly in the camera, something that Apple also did in iOS 27 by making Siri available in the camera.",
+        "speaker": null
+      },
+      {
+        "startMs": 207539,
+        "endMs": 221039,
+        "text": "What's more, Google is adding an accessibility feature to the camera, which uses Gemini to translate sign language into text to help people communicate with others who have hearing impairments, and the company has redesigned the live transcribe interface for improved communication.",
+        "speaker": null
+      },
+      {
+        "startMs": 221099,
+        "endMs": 225360,
+        "text": "Google also added a few AI tricks embedded into its camera.",
+        "speaker": null
+      },
+      {
+        "startMs": 225419,
+        "endMs": 229439,
+        "text": "One feature is called magic capture, which picks the best frames out of 100s of frames.",
+        "speaker": null
+      },
+      {
+        "startMs": 229500,
+        "endMs": 232860,
+        "text": "It captures between when users press start and end.",
+        "speaker": null
+      },
+      {
+        "startMs": 232919,
+        "endMs": 236460,
+        "text": "The idea is to take a video and get photos as a byproduct.",
+        "speaker": null
+      },
+      {
+        "startMs": 236520,
+        "endMs": 241139,
+        "text": "Google said that the feature also autocrops and unblurs the frames to make them ready for sharing.",
+        "speaker": null
+      },
+      {
+        "startMs": 241259,
+        "endMs": 257579,
+        "text": "The company has upgraded its super zoom from 100 X to 120 X for pro phones and from 20 to 30 X for the base pixel 11. With the new devices users, we'll be able to create custom looks for the camera, which are specialized filters that appear when users are snapping images.",
+        "speaker": null
+      },
+      {
+        "startMs": 257639,
+        "endMs": 269639,
+        "text": "The pro phones are also getting faster capture with a feature called instant night site, which takes 4.5 times less time than the previous gen phones night site feature.",
+        "speaker": null
+      },
+      {
+        "startMs": 269699,
+        "endMs": 275160,
+        "text": "Google enhanced video shooting as well with support for 8K resolution with video boost and better stability.",
+        "speaker": null
+      },
+      {
+        "startMs": 275459,
+        "endMs": 288779,
+        "text": "For creators, Google added a creator suite mode in video settings, which lets you use Pixel 11 devices as a teleprompter while shooting clips, when you are done shooting, the clip is saved in a dedicated folder making it easier to find for editing.",
+        "speaker": null
+      },
+      {
+        "startMs": 288899,
+        "endMs": 302160,
+        "text": "All the pixel phones now run the latest tensor G6 processor, which has 20% better power efficiency and allows for 25% faster browsing as per Google, plus it lets users take faster, low light photos with night site instant.",
+        "speaker": null
+      },
+      {
+        "startMs": 302220,
+        "endMs": 307980,
+        "text": "The company said the new processors run the latest models with lower latency, but didn't offer any specific metrics.",
+        "speaker": null
+      },
+      {
+        "startMs": 308040,
+        "endMs": 315899,
+        "text": "The display size on all the phones are the same, but the pro models get a slightly brighter display, which could be helpful in the daylight.",
+        "speaker": null
+      },
+      {
+        "startMs": 315959,
+        "endMs": 322740,
+        "text": "Google said pro models get an updated main camera sensor that takes higher quality photos than the previous generation without specifying any numbers.",
+        "speaker": null
+      },
+      {
+        "startMs": 322800,
+        "endMs": 328139,
+        "text": "It also said, the new telephoto sensor allows for 32% more light while capturing an image.",
+        "speaker": null
+      },
+      {
+        "startMs": 328199,
+        "endMs": 334980,
+        "text": "All these devices are available to pre-order, starting today, and will start with a base storage of 256 gigabytes.",
+        "speaker": null
+      },
+      {
+        "startMs": 335040,
+        "endMs": 342480,
+        "text": "The pixel 11 starts at 899, the 11 Pro starts at 1099, and the 11 Pro XL at 1299.",
+        "speaker": null
+      },
+      {
+        "startMs": 342660,
+        "endMs": 355139,
+        "text": "The prices of the Pixel 11 and Pixel 11 Pro are the same as last year's 256 gigabyte models, but you could buy a 128 gigabyte model at that time with a $100 lower price tag.",
+        "speaker": null
+      },
+      {
+        "startMs": 355199,
+        "endMs": 362519,
+        "text": "That's gone. With the rising prices of components, the company has bumped the price of the top model by $100 compared to the Pixel 10 XL, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 368579,
+        "endMs": 385500,
+        "text": "But wait, there's more because Google also unveiled the $1,899 plus pixel 11 pro fold with a stronger hinge, inner and outer displays that are 20% brighter, tensor G6 chips, and an updated 48 megapixel camera, quoting in gadget.",
+        "speaker": null
+      },
+      {
+        "startMs": 385560,
+        "endMs": 397379,
+        "text": "The Pixel 11 Pro fold is the ultimate evolution in Google's latest line of mobile devices featuring all of the pro upgrades, plus the added bonus of a bentable 8 inch display that pops open like a little book.",
+        "speaker": null
+      },
+      {
+        "startMs": 397439,
+        "endMs": 407100,
+        "text": "Google claims the pixel 11 pro fold feels just like a regular non-foldable phone in your hands when it's shut compared with the pixel 10 profold.",
+        "speaker": null
+      },
+      {
+        "startMs": 407160,
+        "endMs": 419040,
+        "text": "This year's model is almost 10% lighter, one millimeter thinner, and purportedly 3 times stronger. A tiny footnote and Google's press release says that last point is based on internal testing using pre-production devices.",
+        "speaker": null
+      },
+      {
+        "startMs": 419100,
+        "endMs": 421860,
+        "text": "Actual results may vary, so make of that what you will.",
+        "speaker": null
+      },
+      {
+        "startMs": 421920,
+        "endMs": 430800,
+        "text": "Closed up and ignoring the camera bump, the fold is 10.1 millimeters thick, with each half measuring 5 millimeters, unfolded.",
+        "speaker": null
+      },
+      {
+        "startMs": 430860,
+        "endMs": 433079,
+        "text": "It's 5.9 inches wide and folded.",
+        "speaker": null
+      },
+      {
+        "startMs": 433139,
+        "endMs": 435899,
+        "text": "It's 3 inches wide with a height of 6.one inches.",
+        "speaker": null
+      },
+      {
+        "startMs": 435959,
+        "endMs": 443220,
+        "text": "It has a soft touch composite back, scratch resistant glass, a new durable hinge, and IP 68 water and dust rating.",
+        "speaker": null
+      },
+      {
+        "startMs": 443279,
+        "endMs": 452279,
+        "text": "The new fold comes in 2 colors, obsidian, all around, or olive with a gray satin metal frame. Inside the pixel 11 pro fold.",
+        "speaker": null
+      },
+      {
+        "startMs": 452339,
+        "endMs": 461220,
+        "text": "Its screen measures 8 inches diagonally with rounded corners and a super actua flex OLED display. For the 1st time in the pixel folds lifetime,",
+        "speaker": null
+      },
+      {
+        "startMs": 461279,
+        "endMs": 469740,
+        "text": "The phone's 6.5 inch front OLED screen is also given the super actua branding and each is capable of reaching 3600 nits this time around.",
+        "speaker": null
+      },
+      {
+        "startMs": 469800,
+        "endMs": 474420,
+        "text": "Both screens appear 20% brighter than the Pixel 10 Pro fold according to Google.",
+        "speaker": null
+      },
+      {
+        "startMs": 474480,
+        "endMs": 493560,
+        "text": "Even deeper inside the new fold, its guts include Google's tensor G6 processor, just like all of the pixel 11 devices, compared with the tensor G5 processor, which powered all of last year's pixel models, Google says the tensor G6 CPU improves power efficiency by 20%, browsing speeds by 25%, and app load times by 15%.",
+        "speaker": null
+      },
+      {
+        "startMs": 493680,
+        "endMs": 501420,
+        "text": "The G6 also helps enhance the pixel camera across devices with a 50% more powerful TPU and improved image signal processor.",
+        "speaker": null
+      },
+      {
+        "startMs": 501480,
+        "endMs": 504899,
+        "text": "The Tensor G5 was never the fastest flagship chip.",
+        "speaker": null
+      },
+      {
+        "startMs": 504959,
+        "endMs": 506639,
+        "text": "So if Google's figures are accurate.",
+        "speaker": null
+      },
+      {
+        "startMs": 506699,
+        "endMs": 507839,
+        "text": "It'll be a welcome improvement.",
+        "speaker": null
+      },
+      {
+        "startMs": 507899,
+        "endMs": 514620,
+        "text": "The pixel 11 pro fold specifically features a dual pill camera layout.",
+        "speaker": null
+      },
+      {
+        "startMs": 514679,
+        "endMs": 518159,
+        "text": "This camel has 2 humps, holding a triple lens array.",
+        "speaker": null
+      },
+      {
+        "startMs": 518220,
+        "endMs": 529980,
+        "text": "There's a 48 megapixel, main lens, a 10.5 megapixel ultra wide with macro focus, and a 10.8 megapixel, 5X telephoto lens, complete with 30X superzoom capabilities.",
+        "speaker": null
+      },
+      {
+        "startMs": 530039,
+        "endMs": 535019,
+        "text": "While those Megapixel counts may be extremely familiar, there's actually a big change behind the scenes.",
+        "speaker": null
+      },
+      {
+        "startMs": 535080,
+        "endMs": 539639,
+        "text": "The main wide camera has been bumped to a one by one.",
+        "speaker": null
+      },
+      {
+        "startMs": 539820,
+        "endMs": 547320,
+        "text": "56 inch sensor, which means each pixel on the sensor is significantly larger on the pixel 10 Pro folds smaller chip.",
+        "speaker": null
+      },
+      {
+        "startMs": 547379,
+        "endMs": 553500,
+        "text": "Google says the new setup pulls in 56% more light, better enabling after dark, no flash photography.",
+        "speaker": null
+      },
+      {
+        "startMs": 553559,
+        "endMs": 557879,
+        "text": "The ultra wide and telephoto lenses are genuinely spec for spec identical to the previous model.",
+        "speaker": null
+      },
+      {
+        "startMs": 557940,
+        "endMs": 581639,
+        "text": "The 11 Profold also supports 4K video recording at 24 frames per second, 30 frames per 2nd with a suite of stabilization, time lapse, magic capture, night site, editing, and slow motion options. Additionally, the new fold features a 10 megapixel selfie camera, and 10 megapixel inside camera, but as a foldable, every lens system on this thing is a selfie cam if you want it to be.",
+        "speaker": null
+      },
+      {
+        "startMs": 581700,
+        "endMs": 586679,
+        "text": "The front camera can record 4K video at 30 frames or 60 frames per second.",
+        "speaker": null
+      },
+      {
+        "startMs": 586740,
+        "endMs": 595860,
+        "text": "Snapping photos with the phone unfolded, the external screen is able to display cute animations to make your more distractable subjects, i.e. kids, pay attention and crack a smile.",
+        "speaker": null
+      },
+      {
+        "startMs": 595919,
+        "endMs": 600000,
+        "text": "That feature was introduced with the Pixel 9 Pro fold, and remains a favorite.",
+        "speaker": null
+      },
+      {
+        "startMs": 600059,
+        "endMs": 605820,
+        "text": "Of course, the screen can also just show a preview of the shot you're framing so everyone can get in position and look cute.",
+        "speaker": null
+      },
+      {
+        "startMs": 605940,
+        "endMs": 614820,
+        "text": "Battery life on the Pixel 11 Pro fold is good for more than 24 hours by Google's testing and fast charging at 30 watts can bring it up to 50% in just 30 minutes.",
+        "speaker": null
+      },
+      {
+        "startMs": 614879,
+        "endMs": 626100,
+        "text": "The new fold also supports pixel snap magnetic charging via G 2.2, which bumps the wireless charging speed up to 25 watts compared to the 15 watts of the 10 pro fold.",
+        "speaker": null
+      },
+      {
+        "startMs": 626159,
+        "endMs": 634860,
+        "text": "Google's adaptive battery system allows the phone to track and predict your habits, reducing power to apps you rarely open in an effort to improve the device's lifespan.",
+        "speaker": null
+      },
+      {
+        "startMs": 634919,
+        "endMs": 639960,
+        "text": "The pixel 11 profold has 16 gigabytes of RAM and comes in 3 storage sizes.",
+        "speaker": null
+      },
+      {
+        "startMs": 640080,
+        "endMs": 659159,
+        "text": "The $1900 base price nets you 256 gigabytes of storage with 512 gigabytes or one terabyte available for more cash, both the higher storage tiers once again have zoned UFS, a fancy way to automatically organize data, for faster performance, and in extreme cases, longer storage lifespan, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 665700,
+        "endMs": 681720,
+        "text": "Google also unveiled the $399 Pixel Watch 5 with a satin pyrite case finish, offline Gemini Access, proactive AI suggestions, better GPS maps, and insulin resistance trends, quoting the verge.",
+        "speaker": null
+      },
+      {
+        "startMs": 681779,
+        "endMs": 692639,
+        "text": "The 399 Google Pixel Watch 5 isn't about the hardware, sure, there's a new set in pyrite case finish, a few new strap colors, and a Steph Curry special edition.",
+        "speaker": null
+      },
+      {
+        "startMs": 692700,
+        "endMs": 698220,
+        "text": "Under the hood, there's a slightly faster QualCom processor and an itty bitty battery bump.",
+        "speaker": null
+      },
+      {
+        "startMs": 698279,
+        "endMs": 704580,
+        "text": "There's also a $50 price hike from last year because the pixel watch 5 isn't immune to Ramageddon.",
+        "speaker": null
+      },
+      {
+        "startMs": 704639,
+        "endMs": 705600,
+        "text": "of us are.",
+        "speaker": null
+      },
+      {
+        "startMs": 705659,
+        "endMs": 710039,
+        "text": "Otherwise, no one would blame you for looking at this watch and thinking absolutely nothing has changed.",
+        "speaker": null
+      },
+      {
+        "startMs": 710100,
+        "endMs": 713100,
+        "text": "That's because the big updates this year are all software based.",
+        "speaker": null
+      },
+      {
+        "startMs": 713159,
+        "endMs": 716639,
+        "text": "This isn't a huge surprise concerning Google's Fitbit air.",
+        "speaker": null
+      },
+      {
+        "startMs": 716700,
+        "endMs": 720419,
+        "text": "Launch in May, and after seeing some Pixel Watch 5 demos.",
+        "speaker": null
+      },
+      {
+        "startMs": 720480,
+        "endMs": 726120,
+        "text": "It's clear this year's refresh is furthering the AI and proactive health themes that Google introduced earlier this year.",
+        "speaker": null
+      },
+      {
+        "startMs": 726179,
+        "endMs": 731879,
+        "text": "Health and fitness features account for the bulk of the updates, but Gemini on the wrist gets a few key improvements.",
+        "speaker": null
+      },
+      {
+        "startMs": 732000,
+        "endMs": 736379,
+        "text": "You can now use it offline for simple tasks like starting timers and launching apps, though.",
+        "speaker": null
+      },
+      {
+        "startMs": 736500,
+        "endMs": 739980,
+        "text": "I noticed in my demo, it was notably slower when doing this offline.",
+        "speaker": null
+      },
+      {
+        "startMs": 740039,
+        "endMs": 743519,
+        "text": "Gemini will also be more proactive in making suggestions.",
+        "speaker": null
+      },
+      {
+        "startMs": 743580,
+        "endMs": 750179,
+        "text": "One example I saw, a text asking for my availability brought up the option to check Google Calendar from the wrist.",
+        "speaker": null
+      },
+      {
+        "startMs": 750240,
+        "endMs": 758220,
+        "text": "Likewise, there's now an icon right on the watch face that surfaces real-time information for things like timers, Uber ETAs, and workouts.",
+        "speaker": null
+      },
+      {
+        "startMs": 758340,
+        "endMs": 769440,
+        "text": "Meanwhile, the pinchy pinch and the wrist flick features came via a software update to pixel watches in December, but they're much more fully integrated into the UI with where OS 7.",
+        "speaker": null
+      },
+      {
+        "startMs": 769500,
+        "endMs": 772200,
+        "text": "You can also use AI to generate watch faces.",
+        "speaker": null
+      },
+      {
+        "startMs": 772259,
+        "endMs": 776220,
+        "text": "I created a watch face featuring fat cats and an elegant font.",
+        "speaker": null
+      },
+      {
+        "startMs": 776279,
+        "endMs": 777419,
+        "text": "It didn't quite do that.",
+        "speaker": null
+      },
+      {
+        "startMs": 777480,
+        "endMs": 782159,
+        "text": "The fat cats weren't characters, so much as pleasantly plump, cat shaped clock numbers.",
+        "speaker": null
+      },
+      {
+        "startMs": 782220,
+        "endMs": 787980,
+        "text": "It's also a gimmicky way to shoehorn the nano banana model onto the watch, but if that's your thing, it works.",
+        "speaker": null
+      },
+      {
+        "startMs": 788039,
+        "endMs": 789659,
+        "text": "Now for the health stuff.",
+        "speaker": null
+      },
+      {
+        "startMs": 789720,
+        "endMs": 793440,
+        "text": "The most novel update is breathing emergency detection.",
+        "speaker": null
+      },
+      {
+        "startMs": 793500,
+        "endMs": 796379,
+        "text": "It's an extension of last year's loss of pulse feature.",
+        "speaker": null
+      },
+      {
+        "startMs": 796440,
+        "endMs": 809220,
+        "text": "When the watch detects a severe drop in blood oxygen saturation, it'll trigger a call to emergency services and your designated emergency contacts. A sudden drop in SPO2 may indicate you're struggling to breathe.",
+        "speaker": null
+      },
+      {
+        "startMs": 809279,
+        "endMs": 814860,
+        "text": "To minimize false positives, the watch uses a combination of heart rate, motion, and altitude sensors.",
+        "speaker": null
+      },
+      {
+        "startMs": 814919,
+        "endMs": 825899,
+        "text": "Well, I didn't get to see the feature in action, I was told at my demo that the feature won't kick in unless SPO 2 drops to roughly 83%, so a significant decrease for an extended period.",
+        "speaker": null
+      },
+      {
+        "startMs": 825960,
+        "endMs": 834779,
+        "text": "It also disables once the watch determines you've been asleep for 30 minutes to mitigate false alarms linked to low SPO2 from sleep apnea or side sleeping.",
+        "speaker": null
+      },
+      {
+        "startMs": 834840,
+        "endMs": 839879,
+        "text": "The feature also isn't intended to be used by people with pre-existing or chronic respiratory conditions.",
+        "speaker": null
+      },
+      {
+        "startMs": 839940,
+        "endMs": 843600,
+        "text": "It's more for flagging acute instances where a person may have stopped breathing.",
+        "speaker": null
+      },
+      {
+        "startMs": 843659,
+        "endMs": 850200,
+        "text": "It'll be available on both the Pixel Watch 4 and 5 in Europe at launch and is pending clearance from the FDA in the US.",
+        "speaker": null
+      },
+      {
+        "startMs": 850440,
+        "endMs": 859679,
+        "text": "A less high stakes feature is that the Pixel Watch and Fitbit air will also track nightly sleep breathing quality to provide monthly updates.",
+        "speaker": null
+      },
+      {
+        "startMs": 859740,
+        "endMs": 865320,
+        "text": "The idea is to see how your daily trans impact respiratory health at night over a longer time frame.",
+        "speaker": null
+      },
+      {
+        "startMs": 865379,
+        "endMs": 870179,
+        "text": "Two other health features are blood pressure trends and insulin resistance trends.",
+        "speaker": null
+      },
+      {
+        "startMs": 870240,
+        "endMs": 872700,
+        "text": "1st and foremost, neither of these is diagnostic.",
+        "speaker": null
+      },
+      {
+        "startMs": 872759,
+        "endMs": 881639,
+        "text": "Both are wellness features intended to function as check engine light type warnings, require a minimum of a week's worth of data and flag trends monthly.",
+        "speaker": null
+      },
+      {
+        "startMs": 881700,
+        "endMs": 884759,
+        "text": "They won't be available right when the Pixel Watch 5 launches.",
+        "speaker": null
+      },
+      {
+        "startMs": 884820,
+        "endMs": 886740,
+        "text": "Rollout is currently scheduled for September.",
+        "speaker": null
+      },
+      {
+        "startMs": 886799,
+        "endMs": 892379,
+        "text": "That said, these features will also come to the Pixel Watch 3 or later as well as the Fitbit air.",
+        "speaker": null
+      },
+      {
+        "startMs": 892440,
+        "endMs": 899519,
+        "text": "With blood pressure trends, the watch will monitor blood flow using the optical heart rate sensor as well as motion sensors.",
+        "speaker": null
+      },
+      {
+        "startMs": 899580,
+        "endMs": 908580,
+        "text": "That data gets fed into an AI model to estimate the shape and speed of pulse waves, traveling under the skin to approximate whether your blood pressure is trending higher or lower.",
+        "speaker": null
+      },
+      {
+        "startMs": 908639,
+        "endMs": 912659,
+        "text": "There will be no direct systolic or diastolic measurements, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 918779,
+        "endMs": 920519,
+        "text": "Finally, today.",
+        "speaker": null
+      },
+      {
+        "startMs": 920580,
+        "endMs": 924720,
+        "text": "Thought you could get out of here without me mentioning a new AI model?",
+        "speaker": null
+      },
+      {
+        "startMs": 924779,
+        "endMs": 927179,
+        "text": "Well, the Kembe Matumbo meme.",
+        "speaker": null
+      },
+      {
+        "startMs": 927240,
+        "endMs": 950759,
+        "text": "SpaceX AI has released Grock 4.6 saying it matches GPT 5.6 Soul on the artificial analysis intelligence index and prices it at $2 per 1000000 input and $6 per 1000000 output tokens, quoting 9 to 5 Mac. According to SpaceX AI's announcement, Grock 4.6 is designed for long-running agents, coding, knowledge work, and more ambitious visual projects.",
+        "speaker": null
+      },
+      {
+        "startMs": 950879,
+        "endMs": 958259,
+        "text": "The company says it can stay on task across many steps, work through an unfamiliar code base, and increasingly test its own output before moving forward.",
+        "speaker": null
+      },
+      {
+        "startMs": 958320,
+        "endMs": 967200,
+        "text": "SpaceXAI also reports gains over Grock 4.5 across every evaluation listed, including cursor bench, frontier code, apex agents, and terminal bench.",
+        "speaker": null
+      },
+      {
+        "startMs": 967259,
+        "endMs": 975000,
+        "text": "SpaceXAI says the improvement comes from a longer supplemental training run, stronger engineering data, and expanded reinforcement learning for coding and knowledge work.",
+        "speaker": null
+      },
+      {
+        "startMs": 975059,
+        "endMs": 982740,
+        "text": "Rock 4.6 is available today through Cursor, Grock Build, the SpaceX AI API, Open Router Versell, and Cloud Flare, end quote.",
+        "speaker": null
+      },
+      {
+        "startMs": 994799,
+        "endMs": 995940,
+        "text": "Nothing more for you today.",
+        "speaker": null
+      },
+      {
+        "startMs": 996000,
+        "endMs": 996659,
+        "text": "Talk to you tomorrow.",
+        "speaker": null
+      }
+    ]
+  }
+}
