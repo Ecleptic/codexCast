@@ -118,6 +118,21 @@ struct EpisodeListView: View {
                 }
             }
 
+            // A2: what this app has actually found on this show, at a glance.
+            if let kinds = model.showBadges[podcast.id], !kinds.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(DetectionBadge.badges(for: kinds), id: \.self) { badge in
+                        Text(badge)
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(.tint.opacity(0.14), in: Capsule())
+                            .foregroundStyle(.tint)
+                    }
+                }
+                .accessibilityLabel("Detected: \(DetectionBadge.badges(for: kinds).joined(separator: ", "))")
+            }
+
             if let summary = podcast.summary, !summary.isEmpty {
                 Text(summary)
                     .font(.callout)

@@ -130,6 +130,33 @@ public struct SegmentRepository: Sendable {
         }
     }
 
+    /// Which kinds of promotional content have been found per show — the A2
+    /// badge data: an at-a-glance answer to "what does this app actually do
+    /// for this show?". Rejected segments don't count; the listener said
+    /// they were wrong.
+    public func kindsByShow() async throws -> [Podcast.ID: Set<SegmentKind>] {
+        try await database.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT DISTINCT episodes.podcastId, detected_segments.kind
+                FROM detected_segments
+                JOIN episodes ON episodes.id = detected_segments.episodeId
+                WHERE detected_segments.userState != 'rejected'
+                """
+            )
+            var result: [Podcast.ID: Set<SegmentKind>] = [:]
+            for row in rows {
+                guard let idString: String = row["podcastId"],
+                      let uuid = UUID(uuidString: idString),
+                      let kind = (row["kind"] as String?).flatMap(SegmentKind.init(rawValue:))
+                else { continue }
+                result[Podcast.ID(uuid), default: []].insert(kind)
+            }
+            return result
+        }
+    }
+
     public func segments(episodeID: Episode.ID) async throws -> [DetectedSegment] {
         let decoder = JSONDecoder()
         return try await database.read { db in

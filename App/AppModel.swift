@@ -90,10 +90,14 @@ final class AppModel {
 
     // MARK: - Library
 
+    /// A2 badges: which promotional-content kinds have been found per show.
+    private(set) var showBadges: [Podcast.ID: Set<SegmentKind>] = [:]
+
     func reloadLibrary() async {
         library = (try? await podcasts.all()) ?? []
         try? await playlistRepository.ensureBuiltIns()
         playlists = (try? await playlistRepository.all()) ?? []
+        showBadges = (try? await segmentRepository.kindsByShow()) ?? [:]
     }
 
     // MARK: - Playlists (A5.2)
