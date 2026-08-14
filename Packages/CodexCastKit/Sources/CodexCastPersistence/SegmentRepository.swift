@@ -80,6 +80,17 @@ public struct SegmentRepository: Sendable {
         }
     }
 
+    /// Deletes one segment outright — machine-detected or user-marked. The
+    /// correction log keeps its history; the segment itself is gone.
+    public func delete(_ segmentID: DetectedSegment.ID) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "DELETE FROM detected_segments WHERE id = ?",
+                arguments: [segmentID]
+            )
+        }
+    }
+
     public func segments(episodeID: Episode.ID) async throws -> [DetectedSegment] {
         let decoder = JSONDecoder()
         return try await database.read { db in

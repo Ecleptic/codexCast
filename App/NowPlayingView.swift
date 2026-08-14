@@ -11,7 +11,7 @@ struct NowPlayingView: View {
     @Environment(AppModel.self) private var model
 
     enum Page: Int {
-        case queue = 0, player = 1, info = 2
+        case queue = 0, player = 1, transcript = 2, info = 3
     }
     @State private var page: Page = .player
 
@@ -25,6 +25,7 @@ struct NowPlayingView: View {
             Picker("", selection: $page) {
                 Text("Up Next").tag(Page.queue)
                 Text("Playing").tag(Page.player)
+                Text("Script").tag(Page.transcript)
                 Text("Info").tag(Page.info)
             }
             .pickerStyle(.segmented)
@@ -34,6 +35,7 @@ struct NowPlayingView: View {
             TabView(selection: $page) {
                 QueuePage().tag(Page.queue)
                 PlayerPage().tag(Page.player)
+                TranscriptPage().tag(Page.transcript)
                 InfoPage().tag(Page.info)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -84,7 +86,7 @@ private struct PlayerPage: View {
 
             Toggle(isOn: Binding(
                 get: { model.audioSettings.autoSkipAds },
-                set: { model.audioSettings.autoSkipAds = $0 }
+                set: { newValue in Task { await model.setAutoSkip(newValue) } }
             )) {
                 Text("Skip detected ads automatically").font(.callout)
             }
@@ -128,9 +130,15 @@ private struct PlayerPage: View {
             SegmentBar(
                 segments: model.nowPlayingSegments,
                 durationMs: model.nowPlaying?.durationMs ?? durationMs,
-                positionMs: Int(positionMs)
+                positionMs: Int(positionMs),
+                waveform: model.nowPlaying.flatMap { model.waveforms[$0.id] }
             )
-            .frame(height: 6)
+            .frame(height: 34)
+            .task {
+                if let episode = model.nowPlaying {
+                    await model.loadWaveform(for: episode)
+                }
+            }
 
             Slider(
                 value: Binding(get: { positionMs }, set: { scrubMs = $0 }),
@@ -419,6 +427,20 @@ struct SegmentReviewRow: View {
                 Label("Listen", systemImage: "play")
             }
         }
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive) {
+                Task { await model.deleteSegment(segment) }
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .contextMenu {
+            Button(role: .destructive) {
+                Task { await model.deleteSegment(segment) }
+            } label: {
+                Label("Delete Segment", systemImage: "trash")
+            }
+        }
     }
 
     private var label: String {
@@ -485,24 +507,46 @@ struct SegmentBar: View {
     let segments: [DetectedSegment]
     let durationMs: Int
     let positionMs: Int
+    /// Normalized peaks for downloaded episodes; nil falls back to a flat bar.
+    var waveform: [Float]? = nil
 
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
-                Capsule().fill(.quaternary)
-
-                ForEach(segments.filter { $0.userState != .rejected }, id: \.id) { segment in
-                    let start = fraction(segment.startMs) * proxy.size.width
-                    let width = max(3, (fraction(segment.endMs) - fraction(segment.startMs)) * proxy.size.width)
-                    Capsule()
-                        .fill(color(for: segment))
-                        .frame(width: width)
-                        .offset(x: start)
+                if let waveform, !waveform.isEmpty {
+                    // The episode's actual shape, with ad regions tinted in
+                    // place — the same way Cam found a hidden ad by eye.
+                    WaveformShape(peaks: waveform)
+                        .fill(.quaternary)
+                    WaveformShape(peaks: waveform)
+                        .fill(.tint.opacity(0.55))
+                        .mask(alignment: .leading) {
+                            Rectangle().frame(width: fraction(positionMs) * proxy.size.width)
+                        }
+                    ForEach(segments.filter { $0.userState != .rejected }, id: \.id) { segment in
+                        let start = fraction(segment.startMs) * proxy.size.width
+                        let width = max(3, (fraction(segment.endMs) - fraction(segment.startMs)) * proxy.size.width)
+                        WaveformShape(peaks: waveform)
+                            .fill(color(for: segment))
+                            .mask(alignment: .leading) {
+                                Rectangle().frame(width: width).offset(x: start)
+                            }
+                    }
+                } else {
+                    Capsule().fill(.quaternary).frame(height: 6).offset(y: proxy.size.height / 2 - 3)
+                    ForEach(segments.filter { $0.userState != .rejected }, id: \.id) { segment in
+                        let start = fraction(segment.startMs) * proxy.size.width
+                        let width = max(3, (fraction(segment.endMs) - fraction(segment.startMs)) * proxy.size.width)
+                        Capsule()
+                            .fill(color(for: segment))
+                            .frame(width: width, height: 6)
+                            .offset(x: start, y: proxy.size.height / 2 - 3)
+                    }
                 }
 
                 Rectangle()
                     .fill(.primary)
-                    .frame(width: 2, height: 10)
+                    .frame(width: 2)
                     .offset(x: fraction(positionMs) * proxy.size.width - 1)
             }
         }
@@ -532,5 +576,96 @@ extension String {
             .replacingOccurrences(of: "&#39;", with: "'")
             .replacingOccurrences(of: "&quot;", with: "\"")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+/// Mirrored bar waveform, one bar per peak bin.
+struct WaveformShape: Shape {
+    let peaks: [Float]
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        guard !peaks.isEmpty else { return path }
+        let barWidth = rect.width / CGFloat(peaks.count)
+        let gap = barWidth * 0.25
+        let midY = rect.midY
+
+        for (index, peak) in peaks.enumerated() {
+            let height = max(2, CGFloat(peak) * rect.height * 0.95)
+            let x = CGFloat(index) * barWidth
+            path.addRoundedRect(
+                in: CGRect(x: x, y: midY - height / 2, width: barWidth - gap, height: height),
+                cornerSize: CGSize(width: 1, height: 1)
+            )
+        }
+        return path
+    }
+}
+
+// MARK: - Transcript page (the "Script" tab)
+
+/// The live transcript: current line highlighted and kept in view, any line
+/// tappable to seek — the labeler's fastest navigation, inside the player.
+private struct TranscriptPage: View {
+    @Environment(AppModel.self) private var model
+    @State private var transcript: TimedTranscript?
+
+    var body: some View {
+        Group {
+            if let transcript {
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(Array(transcript.segments.enumerated()), id: \.offset) { index, cue in
+                            Button {
+                                model.player.seek(toMediaMs: cue.startMs)
+                            } label: {
+                                HStack(alignment: .top, spacing: 10) {
+                                    Text(timeString(cue.startMs))
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 48, alignment: .leading)
+                                    Text(cue.text)
+                                        .font(.callout)
+                                        .foregroundStyle(isCurrent(cue) ? .primary : .secondary)
+                                        .fontWeight(isCurrent(cue) ? .semibold : .regular)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .id(index)
+                        }
+                    }
+                    .listStyle(.plain)
+                    .onChange(of: model.player.mediaPositionMs) {
+                        guard let index = currentIndex(in: transcript) else { return }
+                        withAnimation { proxy.scrollTo(index, anchor: .center) }
+                    }
+                }
+            } else {
+                ContentUnavailableView(
+                    "No Transcript",
+                    systemImage: "text.quote",
+                    description: Text("Transcribe this episode from its detail page.")
+                )
+            }
+        }
+        .task {
+            guard let episode = model.nowPlaying else { return }
+            transcript = try? await model.transcripts.transcript(episodeID: episode.id)
+        }
+    }
+
+    private func isCurrent(_ cue: TimedTranscript.Segment) -> Bool {
+        let position = model.player.mediaPositionMs
+        return cue.startMs <= position && position < cue.endMs
+    }
+
+    private func currentIndex(in transcript: TimedTranscript) -> Int? {
+        let position = model.player.mediaPositionMs
+        return transcript.segments.lastIndex { $0.startMs <= position }
+    }
+
+    private func timeString(_ ms: Int) -> String {
+        let total = ms / 1000
+        return String(format: "%d:%02d", total / 60, total % 60)
     }
 }

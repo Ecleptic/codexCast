@@ -99,7 +99,7 @@ struct LibraryRepositoryTests {
             ],
             podcastID: podcast.id
         )
-        #expect(inserted == 2)
+        #expect(inserted == ["a", "b"])
 
         // A refresh where one title changed must update, not duplicate.
         let insertedAgain = try await episodes.upsert(
@@ -109,7 +109,7 @@ struct LibraryRepositoryTests {
             ],
             podcastID: podcast.id
         )
-        #expect(insertedAgain == 1)
+        #expect(insertedAgain == ["c"])
 
         let all = try await episodes.episodes(podcastID: podcast.id)
         #expect(all.count == 3)

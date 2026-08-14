@@ -7,6 +7,7 @@ import AVKit
 import BackgroundTasks
 import CodexCastDetection
 import MediaPlayer
+import UserNotifications
 import CodexCastDetectionAFM
 import CodexCastPlayback
 import CodexCastTranscription
@@ -38,8 +39,24 @@ final class AppModel {
     private(set) var library: [PodcastRecord] = []
     private(set) var playlists: [Playlist] = []
     private(set) var refreshError: String?
-    /// Global audio settings (A5.4). Per-show overrides resolve against these.
-    var audioSettings = AudioSettings()
+    /// Global audio settings (A5.4), persisted across launches. Per-show
+    /// overrides resolve against these.
+    var audioSettings: AudioSettings {
+        didSet { persistAudioSettings() }
+    }
+
+    private func persistAudioSettings() {
+        if let data = try? JSONEncoder().encode(audioSettings) {
+            UserDefaults.standard.set(data, forKey: "audioSettings")
+        }
+    }
+
+    private static func loadAudioSettings() -> AudioSettings {
+        guard let data = UserDefaults.standard.data(forKey: "audioSettings"),
+              let decoded = try? JSONDecoder().decode(AudioSettings.self, from: data)
+        else { return AudioSettings() }
+        return decoded
+    }
 
     init() throws {
         let support = FileManager.default.urls(
@@ -57,6 +74,7 @@ final class AppModel {
         playlistRepository = PlaylistRepository(database: database)
         retention = RetentionPolicy(database: database)
         segmentRepository = SegmentRepository(database: database)
+        audioSettings = Self.loadAudioSettings()
         patternRepository = AdPatternRepository(database: database)
         corrections = CorrectionRepository(database: database)
         chapters = ChapterRepository(database: database)
@@ -429,18 +447,17 @@ final class AppModel {
     }
 
     func overrides(for podcastID: Podcast.ID) -> ShowPlaybackOverrides {
-        guard let record = library.first(where: { $0.id == podcastID }),
-              let json = record.playbackSettings?.data(using: .utf8),
-              let decoded = try? JSONDecoder().decode(ShowPlaybackOverrides.self, from: json)
-        else { return ShowPlaybackOverrides() }
-        return decoded
+        let combined = loadCombinedPrefs(for: podcastID)
+        return ShowPlaybackOverrides(speed: combined.speed, autoSkipAds: combined.autoSkipAds)
     }
 
+    /// Merges into the combined envelope so playback overrides and pipeline
+    /// prefs — which share the storage column — can never clobber each other.
     func saveOverrides(_ overrides: ShowPlaybackOverrides, podcastID: Podcast.ID) async {
-        let json = (try? JSONEncoder().encode(overrides))
-            .flatMap { String(data: $0, encoding: .utf8) }
-        try? await podcasts.setPlaybackSettings(json, podcastID: podcastID)
-        await reloadLibrary()
+        var combined = loadCombinedPrefs(for: podcastID)
+        combined.speed = overrides.speed
+        combined.autoSkipAds = overrides.autoSkipAds
+        await saveCombinedPrefs(combined, podcastID: podcastID)
     }
 
     // MARK: - Skip undo (§11.2)
@@ -563,11 +580,42 @@ final class AppModel {
         defer { scheduleBackgroundWork() }
         await reloadLibrary()
         for podcast in library {
-            await refresh(podcast)
-            guard podcast.autoDownloadEnabled else { continue }
-            if let newest = (try? await episodes.episodes(podcastID: podcast.id, limit: 1))?.first,
-               newest.localPath == nil {
-                _ = try? await downloadAudio(for: newest)
+            let newGuids = await refreshReturningNew(podcast)
+            let notify = notifySetting(for: podcast.id)
+
+            if notify == .newEpisode, !newGuids.isEmpty {
+                postNotification(
+                    title: podcast.title,
+                    body: newGuids.count == 1 ? "New episode available" : "\(newGuids.count) new episodes",
+                    id: "new-\(podcast.id)"
+                )
+            }
+
+            guard podcast.autoDownloadEnabled,
+                  let newest = (try? await episodes.episodes(podcastID: podcast.id, limit: 1))?.first,
+                  newest.localPath == nil,
+                  (try? await downloadAudio(for: newest)) != nil
+            else { continue }
+
+            if notify == .downloaded {
+                postNotification(title: podcast.title, body: "\(newest.title) is ready to listen", id: "dl-\(newest.id)")
+            }
+
+            // The per-show pipeline steps (§9.3): download → transcribe → scan,
+            // each only if the show opted in.
+            let prefs = pipelinePrefs(for: podcast.id)
+            if prefs.autoTranscribe {
+                await transcribeOnDevice(newest)
+                if prefs.autoScan {
+                    await scanForAds(newest)
+                    if notify == .processed {
+                        postNotification(
+                            title: podcast.title,
+                            body: "\(newest.title) is ready — ads scanned",
+                            id: "proc-\(newest.id)"
+                        )
+                    }
+                }
             }
         }
         await enforceRetention()
@@ -674,6 +722,200 @@ final class AppModel {
         player.setRate(audioSettings.speed)
     }
 
+    /// The bug Cam hit: skip blocks were computed only at play() time, so the
+    /// toggle changed nothing mid-episode. Flipping it now rebuilds the
+    /// playing timeline immediately.
+    func setAutoSkip(_ enabled: Bool) async {
+        audioSettings.autoSkipAds = enabled
+        guard let episode = nowPlaying else { return }
+        var blocks: [SkipBlock] = []
+        let effective = overrides(for: episode.podcastId).autoSkipAds ?? enabled
+        if effective, let outcome = await gatedSegments(for: episode) {
+            blocks = outcome.autoSkippable.map {
+                SkipBlock(startMs: $0.startMs, endMs: $0.endMs, segmentIDs: [$0.id])
+            }
+        }
+        player.updateTimeline(DisplayTimeline(
+            mediaDurationMs: episode.durationMs ?? player.timeline.mediaDurationMs,
+            blocks: blocks
+        ))
+    }
+
+    // MARK: - Per-show pipeline steps (§9.2/§9.3, simplified per-show form)
+
+    struct ShowPipelinePrefs: Codable, Hashable {
+        /// After a new episode downloads, transcribe it automatically.
+        var autoTranscribe: Bool = false
+        /// After transcription, scan for ads automatically.
+        var autoScan: Bool = false
+    }
+
+    func pipelinePrefs(for podcastID: Podcast.ID) -> ShowPipelinePrefs {
+        guard let record = library.first(where: { $0.id == podcastID }),
+              let json = record.playbackSettings?.data(using: .utf8),
+              let combined = try? JSONDecoder().decode(CombinedShowPrefs.self, from: json)
+        else { return ShowPipelinePrefs() }
+        return combined.pipeline ?? ShowPipelinePrefs()
+    }
+
+    /// Playback overrides and pipeline prefs share the podcast row's settings
+    /// column; this envelope keeps them from clobbering each other.
+    struct CombinedShowPrefs: Codable, Hashable {
+        var speed: Double?
+        var autoSkipAds: Bool?
+        var pipeline: ShowPipelinePrefs?
+    }
+
+    func savePipelinePrefs(_ prefs: ShowPipelinePrefs, podcastID: Podcast.ID) async {
+        var combined = loadCombinedPrefs(for: podcastID)
+        combined.pipeline = prefs
+        await saveCombinedPrefs(combined, podcastID: podcastID)
+    }
+
+    private func loadCombinedPrefs(for podcastID: Podcast.ID) -> CombinedShowPrefs {
+        guard let record = library.first(where: { $0.id == podcastID }),
+              let json = record.playbackSettings?.data(using: .utf8),
+              let decoded = try? JSONDecoder().decode(CombinedShowPrefs.self, from: json)
+        else { return CombinedShowPrefs() }
+        return decoded
+    }
+
+    private func saveCombinedPrefs(_ prefs: CombinedShowPrefs, podcastID: Podcast.ID) async {
+        let json = (try? JSONEncoder().encode(prefs)).flatMap { String(data: $0, encoding: .utf8) }
+        try? await podcasts.setPlaybackSettings(json, podcastID: podcastID)
+        await reloadLibrary()
+    }
+
+    // MARK: - Notifications (§9.5)
+
+    enum NotifyOn: String, Codable, CaseIterable {
+        case never, newEpisode, downloaded, processed
+    }
+
+    func notifySetting(for podcastID: Podcast.ID) -> NotifyOn {
+        guard let record = library.first(where: { $0.id == podcastID }),
+              let raw = record.notificationSettingsRaw,
+              let value = NotifyOn(rawValue: raw)
+        else { return .never }
+        return value
+    }
+
+    func setNotifySetting(_ value: NotifyOn, podcastID: Podcast.ID) async {
+        if value != .never {
+            _ = try? await UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .sound, .badge])
+        }
+        try? await database.write { db in
+            try db.execute(
+                sql: "UPDATE podcasts SET notificationSettings = ? WHERE id = ?",
+                arguments: [value.rawValue, podcastID]
+            )
+        }
+        await reloadLibrary()
+    }
+
+    private func postNotification(title: String, body: String, id: String) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    // MARK: - Deletion (Cam: "no way to delete them")
+
+    func deleteDownload(_ episode: EpisodeRecord) async {
+        guard let path = episode.localPath, episode.id != nowPlaying?.id else { return }
+        try? FileManager.default.removeItem(atPath: path)
+        try? await retention.markEvicted([episode.id])
+    }
+
+    func deleteTranscript(_ episode: EpisodeRecord) async {
+        try? await transcripts.delete(episodeID: episode.id)
+        try? await segmentRepository.replaceMachineSegments([], episodeID: episode.id)
+    }
+
+    /// Deletes any segment — machine or user-marked (Cam's request). Also
+    /// clears it from the playing overlay immediately.
+    func deleteSegment(_ segment: DetectedSegment) async {
+        try? await segmentRepository.delete(segment.id)
+        nowPlayingSegments.removeAll { $0.id == segment.id }
+    }
+
+    // MARK: - Waveform (seek-bar backdrop)
+
+    /// Downsampled peak amplitudes for downloaded episodes, cached in memory.
+    /// Streaming episodes have no local file, so the flat bar remains their
+    /// fallback.
+    private(set) var waveforms: [Episode.ID: [Float]] = [:]
+
+    func loadWaveform(for episode: EpisodeRecord) async {
+        guard waveforms[episode.id] == nil,
+              let path = episode.localPath,
+              FileManager.default.fileExists(atPath: path)
+        else { return }
+        let url = URL(fileURLWithPath: path)
+        let peaks = await Task.detached(priority: .utility) {
+            Self.computePeaks(url: url, bins: 160)
+        }.value
+        if !peaks.isEmpty {
+            waveforms[episode.id] = peaks
+        }
+    }
+
+    nonisolated private static func computePeaks(url: URL, bins: Int) -> [Float] {
+        guard let file = try? AVAudioFile(forReading: url) else { return [] }
+        let frameCount = Int(file.length)
+        guard frameCount > bins else { return [] }
+        let framesPerBin = frameCount / bins
+        let format = file.processingFormat
+        guard let buffer = AVAudioPCMBuffer(
+            pcmFormat: format, frameCapacity: AVAudioFrameCount(framesPerBin)
+        ) else { return [] }
+
+        var peaks: [Float] = []
+        peaks.reserveCapacity(bins)
+        for _ in 0..<bins {
+            do { try file.read(into: buffer, frameCount: AVAudioFrameCount(framesPerBin)) }
+            catch { break }
+            guard let channel = buffer.floatChannelData?[0] else { break }
+            var peak: Float = 0
+            let length = Int(buffer.frameLength)
+            // Stride: this is a picture, not a measurement.
+            var index = 0
+            while index < length {
+                let value = abs(channel[index])
+                if value > peak { peak = value }
+                index += 32
+            }
+            peaks.append(peak)
+        }
+        let maximum = peaks.max() ?? 1
+        return maximum > 0 ? peaks.map { $0 / maximum } : peaks
+    }
+
+    // MARK: - Playlist management (user-facing)
+
+    func createPlaylist(named name: String) async {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        _ = try? await playlistRepository.create(
+            name: name,
+            colorName: ["yellow", "brown", "orange", "blue"].randomElement(),
+            iconName: "list.bullet"
+        )
+        await reloadLibrary()
+    }
+
+    func deletePlaylist(_ playlist: Playlist) async {
+        try? await playlistRepository.delete(playlist.id)
+        await reloadLibrary()
+    }
+
+    func add(_ episode: EpisodeRecord, to playlist: Playlist) async {
+        try? await playlistRepository.append(episodeID: episode.id, to: playlist.id)
+    }
+
     /// Subscribes to a feed URL: fetch, parse, store the show and episodes.
     func subscribe(feedURL: URL, itunesCollectionID: Int? = nil) async throws {
         let result = try await fetcher.fetch(feedURL)
@@ -696,9 +938,18 @@ final class AppModel {
         await reloadLibrary()
     }
 
+    @discardableResult
+    func refreshReturningNew(_ podcast: PodcastRecord) async -> [String] {
+        await refresh(podcast)
+        return lastInsertedGuids
+    }
+
+    private var lastInsertedGuids: [String] = []
+
     /// Refreshes one show, using conditional GET so an unchanged feed is a
     /// single cheap round trip.
     func refresh(_ podcast: PodcastRecord) async {
+        lastInsertedGuids = []
         guard let url = URL(string: podcast.feedURL) else { return }
         do {
             let validators = HTTPCacheValidators(etag: podcast.etag, lastModified: podcast.lastModified)
@@ -741,7 +992,7 @@ final class AppModel {
                 feedChaptersURL: episode.chaptersURL?.absoluteString
             )
         }
-        try await episodes.upsert(inputs, podcastID: podcastID)
+        lastInsertedGuids = (try? await episodes.upsert(inputs, podcastID: podcastID)) ?? []
     }
 
     // MARK: - Playback

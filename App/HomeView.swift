@@ -189,6 +189,9 @@ struct HomeEpisodeRow: View {
             .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
+        .contextMenu {
+            EpisodeContextMenu(episode: episode)
+        }
         .swipeActions(edge: .trailing) {
             Button {
                 Task { await model.addToUpNext(episode) }

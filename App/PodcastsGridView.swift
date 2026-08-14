@@ -45,6 +45,9 @@ struct PodcastsGridView: View {
                                 }
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                PodcastContextMenu(podcast: podcast)
+                            }
                         }
                     }
                     .padding(.horizontal)

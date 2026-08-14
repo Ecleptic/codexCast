@@ -23,6 +23,7 @@
 		A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E01DDCDAB399DDADF254EB /* AppModel.swift */; };
 		A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */; };
 		A93FA27F7534529D008D51CD /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0BB3042EAA04FA1A6611534 /* HomeView.swift */; };
+		B2B6CBCEC944EC7B0ADFE10B /* EpisodeActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */; };
 		B5921459692445292AA156C4 /* CodexCastCore in Frameworks */ = {isa = PBXBuildFile; productRef = A76925BEF281D319E78B374D /* CodexCastCore */; };
 		B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */; };
 		B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DB3D0F2A114836988051EA /* SettingsView.swift */; };
@@ -51,6 +52,7 @@
 		91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
 		A0BB3042EAA04FA1A6611534 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
+		BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeActions.swift; sourceTree = "<group>"; };
 		D9DB3D0F2A114836988051EA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC5E8479D847F921AB10493C /* CodexCastApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexCastApp.swift; sourceTree = "<group>"; };
 		F2DA7694D224531A293462B9 /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
@@ -85,6 +87,7 @@
 				5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */,
 				EC5E8479D847F921AB10493C /* CodexCastApp.swift */,
 				F2DA7694D224531A293462B9 /* DiscoverView.swift */,
+				BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */,
 				43BB462F4FC79B134F9443D6 /* EpisodeDetailView.swift */,
 				2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */,
 				197ED145FAC304355353C8E1 /* EpisodeListView.swift */,
@@ -203,6 +206,7 @@
 				964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */,
 				D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */,
 				91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */,
+				B2B6CBCEC944EC7B0ADFE10B /* EpisodeActions.swift in Sources */,
 				E48D4E2633CA2D7CCBB9BDAB /* EpisodeDetailView.swift in Sources */,
 				B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */,
 				0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */,

@@ -25,6 +25,14 @@ extension TaggedID: DatabaseValueConvertible {
 public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord, Sendable {
     public static let databaseTableName = "podcasts"
 
+    public enum CodingKeys: String, CodingKey {
+        case id, feedURL, itunesCollectionID, title, author, summary, imageURL
+        case addedAt, notes, etag, lastModified, lastRefreshedAt
+        case lastErrorDescription, episodeLimit, autoDownloadEnabled
+        case playbackSettings
+        case notificationSettingsRaw = "notificationSettings"
+    }
+
     public var id: Podcast.ID
     public var feedURL: String
     public var itunesCollectionID: Int?
@@ -43,6 +51,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
     public var autoDownloadEnabled: Bool
     /// Per-show playback overrides as JSON (§10.4); nil inherits globals.
     public var playbackSettings: String?
+    /// Per-show notification trigger (§9.5); nil means never.
+    public var notificationSettingsRaw: String?
 
     public init(
         id: Podcast.ID = Podcast.ID(),
@@ -60,7 +70,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         lastErrorDescription: String? = nil,
         episodeLimit: Int? = nil,
         autoDownloadEnabled: Bool = false,
-        playbackSettings: String? = nil
+        playbackSettings: String? = nil,
+        notificationSettingsRaw: String? = nil
     ) {
         self.id = id
         self.feedURL = feedURL
@@ -78,6 +89,7 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         self.episodeLimit = episodeLimit
         self.autoDownloadEnabled = autoDownloadEnabled
         self.playbackSettings = playbackSettings
+        self.notificationSettingsRaw = notificationSettingsRaw
     }
 
     public var domainModel: Podcast {

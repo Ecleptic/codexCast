@@ -119,14 +119,15 @@ public struct EpisodeRepository: Sendable {
     }
 
     /// Inserts new episodes and refreshes the mutable metadata of existing
-    /// ones, matching on `(podcastId, guid)`. Returns the number newly added.
+    /// ones, matching on `(podcastId, guid)`. Returns the guids newly added —
+    /// which is what "notify on new episode" needs to know (§9.5).
     @discardableResult
     public func upsert(
         _ episodes: [ParsedEpisodeInput],
         podcastID: Podcast.ID
-    ) async throws -> Int {
+    ) async throws -> [String] {
         try await database.write { db in
-            var inserted = 0
+            var inserted: [String] = []
 
             for episode in episodes {
                 let existing = try EpisodeRecord
@@ -162,7 +163,7 @@ public struct EpisodeRepository: Sendable {
                         feedChaptersURL: episode.feedChaptersURL
                     )
                     try record.insert(db)
-                    inserted += 1
+                    inserted.append(episode.guid)
                 }
             }
 
@@ -380,6 +381,16 @@ public struct TranscriptRepository: Sendable {
             }
 
             return segments.isEmpty ? nil : TimedTranscript(source: source, segments: segments)
+        }
+    }
+
+    /// Removes a stored transcript. The episode can be re-transcribed any
+    /// time; this exists for cleanup and for redoing a bad transcription.
+    public func delete(episodeID: Episode.ID) async throws {
+        try await database.write { db in
+            try db.execute(sql: "DELETE FROM transcript_segments WHERE episodeId = ?", arguments: [episodeID])
+            try db.execute(sql: "DELETE FROM transcripts WHERE episodeId = ?", arguments: [episodeID])
+            try db.execute(sql: "UPDATE episodes SET transcriptSource = NULL WHERE id = ?", arguments: [episodeID])
         }
     }
 

@@ -15,6 +15,8 @@ struct ShowSettingsView: View {
     @State private var confirmUnsubscribe = false
     @State private var autoDownload = false
     @State private var speedOverride: Double = 0   // 0 = inherit
+    @State private var pipelinePrefs = AppModel.ShowPipelinePrefs()
+    @State private var notifyOn: AppModel.NotifyOn = .never
 
     private static let limitChoices: [Int?] = [nil, 1, 2, 3, 5, 10, 20, 50]
 
@@ -77,6 +79,26 @@ struct ShowSettingsView: View {
                     this show are always kept.
                     """
                 )
+            }
+
+            Section {
+                Toggle("Transcribe after download", isOn: pipelineBinding(\.autoTranscribe))
+                Toggle("Scan for ads after transcribing", isOn: pipelineBinding(\.autoScan))
+            } header: {
+                Text("Processing")
+            } footer: {
+                Text("Runs automatically when new episodes download — overnight while charging, or on refresh.")
+            }
+
+            Section {
+                Picker("Notify me", selection: notifyBinding) {
+                    Text("Never").tag(AppModel.NotifyOn.never)
+                    Text("New episode").tag(AppModel.NotifyOn.newEpisode)
+                    Text("Downloaded").tag(AppModel.NotifyOn.downloaded)
+                    Text("Ready (ads scanned)").tag(AppModel.NotifyOn.processed)
+                }
+            } header: {
+                Text("Notifications")
             }
 
             Section {
@@ -146,8 +168,32 @@ struct ShowSettingsView: View {
             limitIndex = Self.limitChoices.firstIndex(of: podcast.episodeLimit) ?? 0
             autoDownload = podcast.autoDownloadEnabled
             speedOverride = model.overrides(for: podcast.id).speed ?? 0
+            pipelinePrefs = model.pipelinePrefs(for: podcast.id)
+            notifyOn = model.notifySetting(for: podcast.id)
             storageBytes = try? await model.retention.downloadedByteCount(podcastID: podcast.id)
         }
+    }
+
+    private func pipelineBinding(
+        _ keyPath: WritableKeyPath<AppModel.ShowPipelinePrefs, Bool>
+    ) -> Binding<Bool> {
+        Binding(
+            get: { pipelinePrefs[keyPath: keyPath] },
+            set: { newValue in
+                pipelinePrefs[keyPath: keyPath] = newValue
+                Task { await model.savePipelinePrefs(pipelinePrefs, podcastID: podcast.id) }
+            }
+        )
+    }
+
+    private var notifyBinding: Binding<AppModel.NotifyOn> {
+        Binding(
+            get: { notifyOn },
+            set: { newValue in
+                notifyOn = newValue
+                Task { await model.setNotifySetting(newValue, podcastID: podcast.id) }
+            }
+        )
     }
 
     private var autoDownloadBinding: Binding<Bool> {

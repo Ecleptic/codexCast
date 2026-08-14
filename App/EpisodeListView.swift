@@ -38,6 +38,11 @@ struct EpisodeListView: View {
                 }
                 .tint(.green)
             }
+            .contextMenu {
+                EpisodeContextMenu(episode: episode) {
+                    Task { episodes = (try? await model.episodes.episodes(podcastID: podcast.id)) ?? [] }
+                }
+            }
             .swipeActions(edge: .trailing) {
                 Button {
                     Task { await model.playNext(episode) }
