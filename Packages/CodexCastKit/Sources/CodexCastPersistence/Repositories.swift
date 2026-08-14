@@ -168,6 +168,55 @@ public struct EpisodeRepository: Sendable {
         }
     }
 
+    /// Saves playback position; marks played at the tail. Called on a timer
+    /// during playback, so progress survives force-quit and relaunch — the
+    /// "open the app and find your place" journey every player is built on.
+    public func savePosition(episodeID: Episode.ID, positionMs: Int, durationMs: Int?) async throws {
+        try await database.write { db in
+            // 95% through counts as played; outros vary too much to demand 100%.
+            let played = durationMs.map { positionMs >= Int(Double($0) * 0.95) } ?? false
+            try db.execute(
+                sql: "UPDATE episodes SET playbackPositionMs = ?, isPlayed = isPlayed OR ? WHERE id = ?",
+                arguments: [positionMs, played, episodeID]
+            )
+        }
+    }
+
+    public func setPlayed(_ played: Bool, episodeID: Episode.ID) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE episodes SET isPlayed = ?, playbackPositionMs = ? WHERE id = ?",
+                arguments: [played, played ? 0 : 0, episodeID]
+            )
+        }
+    }
+
+    /// Episodes started but unfinished, most recently published first — the
+    /// Continue Listening shelf.
+    public func inProgress(limit: Int = 20) async throws -> [EpisodeRecord] {
+        try await database.read { db in
+            try EpisodeRecord
+                .filter(Column("playbackPositionMs") > 15_000)
+                .filter(Column("isPlayed") == false)
+                .order(Column("publishedAt").desc)
+                .limit(limit)
+                .fetchAll(db)
+        }
+    }
+
+    /// Newest unplayed episodes across every subscription — the New Releases
+    /// shelf.
+    public func newReleases(limit: Int = 30) async throws -> [EpisodeRecord] {
+        try await database.read { db in
+            try EpisodeRecord
+                .filter(Column("isPlayed") == false)
+                .filter(Column("playbackPositionMs") == 0)
+                .order(Column("publishedAt").desc)
+                .limit(limit)
+                .fetchAll(db)
+        }
+    }
+
     /// Records the downloaded file and its content hash. A changed hash means
     /// the file was re-downloaded and dynamic ad insertion may have produced
     /// different ads, so any existing segments are invalidated (§4.1).

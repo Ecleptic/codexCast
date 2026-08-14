@@ -75,6 +75,12 @@ public final class PlaybackEngine {
     /// important correction entry point in the app: one tap, at exactly the
     /// moment the user noticed.
     public var onUndoSkip: (@MainActor (SkipEvent) -> Void)?
+    /// Fires roughly twice a second with the current media position — the
+    /// hook position persistence hangs off, so progress survives relaunch.
+    public var onPositionTick: (@MainActor (Int) -> Void)?
+    /// Fires when the loaded item plays to its end — the hook queue
+    /// advancement hangs off. Listening is a session, not one-off plays.
+    public var onPlaybackEnded: (@MainActor () -> Void)?
 
     private let player: AVPlayer
     /// Observer tokens live outside the actor so they can be removed from
@@ -93,11 +99,26 @@ public final class PlaybackEngine {
     // MARK: - Loading
 
     public func load(url: URL, timeline: DisplayTimeline, startAtMs: Int = 0) {
-        player.replaceCurrentItem(with: AVPlayerItem(url: url))
+        let item = AVPlayerItem(url: url)
+        player.replaceCurrentItem(with: item)
         self.timeline = timeline
         seek(toMediaMs: startAtMs)
         configureObservers()
+
+        endObserver = NotificationCenter.default.addObserver(
+            forName: AVPlayerItem.didPlayToEndTimeNotification,
+            object: item,
+            queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.isPlaying = false
+                self.onPlaybackEnded?()
+            }
+        }
     }
+
+    private var endObserver: (any NSObjectProtocol)?
 
     /// Replaces the skip blocks mid-episode, which happens when detection
     /// finishes ahead of the playhead on the just-in-time path (§9.3).
@@ -197,6 +218,7 @@ public final class PlaybackEngine {
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.mediaPositionMs = Int(time.seconds * 1000)
+                self.onPositionTick?(self.mediaPositionMs)
                 if Date().timeIntervalSince(self.lastSkip?.occurredAt ?? .distantPast) > SkipEvent.undoWindow {
                     self.lastSkip = nil
                 }

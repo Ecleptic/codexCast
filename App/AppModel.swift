@@ -4,6 +4,7 @@ import CodexCastPersistence
 import CodexCastPipeline
 import AVFoundation
 import CodexCastDetection
+import MediaPlayer
 import CodexCastDetectionAFM
 import CodexCastPlayback
 import CodexCastTranscription
@@ -72,6 +73,20 @@ final class AppModel {
 
     func reorderPlaylist(_ id: Playlist.ID, episodeIDs: [Episode.ID]) async {
         try? await playlistRepository.reorder(playlistID: id, episodeIDs: episodeIDs)
+    }
+
+    func playNext(_ episode: EpisodeRecord) async {
+        guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }) else { return }
+        try? await playlistRepository.append(episodeID: episode.id, to: queue.id)
+        let ids = ((try? await playlistRepository.episodes(in: queue)) ?? []).map(\.id)
+        // Move to the front.
+        var reordered = ids.filter { $0 != episode.id }
+        reordered.insert(episode.id, at: 0)
+        try? await playlistRepository.reorder(playlistID: queue.id, episodeIDs: reordered)
+    }
+
+    func togglePlayed(_ episode: EpisodeRecord) async {
+        try? await episodes.setPlayed(!episode.isPlayed, episodeID: episode.id)
     }
 
     func addToUpNext(_ episode: EpisodeRecord) async {
@@ -547,8 +562,109 @@ final class AppModel {
         try? session.setActive(true)
     }
 
+    /// Wired once: engine callbacks for persistence, lock screen, and the
+    /// queue session. Idempotent.
+    private var callbacksInstalled = false
+    private var lastSavedPositionMs = 0
+
+    private func installPlaybackCallbacks() {
+        guard !callbacksInstalled else { return }
+        callbacksInstalled = true
+
+        player.onPositionTick = { [weak self] positionMs in
+            guard let self, let episode = self.nowPlaying else { return }
+            self.updateNowPlayingInfo()
+            // Persist every ~5 seconds, not every tick.
+            guard abs(positionMs - self.lastSavedPositionMs) >= 5_000 else { return }
+            self.lastSavedPositionMs = positionMs
+            Task {
+                try? await self.episodes.savePosition(
+                    episodeID: episode.id, positionMs: positionMs, durationMs: episode.durationMs
+                )
+            }
+        }
+
+        player.onPlaybackEnded = { [weak self] in
+            guard let self else { return }
+            Task { await self.advanceQueue() }
+        }
+
+        installRemoteCommands()
+    }
+
+    /// Episode finished: mark it played, drop it from Up Next, start the next
+    /// queued episode. Listening is a session (ux-architecture invariant 2).
+    private func advanceQueue() async {
+        if let finished = nowPlaying {
+            try? await episodes.setPlayed(true, episodeID: finished.id)
+            if let queue = playlists.first(where: { $0.name == Playlist.upNextName }) {
+                try? await playlistRepository.remove(episodeID: finished.id, from: queue.id)
+            }
+        }
+        guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }),
+              let next = (try? await playlistRepository.episodes(in: queue))?.first
+        else {
+            nowPlaying = nil
+            return
+        }
+        play(next)
+    }
+
+    // MARK: - Lock screen / Control Center (§10.5)
+
+    private func installRemoteCommands() {
+        let center = MPRemoteCommandCenter.shared()
+        center.playCommand.addTarget { [weak self] _ in
+            self?.player.play(); self?.updateNowPlayingInfo(); return .success
+        }
+        center.pauseCommand.addTarget { [weak self] _ in
+            self?.player.pause(); self?.updateNowPlayingInfo(); return .success
+        }
+        center.skipBackwardCommand.preferredIntervals = [15]
+        center.skipBackwardCommand.addTarget { [weak self] _ in
+            guard let self else { return .commandFailed }
+            self.player.seek(toMediaMs: self.player.mediaPositionMs - 15_000)
+            return .success
+        }
+        center.skipForwardCommand.preferredIntervals = [30]
+        center.skipForwardCommand.addTarget { [weak self] _ in
+            guard let self else { return .commandFailed }
+            self.player.seek(toMediaMs: self.player.mediaPositionMs + 30_000)
+            return .success
+        }
+        center.changePlaybackPositionCommand.addTarget { [weak self] event in
+            guard let self,
+                  let positionEvent = event as? MPChangePlaybackPositionCommandEvent
+            else { return .commandFailed }
+            // The lock-screen scrubber speaks display time (§11.4).
+            self.player.seek(toDisplayMs: Int(positionEvent.positionTime * 1000))
+            return .success
+        }
+    }
+
+    /// Elapsed time on the lock screen comes from the display timeline, so it
+    /// stays coherent across skips (§10.5, §11.4).
+    private func updateNowPlayingInfo() {
+        guard let episode = nowPlaying else {
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+            return
+        }
+        var info: [String: Any] = [
+            MPMediaItemPropertyTitle: episode.title,
+            MPMediaItemPropertyPlaybackDuration: Double(player.displayDurationMs) / 1000,
+            MPNowPlayingInfoPropertyElapsedPlaybackTime: Double(player.displayPositionMs) / 1000,
+            MPNowPlayingInfoPropertyPlaybackRate: player.isPlaying ? audioSettings.speed : 0,
+        ]
+        if let show = library.first(where: { $0.id == episode.podcastId })?.title {
+            info[MPMediaItemPropertyArtist] = show
+        }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+    }
+
     private func startPlayback(_ episode: EpisodeRecord, startAtMs: Int?, blocks: [SkipBlock]) {
         configureAudioSession()
+        installPlaybackCallbacks()
+        lastSavedPositionMs = startAtMs ?? episode.playbackPositionMs
         guard let renditionData = episode.renditions?.data(using: .utf8),
               let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData),
               let url = renditions.first(where: \.isPrimaryEnclosure)?.sources.first
