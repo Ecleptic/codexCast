@@ -148,6 +148,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					5F307C30B3D7733EF4C1095D = {
+						DevelopmentTeam = YFJ5Q82C77;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -205,6 +206,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves your phone.";
 				INFOPLIST_KEY_UIBackgroundModes = audio;
@@ -230,6 +232,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves your phone.";
 				INFOPLIST_KEY_UIBackgroundModes = audio;
