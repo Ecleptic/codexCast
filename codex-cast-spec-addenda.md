@@ -49,6 +49,14 @@ worked cleanly and is a candidate implementation for the in-app check.
 transcript are wrong. Labeling for shows with dynamic insertion must use the
 locally-made transcript.
 
+**Survey of the 8 test shows (2026-08-14):** all shows offering usable feed
+transcripts were checked against transcriptions of the actual downloaded
+audio. LINUX Unplugged desynced on both episodes checked (ep 679 was 21 s off
+from the first second — an ad inserted before the content starts). Podcasting
+2.0, Podnews Daily, and Podnews Weekly were in sync throughout. So roughly one
+in four transcript-publishing shows in even this tiny sample needs the
+verification path: it is not an edge case.
+
 ---
 
 ## A2. Per-show badges for what we detect
