@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Codex Cast — Ad Boundary Labeler</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1c1f26; --line: #2c313b; --text: #e6e8ec;
+    --dim: #8b93a1; --accent: #4c8dff; --ad: #ff6b5a; --sponsor: #ffa73d;
+    --promo: #b98bff; --intro: #45c98a; --outro: #45b6c9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.45 ui-sans-serif, -apple-system, system-ui, sans-serif;
+    display: grid; grid-template-rows: auto auto 1fr auto; height: 100vh;
+  }
+  header {
+    padding: 10px 14px; border-bottom: 1px solid var(--line);
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  }
+  h1 { font-size: 14px; margin: 0 12px 0 0; font-weight: 600; }
+  .meta { color: var(--dim); font-size: 12px; }
+  button, input[type=text], select {
+    background: var(--panel); color: var(--text); border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 13px;
+  }
+  button { cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  label.file { cursor: pointer; }
+  label.file input { display: none; }
+
+  #waveWrap { position: relative; border-bottom: 1px solid var(--line); background: #0f1115; }
+  #wave { display: block; width: 100%; height: 120px; cursor: crosshair; }
+  #overlay { position: absolute; inset: 0; pointer-events: none; }
+  #playhead {
+    position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent);
+    pointer-events: none;
+  }
+
+  main { display: grid; grid-template-columns: 1fr 380px; overflow: hidden; }
+  #transcript { overflow-y: auto; padding: 12px 14px; }
+  .cue {
+    display: grid; grid-template-columns: 74px 1fr; gap: 10px;
+    padding: 3px 6px; border-radius: 5px; cursor: pointer;
+  }
+  .cue:hover { background: #ffffff0d; }
+  .cue.active { background: #4c8dff26; }
+  .cue.inSeg { border-left: 3px solid var(--ad); }
+  .cue time { color: var(--dim); font-variant-numeric: tabular-nums; font-size: 12px; }
+  .cue .spk { color: var(--accent); font-weight: 600; }
+
+  aside { border-left: 1px solid var(--line); overflow-y: auto; padding: 12px; }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
+             color: var(--dim); margin: 0 0 8px; }
+  .seg {
+    border: 1px solid var(--line); border-radius: 7px; padding: 8px;
+    margin-bottom: 7px; background: var(--panel);
+  }
+  .seg .row { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+  .seg .times { font-variant-numeric: tabular-nums; font-size: 12px; }
+  .seg .kind { font-size: 11px; padding: 1px 6px; border-radius: 4px; color: #14161a; font-weight: 700; }
+  .seg input[type=text] { width: 100%; margin-top: 6px; font-size: 12px; padding: 3px 6px; }
+  .seg .acts { display: flex; gap: 4px; margin-top: 6px; }
+  .seg .acts button { padding: 2px 7px; font-size: 12px; }
+
+  footer {
+    border-top: 1px solid var(--line); padding: 8px 14px;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    color: var(--dim); font-size: 12px;
+  }
+  kbd {
+    background: var(--panel); border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1px 5px; font: inherit; font-size: 11px; color: var(--text);
+  }
+  .pending { color: var(--sponsor); font-weight: 600; }
+  .empty { color: var(--dim); font-style: italic; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ad Boundary Labeler</h1>
+  <label class="file"><button type="button" onclick="this.parentNode.querySelector('input').click()">Audio…</button>
+    <input type="file" accept="audio/*,video/*" id="audioFile"></label>
+  <label class="file"><button type="button" onclick="this.parentNode.querySelector('input').click()">Transcript…</button>
+    <input type="file" accept=".vtt,.srt,.json,text/*" id="transcriptFile"></label>
+  <input type="text" id="showName" placeholder="Show name" size="18">
+  <input type="text" id="episodeTitle" placeholder="Episode title" size="24">
+  <button id="exportBtn" class="primary" disabled>Export JSON</button>
+  <span class="meta" id="status">No audio loaded.</span>
+</header>
+
+<div id="waveWrap">
+  <canvas id="wave"></canvas>
+  <div id="overlay"></div>
+  <div id="playhead" style="left:0"></div>
+</div>
+
+<main>
+  <div id="transcript"><p class="empty">Load a transcript to label against the text. Audio alone works too.</p></div>
+  <aside>
+    <h2>Segments (<span id="segCount">0</span>)</h2>
+    <div id="segList"><p class="empty">None yet.</p></div>
+  </aside>
+</main>
+
+<footer>
+  <span><kbd>space</kbd> play/pause</span>
+  <span><kbd>←</kbd><kbd>→</kbd> 5s</span>
+  <span><kbd>shift</kbd>+<kbd>←</kbd><kbd>→</kbd> 30s</span>
+  <span><kbd>i</kbd> mark in</span>
+  <span><kbd>o</kbd> mark out</span>
+  <span><kbd>1</kbd>–<kbd>5</kbd> kind</span>
+  <span><kbd>z</kbd> undo</span>
+  <span><kbd>-</kbd><kbd>=</kbd> speed</span>
+  <span id="pending"></span>
+</footer>
+
+<script>
+"use strict";
+
+// Segment kinds mirror SegmentKind in CodexCastCore. Ground truth must use the
+// same vocabulary the app does, or the eval harness compares apples to oranges.
+const KINDS = [
+  { key: "ad",          label: "Ad",          color: "var(--ad)" },
+  { key: "sponsorRead", label: "Sponsor read", color: "var(--sponsor)" },
+  { key: "selfPromo",   label: "Self promo",  color: "var(--promo)" },
+  { key: "intro",       label: "Intro",       color: "var(--intro)" },
+  { key: "outro",       label: "Outro",       color: "var(--outro)" },
+];
+
+const state = {
+  audio: new Audio(),
+  durationMs: 0,
+  peaks: null,
+  cues: [],
+  segments: [],
+  pendingStartMs: null,
+  undoStack: [],
+  audioFileName: null,
+};
+
+const $ = (id) => document.getElementById(id);
+const fmt = (ms) => {
+  if (!isFinite(ms)) return "0:00";
+  const t = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const mm = h ? String(m).padStart(2, "0") : String(m);
+  return (h ? h + ":" : "") + mm + ":" + String(s).padStart(2, "0");
+};
+
+// ---------------------------------------------------------------- audio load
+
+$("audioFile").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  state.audioFileName = file.name;
+  state.audio.src = URL.createObjectURL(file);
+  $("status").textContent = "Decoding waveform…";
+
+  await new Promise((resolve) => {
+    state.audio.addEventListener("loadedmetadata", resolve, { once: true });
+  });
+  state.durationMs = Math.round(state.audio.duration * 1000);
+  $("status").textContent = file.name + " · " + fmt(state.durationMs);
+  $("exportBtn").disabled = false;
+  if (!$("episodeTitle").value) $("episodeTitle").value = file.name.replace(/\.[^.]+$/, "");
+
+  // Decoding a full episode is slow and memory-hungry, so the waveform is
+  // downsampled to one peak per pixel-ish and the decoded buffer is dropped.
+  try {
+    const buffer = await file.arrayBuffer();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const decoded = await ctx.decodeAudioData(buffer);
+    state.peaks = computePeaks(decoded, 2000);
+    ctx.close();
+  } catch (error) {
+    state.peaks = null;
+    $("status").textContent += " (waveform unavailable)";
+  }
+  drawWave();
+  renderOverlay();
+});
+
+function computePeaks(buffer, bins) {
+  const data = buffer.getChannelData(0);
+  const per = Math.floor(data.length / bins) || 1;
+  const peaks = new Float32Array(bins);
+  for (let i = 0; i < bins; i++) {
+    let peak = 0;
+    const start = i * per;
+    for (let j = 0; j < per; j += 8) {          // stride: visual only
+      const value = Math.abs(data[start + j] || 0);
+      if (value > peak) peak = value;
+    }
+    peaks[i] = peak;
+  }
+  return peaks;
+}
+
+function drawWave() {
+  const canvas = $("wave");
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = canvas.clientWidth * ratio;
+  canvas.height = canvas.clientHeight * ratio;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const mid = canvas.height / 2;
+  if (!state.peaks) {
+    ctx.fillStyle = "#2c313b";
+    ctx.fillRect(0, mid - ratio, canvas.width, 2 * ratio);
+    return;
+  }
+  ctx.fillStyle = "#5b6473";
+  const step = canvas.width / state.peaks.length;
+  for (let i = 0; i < state.peaks.length; i++) {
+    const height = state.peaks[i] * mid * 0.95;
+    ctx.fillRect(i * step, mid - height, Math.max(step, 1), height * 2);
+  }
+}
+
+window.addEventListener("resize", () => { drawWave(); renderOverlay(); });
+
+// ------------------------------------------------------------- transcript
+
+$("transcriptFile").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  state.cues = file.name.endsWith(".json") ? parseJSONTranscript(text) : parseCues(text);
+  renderTranscript();
+});
+
+// Handles WebVTT and SRT together: SRT is the same shape with comma decimals
+// and an index line, both of which this tolerates.
+function parseCues(text) {
+  const cues = [];
+  const blocks = text.replace(/\r/g, "").split(/\n\n+/);
+  for (const block of blocks) {
+    const lines = block.split("\n").filter((line) => line.trim());
+    const timingIndex = lines.findIndex((line) => line.includes("-->"));
+    if (timingIndex === -1) continue;
+    const [rawStart, rawRest] = lines[timingIndex].split("-->");
+    const start = parseTimestamp(rawStart);
+    const end = parseTimestamp((rawRest || "").trim().split(/\s+/)[0]);
+    if (start === null || end === null) continue;
+
+    let body = lines.slice(timingIndex + 1).join(" ");
+    let speaker = null;
+    const voice = body.match(/^<v[^ >]* ([^>]+)>/);
+    if (voice) { speaker = voice[1].trim(); body = body.slice(voice[0].length); }
+    body = body.replace(/<[^>]+>/g, "").trim();
+    if (body) cues.push({ startMs: start, endMs: end, text: body, speaker });
+  }
+  return cues;
+}
+
+function parseJSONTranscript(text) {
+  try {
+    const doc = JSON.parse(text);
+    return (doc.segments || []).map((segment) => ({
+      startMs: Math.round(segment.startTime * 1000),
+      endMs: Math.round(segment.endTime * 1000),
+      text: segment.body,
+      speaker: segment.speaker || null,
+    }));
+  } catch { return []; }
+}
+
+function parseTimestamp(raw) {
+  if (!raw) return null;
+  const parts = raw.trim().replace(",", ".").split(":").map(Number);
+  if (parts.some(isNaN)) return null;
+  if (parts.length === 3) return Math.round((parts[0] * 3600 + parts[1] * 60 + parts[2]) * 1000);
+  if (parts.length === 2) return Math.round((parts[0] * 60 + parts[1]) * 1000);
+  return null;
+}
+
+function renderTranscript() {
+  const host = $("transcript");
+  if (!state.cues.length) {
+    host.innerHTML = '<p class="empty">No cues parsed from that file.</p>';
+    return;
+  }
+  host.innerHTML = "";
+  const fragment = document.createDocumentFragment();
+  state.cues.forEach((cue, index) => {
+    const row = document.createElement("div");
+    row.className = "cue";
+    row.dataset.index = index;
+    row.innerHTML = `<time>${fmt(cue.startMs)}</time><div>${
+      cue.speaker ? `<span class="spk">${escapeHTML(cue.speaker)}:</span> ` : ""
+    }${escapeHTML(cue.text)}</div>`;
+    // Clicking the text is the fastest way to navigate: ads are found by
+    // reading, not by listening.
+    row.addEventListener("click", () => seekTo(cue.startMs));
+    fragment.appendChild(row);
+  });
+  host.appendChild(fragment);
+  markCuesInSegments();
+}
+
+const escapeHTML = (value) =>
+  value.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// ---------------------------------------------------------------- segments
+
+function addSegment(startMs, endMs, kind = "ad") {
+  if (endMs <= startMs) return;
+  state.segments.push({ startMs, endMs, kind, sponsor: "", notes: "" });
+  state.segments.sort((a, b) => a.startMs - b.startMs);
+  state.undoStack.push({ type: "add", startMs, endMs });
+  renderSegments();
+}
+
+function renderSegments() {
+  $("segCount").textContent = state.segments.length;
+  const host = $("segList");
+  if (!state.segments.length) {
+    host.innerHTML = '<p class="empty">None yet.</p>';
+    renderOverlay(); markCuesInSegments();
+    return;
+  }
+  host.innerHTML = "";
+  state.segments.forEach((segment, index) => {
+    const kind = KINDS.find((k) => k.key === segment.kind) || KINDS[0];
+    const card = document.createElement("div");
+    card.className = "seg";
+    card.innerHTML = `
+      <div class="row">
+        <span class="times">${fmt(segment.startMs)} → ${fmt(segment.endMs)}
+          <span style="color:var(--dim)">(${((segment.endMs - segment.startMs) / 1000).toFixed(1)}s)</span></span>
+        <span class="kind" style="background:${kind.color}">${kind.label}</span>
+      </div>
+      <input type="text" placeholder="Sponsor (optional)" value="${escapeHTML(segment.sponsor)}">
+      <div class="acts">
+        <button data-act="play">Play</button>
+        <button data-act="cycle">Kind</button>
+        <button data-act="del">Delete</button>
+      </div>`;
+    card.querySelector("input").addEventListener("input", (event) => {
+      segment.sponsor = event.target.value;
+    });
+    card.querySelector('[data-act="play"]').addEventListener("click", () => seekTo(segment.startMs));
+    card.querySelector('[data-act="cycle"]').addEventListener("click", () => {
+      const at = KINDS.findIndex((k) => k.key === segment.kind);
+      segment.kind = KINDS[(at + 1) % KINDS.length].key;
+      renderSegments();
+    });
+    card.querySelector('[data-act="del"]').addEventListener("click", () => {
+      state.segments.splice(index, 1);
+      renderSegments();
+    });
+    host.appendChild(card);
+  });
+  renderOverlay();
+  markCuesInSegments();
+}
+
+function renderOverlay() {
+  const overlay = $("overlay");
+  overlay.innerHTML = "";
+  if (!state.durationMs) return;
+
+  for (const segment of state.segments) {
+    const kind = KINDS.find((k) => k.key === segment.kind) || KINDS[0];
+    const band = document.createElement("div");
+    band.style.cssText = `position:absolute;top:0;bottom:0;background:${kind.color};opacity:.30;
+      left:${(segment.startMs / state.durationMs) * 100}%;
+      width:${((segment.endMs - segment.startMs) / state.durationMs) * 100}%;`;
+    overlay.appendChild(band);
+  }
+  // The in-point shows as a line until the out-point closes it, so a
+  // half-finished segment is never invisible.
+  if (state.pendingStartMs !== null) {
+    const marker = document.createElement("div");
+    marker.style.cssText = `position:absolute;top:0;bottom:0;width:2px;background:var(--sponsor);
+      left:${(state.pendingStartMs / state.durationMs) * 100}%;`;
+    overlay.appendChild(marker);
+  }
+}
+
+function markCuesInSegments() {
+  document.querySelectorAll(".cue").forEach((row) => {
+    const cue = state.cues[+row.dataset.index];
+    const inside = state.segments.some((s) => cue.startMs < s.endMs && s.startMs < cue.endMs);
+    row.classList.toggle("inSeg", inside);
+  });
+}
+
+// ---------------------------------------------------------------- transport
+
+function seekTo(ms) {
+  state.audio.currentTime = Math.max(0, ms / 1000);
+}
+
+$("wave").addEventListener("click", (event) => {
+  if (!state.durationMs) return;
+  const rect = event.currentTarget.getBoundingClientRect();
+  seekTo(((event.clientX - rect.left) / rect.width) * state.durationMs);
+});
+
+state.audio.addEventListener("timeupdate", () => {
+  if (!state.durationMs) return;
+  const ms = state.audio.currentTime * 1000;
+  $("playhead").style.left = (ms / state.durationMs) * 100 + "%";
+
+  let activeIndex = -1;
+  for (let i = 0; i < state.cues.length; i++) {
+    if (state.cues[i].startMs <= ms) activeIndex = i; else break;
+  }
+  document.querySelectorAll(".cue.active").forEach((row) => row.classList.remove("active"));
+  if (activeIndex >= 0) {
+    const row = document.querySelector(`.cue[data-index="${activeIndex}"]`);
+    if (row) {
+      row.classList.add("active");
+      const host = $("transcript");
+      const top = row.offsetTop - host.offsetTop;
+      if (top < host.scrollTop || top > host.scrollTop + host.clientHeight - 60) {
+        host.scrollTop = top - host.clientHeight / 2;
+      }
+    }
+  }
+});
+
+// ---------------------------------------------------------------- keyboard
+
+document.addEventListener("keydown", (event) => {
+  if (event.target.tagName === "INPUT") return;
+  const nowMs = state.audio.currentTime * 1000;
+
+  switch (event.key) {
+    case " ":
+      event.preventDefault();
+      state.audio.paused ? state.audio.play() : state.audio.pause();
+      break;
+    case "ArrowLeft":
+      event.preventDefault(); seekTo(nowMs - (event.shiftKey ? 30000 : 5000)); break;
+    case "ArrowRight":
+      event.preventDefault(); seekTo(nowMs + (event.shiftKey ? 30000 : 5000)); break;
+    case "i":
+      state.pendingStartMs = Math.round(nowMs); updatePending(); renderOverlay(); break;
+    case "o": {
+      if (state.pendingStartMs === null) break;
+      addSegment(state.pendingStartMs, Math.round(nowMs));
+      state.pendingStartMs = null; updatePending();
+      break;
+    }
+    case "z": {
+      const last = state.undoStack.pop();
+      if (!last) break;
+      const at = state.segments.findIndex(
+        (s) => s.startMs === last.startMs && s.endMs === last.endMs
+      );
+      if (at !== -1) state.segments.splice(at, 1);
+      renderSegments();
+      break;
+    }
+    case "-": state.audio.playbackRate = Math.max(0.5, state.audio.playbackRate - 0.25); showRate(); break;
+    case "=":
+    case "+": state.audio.playbackRate = Math.min(4, state.audio.playbackRate + 0.25); showRate(); break;
+    default:
+      if (/^[1-5]$/.test(event.key) && state.segments.length) {
+        // Retypes the most recent segment, which is the one just marked.
+        state.segments[state.segments.length - 1].kind = KINDS[+event.key - 1].key;
+        renderSegments();
+      }
+  }
+});
+
+function updatePending() {
+  $("pending").innerHTML = state.pendingStartMs === null
+    ? ""
+    : `<span class="pending">in @ ${fmt(state.pendingStartMs)} — press o</span>`;
+}
+
+function showRate() {
+  $("status").textContent = state.audioFileName + " · " + fmt(state.durationMs) +
+    " · " + state.audio.playbackRate + "×";
+}
+
+// ------------------------------------------------------------------ export
+
+$("exportBtn").addEventListener("click", () => {
+  const payload = {
+    show: $("showName").value || "Unknown Show",
+    episodeTitle: $("episodeTitle").value || state.audioFileName || "Unknown Episode",
+    audioFileName: state.audioFileName,
+    durationMs: state.durationMs,
+    labeledAt: new Date().toISOString().slice(0, 10),
+    segments: state.segments.map((segment) => ({
+      startMs: segment.startMs,
+      endMs: segment.endMs,
+      kind: segment.kind,
+      sponsor: segment.sponsor || null,
+    })),
+    transcript: state.cues.length
+      ? { source: "podcasting20", segments: state.cues }
+      : null,
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = (payload.show + "-" + payload.episodeTitle)
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".json";
+  link.click();
+});
+</script>
+</body>
+</html>

@@ -47,3 +47,6 @@ Secrets.xcconfig
 Fixtures/media/
 Spike/media/
 Spike/out/
+
+# Playwright MCP scratch output
+.playwright-mcp/
