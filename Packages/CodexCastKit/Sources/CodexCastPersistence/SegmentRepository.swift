@@ -91,6 +91,45 @@ public struct SegmentRepository: Sendable {
         }
     }
 
+    /// A span the listener explicitly said is NOT an ad, across a whole show.
+    public struct RejectedSpan: Sendable, Hashable {
+        public var episodeID: Episode.ID
+        public var startMs: Int
+        public var endMs: Int
+    }
+
+    /// The most recent rejections on this show — the source for §6.6 negative
+    /// exemplars: passages the model called ads and the listener overruled.
+    public func recentRejections(
+        podcastID: Podcast.ID, limit: Int = 2
+    ) async throws -> [RejectedSpan] {
+        try await database.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT detected_segments.episodeId, detected_segments.startMs,
+                       detected_segments.endMs
+                FROM detected_segments
+                JOIN episodes ON episodes.id = detected_segments.episodeId
+                WHERE episodes.podcastId = ? AND detected_segments.userState = 'rejected'
+                ORDER BY detected_segments.reviewedAt DESC
+                LIMIT ?
+                """,
+                arguments: [podcastID, limit]
+            )
+            return rows.compactMap { row in
+                guard let idString: String = row["episodeId"],
+                      let uuid = UUID(uuidString: idString)
+                else { return nil }
+                return RejectedSpan(
+                    episodeID: Episode.ID(uuid),
+                    startMs: row["startMs"],
+                    endMs: row["endMs"]
+                )
+            }
+        }
+    }
+
     public func segments(episodeID: Episode.ID) async throws -> [DetectedSegment] {
         let decoder = JSONDecoder()
         return try await database.read { db in

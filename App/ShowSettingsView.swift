@@ -18,6 +18,45 @@ struct ShowSettingsView: View {
     @State private var speedOverride: Double = 0   // 0 = inherit
     @State private var pipelinePrefs = AppModel.ShowPipelinePrefs()
     @State private var notifyOn: AppModel.NotifyOn = .never
+    @State private var classifierNotes = ""
+    @State private var notesSaveTask: Task<Void, Never>?
+    @State private var rules: [PositionRule] = []
+
+    private func saveNotes() {
+        let notes = classifierNotes
+        Task { await model.saveClassifierNotes(notes, podcastID: podcast.id) }
+    }
+
+    private func reloadRules() async {
+        rules = (try? await model.positionRules.rules(
+            podcastID: podcast.id, includeDisabled: true
+        )) ?? []
+    }
+
+    private func ruleDetail(_ rule: PositionRule) -> String {
+        var parts: [String] = []
+        if rule.sampleCount > 0 {
+            parts.append("about \(Int(rule.meanDurationMs) / 1000)s long")
+        }
+        parts.append(rule.userCreated
+            ? "created by you"
+            : "right \(Int(rule.reliability * 100))% of the time")
+        return parts.joined(separator: " · ")
+    }
+
+    private func ruleEnabledBinding(_ rule: PositionRule) -> Binding<Bool> {
+        Binding(
+            get: { rules.first(where: { $0.id == rule.id })?.enabled ?? false },
+            set: { enabled in
+                guard var updated = rules.first(where: { $0.id == rule.id }) else { return }
+                updated.enabled = enabled
+                Task {
+                    try? await model.positionRules.save(updated)
+                    await reloadRules()
+                }
+            }
+        )
+    }
 
     private static let limitChoices: [Int?] = [nil, 1, 2, 3, 5, 10, 20, 50]
 
@@ -90,6 +129,61 @@ struct ShowSettingsView: View {
                 Text("Processing")
             } footer: {
                 Text("Runs automatically when new episodes download — overnight while charging, or on refresh.")
+            }
+
+            Section {
+                TextField(
+                    "e.g. The host answers listener mail at the start — that's not an ad.",
+                    text: $classifierNotes,
+                    axis: .vertical
+                )
+                .lineLimit(2...5)
+                .onSubmit { saveNotes() }
+                .onChange(of: classifierNotes) {
+                    notesSaveTask?.cancel()
+                    notesSaveTask = Task {
+                        try? await Task.sleep(for: .seconds(1))
+                        guard !Task.isCancelled else { return }
+                        saveNotes()
+                    }
+                }
+            } header: {
+                Text("Teach the Ad Finder")
+            } footer: {
+                Text("A note in your own words about this show, included every time it's scanned for ads.")
+            }
+
+            if !rules.isEmpty {
+                Section {
+                    ForEach(rules, id: \.id) { rule in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(rule.anchor.label)
+                                    .font(.callout)
+                                Text(ruleDetail(rule))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: ruleEnabledBinding(rule))
+                                .labelsHidden()
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                Task {
+                                    try? await model.positionRules.delete(rule.id)
+                                    await reloadRules()
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Ad Positions Learned")
+                } footer: {
+                    Text("Where this show usually runs ads. Rules you created by hand always hold; learned ones retire themselves when they stop being right.")
+                }
             }
 
             Section {
@@ -173,6 +267,8 @@ struct ShowSettingsView: View {
             speedOverride = model.overrides(for: podcast.id).speed ?? 0
             pipelinePrefs = model.pipelinePrefs(for: podcast.id)
             notifyOn = model.notifySetting(for: podcast.id)
+            classifierNotes = model.classifierNotes(for: podcast.id) ?? ""
+            await reloadRules()
             storageBytes = try? await model.retention.downloadedByteCount(podcastID: podcast.id)
         }
     }

@@ -490,6 +490,11 @@ struct SegmentReviewRow: View {
             }
         }
         .contextMenu {
+            Button {
+                Task { await model.alwaysSkipPosition(segment, episode: episode) }
+            } label: {
+                Label("Always Skip This Position", systemImage: "pin.slash")
+            }
             Button(role: .destructive) {
                 Task { await model.deleteSegment(segment) }
             } label: {

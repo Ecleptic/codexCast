@@ -35,6 +35,7 @@ final class AppModel {
     let patternRepository: AdPatternRepository
     let corrections: CorrectionRepository
     let chapters: ChapterRepository
+    let positionRules: PositionRuleRepository
     let charts = TopChartsClient()
 
     private(set) var library: [PodcastRecord] = []
@@ -79,6 +80,7 @@ final class AppModel {
         patternRepository = AdPatternRepository(database: database)
         corrections = CorrectionRepository(database: database)
         chapters = ChapterRepository(database: database)
+        positionRules = PositionRuleRepository(database: database)
     }
 
     // MARK: - Library
@@ -313,9 +315,30 @@ final class AppModel {
 
         let showName = library.first { $0.id == episode.podcastId }?.title ?? "this show"
         let hints = SponsorHintExtractor.extract(from: episode.summary ?? "")
+
+        // §6.6: passages the model previously called ads on this show and the
+        // listener overruled. Their text goes back into the prompt as "this
+        // is content" — the cheapest per-show teaching there is.
+        var exemplars: [String] = []
+        if let rejections = try? await segmentRepository.recentRejections(podcastID: episode.podcastId) {
+            for span in rejections {
+                let spanTranscript: TimedTranscript?
+                if span.episodeID == episode.id {
+                    spanTranscript = transcript
+                } else {
+                    spanTranscript = try? await transcripts.transcript(episodeID: span.episodeID)
+                }
+                guard let spanTranscript else { continue }
+                let text = spanTranscript.text(fromMs: span.startMs, toMs: span.endMs)
+                if !text.isEmpty { exemplars.append(String(text.prefix(400))) }
+            }
+        }
+
         let context = ClassificationContext(
             showName: showName,
-            knownSponsors: hints.map(\.name)
+            knownSponsors: hints.map(\.name),
+            negativeExemplars: exemplars,
+            showNotes: loadCombinedPrefs(for: episode.podcastId).classifierNotes
         )
 
         let started = Date()
@@ -335,10 +358,40 @@ final class AppModel {
             scanState[episode.id] = .scanning(windowsDone: index + 1, windowsTotal: windows.count)
         }
 
-        // Stage 1 first: patterns the listener has taught. Text, not
+        var segments: [DetectedSegment] = []
+
+        // Stage 0 (§5.1): position rules — free, and on regularly-heard shows
+        // they resolve the pre-roll before any model spends a token. Their
+        // confidence is their measured reliability, so a young machine rule
+        // proposes below the auto-skip bar and earns its way up.
+        let episodeDurationMs = episode.durationMs ?? transcript.durationMs
+        if let rules = try? await positionRules.rules(podcastID: episode.podcastId) {
+            for rule in rules {
+                var markerMs: Int?
+                if case .afterMarker(let marker) = rule.anchor {
+                    markerMs = transcript.segments
+                        .first { $0.text.localizedCaseInsensitiveContains(marker) }?
+                        .endMs
+                }
+                guard let proposal = rule.propose(
+                    episodeDurationMs: episodeDurationMs, markerMs: markerMs
+                ) else { continue }
+                segments.append(DetectedSegment(
+                    episodeID: episode.id,
+                    startMs: proposal.startMs, endMs: proposal.endMs,
+                    kind: .ad,
+                    confidence: proposal.confidence,
+                    provenance: .positionPrior(ruleID: rule.id.rawValue),
+                    rationale: rule.userCreated
+                        ? "You always skip this part of the show"
+                        : "This show usually has an ad here (\(rule.anchor.label.lowercased()))"
+                ))
+            }
+        }
+
+        // Stage 1: patterns the listener has taught. Text, not
         // timestamps, so they survive dynamic insertion — and they are the
         // trustworthy tier, unlike the model's self-reported confidence.
-        var segments: [DetectedSegment] = []
         if let patternRecords = try? await patternRepository.all() {
             let patterns = patternRecords
                 .filter { $0.podcastId == nil || $0.podcastId == episode.podcastId }
@@ -346,6 +399,11 @@ final class AppModel {
             if !patterns.isEmpty {
                 let detector = PatternBaselineDetector(patterns: patterns)
                 for match in detector.detect(in: transcript) {
+                    // A position prior already covering this span keeps it;
+                    // two overlapping segments would double-fire the skip.
+                    guard !segments.contains(where: {
+                        $0.overlaps(startMs: match.startMs, endMs: match.endMs)
+                    }) else { continue }
                     segments.append(DetectedSegment(
                         episodeID: episode.id,
                         startMs: match.startMs, endMs: match.endMs,
@@ -507,9 +565,7 @@ final class AppModel {
         // Confirmation is a teaching moment: the confirmed span's words become
         // a pattern, exactly as a manual mark does (§6.4).
         if let transcript = try? await transcripts.transcript(episodeID: episode.id) {
-            let text = transcript.segments
-                .filter { $0.startMs < segment.endMs && segment.startMs < $0.endMs }
-                .map(\.text).joined(separator: " ")
+            let text = transcript.text(fromMs: segment.startMs, toMs: segment.endMs)
             if text.split(separator: " ").count >= 8 {
                 try? await patternRepository.insert(AdPatternRecord(
                     podcastId: episode.podcastId, text: text,
@@ -517,6 +573,62 @@ final class AppModel {
                 ))
             }
         }
+        await learnPosition(from: segment, episode: episode)
+    }
+
+    // MARK: - Position rules (§5.1/§6.3)
+
+    /// Every confirmed ad teaches the show's position statistics: which
+    /// anchor it fits, and how long ads there run (Welford, never samples).
+    private func learnPosition(from segment: DetectedSegment, episode: EpisodeRecord) async {
+        let episodeDuration = episode.durationMs ?? player.timeline.mediaDurationMs
+        guard episodeDuration > 0 else { return }
+        let anchor = PositionRule.anchor(
+            forSegmentStartMs: segment.startMs, endMs: segment.endMs,
+            episodeDurationMs: episodeDuration
+        )
+        let existing = (try? await positionRules.rules(
+            podcastID: episode.podcastId, includeDisabled: true
+        )) ?? []
+        var rule = existing.first { $0.anchor == anchor }
+            ?? PositionRule(podcastID: episode.podcastId, anchor: anchor)
+        rule.recordHit(durationMs: segment.endMs - segment.startMs)
+        try? await positionRules.save(rule)
+    }
+
+    /// A rejected Stage 0 proposal counts against its rule; unreliable
+    /// machine rules disable themselves (§6.3).
+    private func recordPositionMiss(for segment: DetectedSegment, podcastID: Podcast.ID) async {
+        guard case .positionPrior(let ruleID) = segment.provenance else { return }
+        let existing = (try? await positionRules.rules(
+            podcastID: podcastID, includeDisabled: true
+        )) ?? []
+        guard var rule = existing.first(where: { $0.id.rawValue == ruleID }) else { return }
+        rule.recordMiss()
+        try? await positionRules.save(rule)
+    }
+
+    /// "Always skip this position" — one tap from a segment (§6.4). Promotes
+    /// the matching rule to user-created, which never auto-disables.
+    func alwaysSkipPosition(_ segment: DetectedSegment, episode: EpisodeRecord) async {
+        let episodeDuration = episode.durationMs ?? player.timeline.mediaDurationMs
+        guard episodeDuration > 0 else { return }
+        let anchor = PositionRule.anchor(
+            forSegmentStartMs: segment.startMs, endMs: segment.endMs,
+            episodeDurationMs: episodeDuration
+        )
+        let existing = (try? await positionRules.rules(
+            podcastID: episode.podcastId, includeDisabled: true
+        )) ?? []
+        var rule = existing.first { $0.anchor == anchor }
+            ?? PositionRule(podcastID: episode.podcastId, anchor: anchor)
+        rule.userCreated = true
+        rule.enabled = true
+        if rule.sampleCount == 0 {
+            rule.recordHit(durationMs: segment.endMs - segment.startMs)
+        }
+        try? await positionRules.save(rule)
+        await confirmSegment(segment, episode: episode)
     }
 
     func rejectSegment(_ segment: DetectedSegment, episode: EpisodeRecord) async {
@@ -529,6 +641,7 @@ final class AppModel {
         try? await corrections.append(
             episodeID: episode.id, segmentID: segment.id, type: "notAnAd", source: .explicit
         )
+        await recordPositionMiss(for: segment, podcastID: episode.podcastId)
     }
 
     // MARK: - Video (§8.3 minimal)
@@ -702,21 +815,14 @@ final class AppModel {
                 )
             }
         }
+        await learnPosition(from: segment, episode: episode)
     }
 
-    /// Rejects a detected segment — "this is not an ad" (§6.4).
+    /// Rejects a detected segment on the playing episode — "this is not an
+    /// ad" (§6.4) — and refreshes the player's segment list.
     func rejectSegment(_ segment: DetectedSegment) async {
-        guard let episode = nowPlaying ?? nil else { return }
-        try? await database.write { db in
-            try db.execute(
-                sql: "UPDATE detected_segments SET userState = 'rejected', reviewedAt = ? WHERE id = ?",
-                arguments: [Date(), segment.id]
-            )
-        }
-        try? await corrections.append(
-            episodeID: episode.id, segmentID: segment.id,
-            type: "notAnAd", source: .explicit
-        )
+        guard let episode = nowPlaying else { return }
+        await rejectSegment(segment, episode: episode)
         nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
     }
 
@@ -802,6 +908,20 @@ final class AppModel {
         var speed: Double?
         var autoSkipAds: Bool?
         var pipeline: ShowPipelinePrefs?
+        /// The listener's free-text guidance to the ad classifier (§6.5) —
+        /// "the host reads listener mail at the start, it is not an ad".
+        var classifierNotes: String?
+    }
+
+    func classifierNotes(for podcastID: Podcast.ID) -> String? {
+        loadCombinedPrefs(for: podcastID).classifierNotes
+    }
+
+    func saveClassifierNotes(_ notes: String, podcastID: Podcast.ID) async {
+        var combined = loadCombinedPrefs(for: podcastID)
+        let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        combined.classifierNotes = trimmed.isEmpty ? nil : String(trimmed.prefix(300))
+        await saveCombinedPrefs(combined, podcastID: podcastID)
     }
 
     func savePipelinePrefs(_ prefs: ShowPipelinePrefs, podcastID: Podcast.ID) async {

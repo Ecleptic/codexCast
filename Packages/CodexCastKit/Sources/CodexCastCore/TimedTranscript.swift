@@ -59,4 +59,13 @@ public struct TimedTranscript: Hashable, Sendable, Codable {
         }
         return boundaries.min { abs($0 - target) < abs($1 - target) }
     }
+
+    /// The spoken text overlapping a time range — what a detected segment
+    /// actually said, for pattern extraction and negative exemplars (§6.6).
+    public func text(fromMs: Int, toMs: Int) -> String {
+        segments
+            .filter { $0.endMs > fromMs && $0.startMs < toMs }
+            .map(\.text)
+            .joined(separator: " ")
+    }
 }
