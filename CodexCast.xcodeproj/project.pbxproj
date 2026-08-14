@@ -25,6 +25,7 @@
 		D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E8479D847F921AB10493C /* CodexCastApp.swift */; };
 		D5E821C70D08C272C1EEA440 /* CodexCastDetection in Frameworks */ = {isa = PBXBuildFile; productRef = DC64841B03CDBB942BB0D71F /* CodexCastDetection */; };
 		DBA630E0541DABFEF58C8B77 /* CodexCastPipeline in Frameworks */ = {isa = PBXBuildFile; productRef = 25189ADD88E15C2C46F9169E /* CodexCastPipeline */; };
+		E48D4E2633CA2D7CCBB9BDAB /* EpisodeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43BB462F4FC79B134F9443D6 /* EpisodeDetailView.swift */; };
 		EB3302B80A235F91E1CF6CFE /* CodexCastPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 07BB042596B56F7046A78F6D /* CodexCastPersistence */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,7 @@
 		13E01DDCDAB399DDADF254EB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		197ED145FAC304355353C8E1 /* EpisodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeListView.swift; sourceTree = "<group>"; };
 		2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeLimitsView.swift; sourceTree = "<group>"; };
+		43BB462F4FC79B134F9443D6 /* EpisodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeDetailView.swift; sourceTree = "<group>"; };
 		4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
 		5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettingsView.swift; sourceTree = "<group>"; };
 		854553ACD07CBF7CEEAEA0EB /* CodexCastKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CodexCastKit; path = Packages/CodexCastKit; sourceTree = SOURCE_ROOT; };
@@ -71,6 +73,7 @@
 				5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */,
 				EC5E8479D847F921AB10493C /* CodexCastApp.swift */,
 				F2DA7694D224531A293462B9 /* DiscoverView.swift */,
+				43BB462F4FC79B134F9443D6 /* EpisodeDetailView.swift */,
 				2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */,
 				197ED145FAC304355353C8E1 /* EpisodeListView.swift */,
 				8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */,
@@ -181,6 +184,7 @@
 				964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */,
 				D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */,
 				91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */,
+				E48D4E2633CA2D7CCBB9BDAB /* EpisodeDetailView.swift in Sources */,
 				B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */,
 				0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */,
 				85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */,

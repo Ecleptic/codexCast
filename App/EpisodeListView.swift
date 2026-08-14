@@ -10,12 +10,26 @@ struct EpisodeListView: View {
 
     var body: some View {
         List(episodes, id: \.id) { episode in
-            Button {
-                model.play(episode)
+            NavigationLink {
+                EpisodeDetailView(episode: episode)
             } label: {
                 EpisodeRow(episode: episode, isPlaying: model.nowPlaying?.id == episode.id)
             }
-            .buttonStyle(.plain)
+            .swipeActions(edge: .leading) {
+                Button {
+                    model.play(episode)
+                } label: {
+                    Label("Play", systemImage: "play.fill")
+                }
+                .tint(.accentColor)
+            }
+            .swipeActions(edge: .trailing) {
+                Button {
+                    Task { await model.addToUpNext(episode) }
+                } label: {
+                    Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                }
+            }
         }
         .navigationTitle(podcast.title)
         .navigationBarTitleDisplayMode(.inline)

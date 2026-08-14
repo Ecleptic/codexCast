@@ -116,6 +116,26 @@ final class AppModel {
         return added
     }
 
+    // MARK: - Transcripts
+
+    /// Fetches a feed-supplied transcript and stores it, so it is fetched once
+    /// and never re-derived (§8.2, §9.9).
+    ///
+    /// Trust caveat from addendum A1: a feed transcript made from an ad-free
+    /// master drifts against audio containing inserted ads. Verification lands
+    /// with the detection pipeline; until then the source is recorded so a
+    /// desynced transcript can be identified and replaced later.
+    func loadFeedTranscript(for episode: EpisodeRecord) async throws -> TimedTranscript? {
+        guard let json = episode.feedTranscripts?.data(using: .utf8),
+              let references = try? JSONDecoder().decode([FeedTranscriptReference].self, from: json),
+              let best = references.preferred
+        else { return nil }
+
+        let transcript = try await fetcher.fetchTranscript(best)
+        try await transcripts.save(transcript, episodeID: episode.id)
+        return transcript
+    }
+
     // MARK: - Audio settings (A5.4)
 
     func applyAudioSettings() {
@@ -194,7 +214,7 @@ final class AppModel {
 
     /// Streams an episode's primary audio. Download-first arrives with the
     /// pipeline UI; streaming makes the player usable immediately.
-    func play(_ episode: EpisodeRecord) {
+    func play(_ episode: EpisodeRecord, startAtMs: Int? = nil) {
         guard let renditionData = episode.renditions?.data(using: .utf8),
               let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData),
               let url = renditions.first(where: \.isPrimaryEnclosure)?.sources.first
@@ -204,7 +224,7 @@ final class AppModel {
         // No detected segments yet, so the timeline is the identity mapping —
         // exactly why DisplayTimeline was built before skipping existed.
         let timeline = DisplayTimeline(mediaDurationMs: episode.durationMs ?? 0)
-        player.load(url: url, timeline: timeline, startAtMs: episode.playbackPositionMs)
+        player.load(url: url, timeline: timeline, startAtMs: startAtMs ?? episode.playbackPositionMs)
         player.play()
         nowPlaying = episode
     }
