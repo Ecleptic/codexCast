@@ -61,7 +61,14 @@ struct AudioSettingsView: View {
                     }
                 }
             } footer: {
-                Text("Applies to all podcasts except those with custom audio settings.")
+                Text(
+                    """
+                    Applies to all podcasts except those with custom audio \
+                    settings. Smart Speed and Voice Boost processing is still \
+                    being wired to the player — the switches remember your \
+                    choice but don't change the sound yet.
+                    """
+                )
             }
         }
         .navigationTitle("Audio Settings")

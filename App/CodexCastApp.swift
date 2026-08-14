@@ -8,7 +8,9 @@ struct CodexCastApp: App {
 
     init() {
         do {
-            _model = State(initialValue: try AppModel())
+            let model = try AppModel()
+            _model = State(initialValue: model)
+            AppModel.registerBackgroundTasks(model: model)
         } catch {
             // A database that cannot open on first launch is unrecoverable;
             // crash with the reason visible rather than limping.
@@ -51,6 +53,7 @@ struct RootView: View {
         }
         .task {
             await model.restoreSession()
+            model.scheduleBackgroundWork()
         }
     }
 }

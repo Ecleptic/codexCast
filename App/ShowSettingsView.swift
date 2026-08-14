@@ -13,6 +13,8 @@ struct ShowSettingsView: View {
     @State private var limitIndex: Int = 0
     @State private var storageBytes: Int64?
     @State private var confirmUnsubscribe = false
+    @State private var autoDownload = false
+    @State private var speedOverride: Double = 0   // 0 = inherit
 
     private static let limitChoices: [Int?] = [nil, 1, 2, 3, 5, 10, 20, 50]
 
@@ -64,6 +66,7 @@ struct ShowSettingsView: View {
                         Text("—")
                     }
                 }
+                Toggle("Auto-download new episodes", isOn: autoDownloadBinding)
             } header: {
                 Text("Downloads")
             } footer: {
@@ -74,6 +77,26 @@ struct ShowSettingsView: View {
                     this show are always kept.
                     """
                 )
+            }
+
+            Section {
+                Picker("Playback speed", selection: $speedOverride) {
+                    Text("Use global").tag(0.0)
+                    ForEach([0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0], id: \.self) { speed in
+                        Text(String(format: "%.2g×", speed)).tag(speed)
+                    }
+                }
+                .onChange(of: speedOverride) {
+                    Task {
+                        var overrides = model.overrides(for: podcast.id)
+                        overrides.speed = speedOverride == 0 ? nil : speedOverride
+                        await model.saveOverrides(overrides, podcastID: podcast.id)
+                    }
+                }
+            } header: {
+                Text("Playback")
+            } footer: {
+                Text("Overrides the global speed for this show only.")
             }
 
             Section("Feed") {
@@ -121,8 +144,23 @@ struct ShowSettingsView: View {
         }
         .task {
             limitIndex = Self.limitChoices.firstIndex(of: podcast.episodeLimit) ?? 0
+            autoDownload = podcast.autoDownloadEnabled
+            speedOverride = model.overrides(for: podcast.id).speed ?? 0
             storageBytes = try? await model.retention.downloadedByteCount(podcastID: podcast.id)
         }
+    }
+
+    private var autoDownloadBinding: Binding<Bool> {
+        Binding(
+            get: { autoDownload },
+            set: { newValue in
+                autoDownload = newValue
+                Task {
+                    try? await model.podcasts.setAutoDownload(newValue, podcastID: podcast.id)
+                    await model.reloadLibrary()
+                }
+            }
+        )
     }
 
     private func limitLabel(_ choice: Int?) -> String {

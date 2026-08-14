@@ -86,6 +86,24 @@ public struct PodcastRepository: Sendable {
         }
     }
 
+    public func setAutoDownload(_ enabled: Bool, podcastID: Podcast.ID) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE podcasts SET autoDownloadEnabled = ? WHERE id = ?",
+                arguments: [enabled, podcastID]
+            )
+        }
+    }
+
+    public func setPlaybackSettings(_ json: String?, podcastID: Podcast.ID) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE podcasts SET playbackSettings = ? WHERE id = ?",
+                arguments: [json, podcastID]
+            )
+        }
+    }
+
     public func unsubscribe(podcastID: Podcast.ID) async throws {
         try await database.write { db in
             _ = try PodcastRecord.deleteOne(db, key: podcastID)

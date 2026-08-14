@@ -3,6 +3,8 @@ import CodexCastFeeds
 import CodexCastPersistence
 import CodexCastPipeline
 import AVFoundation
+import AVKit
+import BackgroundTasks
 import CodexCastDetection
 import MediaPlayer
 import CodexCastDetectionAFM
@@ -30,6 +32,8 @@ final class AppModel {
     let segmentRepository: SegmentRepository
     let patternRepository: AdPatternRepository
     let corrections: CorrectionRepository
+    let chapters: ChapterRepository
+    let charts = TopChartsClient()
 
     private(set) var library: [PodcastRecord] = []
     private(set) var playlists: [Playlist] = []
@@ -55,6 +59,7 @@ final class AppModel {
         segmentRepository = SegmentRepository(database: database)
         patternRepository = AdPatternRepository(database: database)
         corrections = CorrectionRepository(database: database)
+        chapters = ChapterRepository(database: database)
     }
 
     // MARK: - Library
@@ -371,6 +376,222 @@ final class AppModel {
         )
     }
 
+    // MARK: - Sleep timer (§10.4)
+
+    enum SleepTimer: Equatable {
+        case off
+        case minutes(Int, firesAt: Date)
+        case endOfEpisode
+    }
+
+    private(set) var sleepTimer: SleepTimer = .off
+    private var sleepTask: Task<Void, Never>?
+
+    func setSleepTimer(minutes: Int?) {
+        sleepTask?.cancel()
+        guard let minutes else {
+            sleepTimer = .off
+            return
+        }
+        let fireDate = Date().addingTimeInterval(Double(minutes) * 60)
+        sleepTimer = .minutes(minutes, firesAt: fireDate)
+        sleepTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Double(minutes) * 60))
+            guard !Task.isCancelled else { return }
+            self?.player.pause()
+            self?.sleepTimer = .off
+        }
+    }
+
+    func setSleepAtEndOfEpisode() {
+        sleepTask?.cancel()
+        sleepTimer = .endOfEpisode
+    }
+
+    // MARK: - Chapters (§8.2 / §5.8 display side)
+
+    func loadChapters(for episode: EpisodeRecord) async -> [Chapter] {
+        if let stored = try? await chapters.chapters(episodeID: episode.id), !stored.isEmpty {
+            return stored
+        }
+        guard let urlString = episode.feedChaptersURL, let url = URL(string: urlString),
+              let fetched = try? await fetcher.fetchChapters(url), !fetched.isEmpty
+        else { return [] }
+        try? await chapters.save(fetched, episodeID: episode.id)
+        return fetched
+    }
+
+    // MARK: - Per-show playback overrides (§10.4)
+
+    struct ShowPlaybackOverrides: Codable, Hashable {
+        var speed: Double?
+        var autoSkipAds: Bool?
+    }
+
+    func overrides(for podcastID: Podcast.ID) -> ShowPlaybackOverrides {
+        guard let record = library.first(where: { $0.id == podcastID }),
+              let json = record.playbackSettings?.data(using: .utf8),
+              let decoded = try? JSONDecoder().decode(ShowPlaybackOverrides.self, from: json)
+        else { return ShowPlaybackOverrides() }
+        return decoded
+    }
+
+    func saveOverrides(_ overrides: ShowPlaybackOverrides, podcastID: Podcast.ID) async {
+        let json = (try? JSONEncoder().encode(overrides))
+            .flatMap { String(data: $0, encoding: .utf8) }
+        try? await podcasts.setPlaybackSettings(json, podcastID: podcastID)
+        await reloadLibrary()
+    }
+
+    // MARK: - Skip undo (§11.2)
+
+    /// Mirrors the engine's last skip for the banner; undo routes the
+    /// correction — the single most important entry point in the app.
+    var lastSkip: SkipEvent? { player.lastSkip }
+
+    func undoLastSkip() {
+        guard let event = player.lastSkip else { return }
+        player.undoLastSkip()
+        Task {
+            for segmentID in event.block.segmentIDs {
+                try? await database.write { db in
+                    try db.execute(
+                        sql: "UPDATE detected_segments SET userState = 'rejected', reviewedAt = ? WHERE id = ?",
+                        arguments: [Date(), segmentID.rawValue.uuidString]
+                    )
+                }
+            }
+            if let episode = nowPlaying {
+                try? await corrections.append(
+                    episodeID: episode.id, segmentID: event.block.segmentIDs.first,
+                    type: "undoSkip", source: .explicit
+                )
+                nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
+            }
+        }
+    }
+
+    // MARK: - Segment review (§6.4 confirm / reject from any screen)
+
+    func confirmSegment(_ segment: DetectedSegment, episode: EpisodeRecord) async {
+        try? await database.write { db in
+            try db.execute(
+                sql: "UPDATE detected_segments SET userState = 'confirmed', reviewedAt = ? WHERE id = ?",
+                arguments: [Date(), segment.id]
+            )
+        }
+        try? await corrections.append(
+            episodeID: episode.id, segmentID: segment.id, type: "confirm", source: .explicit
+        )
+        // Confirmation is a teaching moment: the confirmed span's words become
+        // a pattern, exactly as a manual mark does (§6.4).
+        if let transcript = try? await transcripts.transcript(episodeID: episode.id) {
+            let text = transcript.segments
+                .filter { $0.startMs < segment.endMs && segment.startMs < $0.endMs }
+                .map(\.text).joined(separator: " ")
+            if text.split(separator: " ").count >= 8 {
+                try? await patternRepository.insert(AdPatternRecord(
+                    podcastId: episode.podcastId, text: text,
+                    confirmCount: 1, createdFrom: "confirm"
+                ))
+            }
+        }
+    }
+
+    func rejectSegment(_ segment: DetectedSegment, episode: EpisodeRecord) async {
+        try? await database.write { db in
+            try db.execute(
+                sql: "UPDATE detected_segments SET userState = 'rejected', reviewedAt = ? WHERE id = ?",
+                arguments: [Date(), segment.id]
+            )
+        }
+        try? await corrections.append(
+            episodeID: episode.id, segmentID: segment.id, type: "notAnAd", source: .explicit
+        )
+    }
+
+    // MARK: - Video (§8.3 minimal)
+
+    /// A video rendition URL when the episode has one. Playback uses the same
+    /// timeline; the sheet hosts AVPlayerViewController.
+    func videoURL(for episode: EpisodeRecord) -> URL? {
+        guard let json = episode.renditions?.data(using: .utf8),
+              let renditions = try? JSONDecoder().decode([Rendition].self, from: json)
+        else { return nil }
+        return renditions.first(where: \.isVideo)?.sources.first
+    }
+
+    // MARK: - Background work (§9.3, §9.7)
+
+    nonisolated static let refreshTaskID = "app.ckg.codexcast.refresh"
+    nonisolated static let processingTaskID = "app.ckg.codexcast.processing"
+
+    nonisolated static func registerBackgroundTasks(model: AppModel) {
+        // BGTask is not Sendable but setTaskCompleted is documented
+        // thread-safe; the unsafe capture is confined to completing the task.
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: refreshTaskID, using: nil) { task in
+            nonisolated(unsafe) let bgTask = task
+            Task { @MainActor in
+                await model.performBackgroundRefresh(nil)
+                bgTask.setTaskCompleted(success: true)
+            }
+        }
+        BGTaskScheduler.shared.register(forTaskWithIdentifier: processingTaskID, using: nil) { task in
+            nonisolated(unsafe) let bgTask = task
+            Task { @MainActor in
+                await model.performOvernightProcessing(nil)
+                bgTask.setTaskCompleted(success: true)
+            }
+        }
+    }
+
+    func scheduleBackgroundWork() {
+        let refresh = BGAppRefreshTaskRequest(identifier: Self.refreshTaskID)
+        refresh.earliestBeginDate = Date(timeIntervalSinceNow: 60 * 60)
+        try? BGTaskScheduler.shared.submit(refresh)
+
+        // Overnight: charging + network, per §9.7.
+        let processing = BGProcessingTaskRequest(identifier: Self.processingTaskID)
+        processing.requiresNetworkConnectivity = true
+        processing.requiresExternalPower = true
+        processing.earliestBeginDate = Date(timeIntervalSinceNow: 4 * 60 * 60)
+        try? BGTaskScheduler.shared.submit(processing)
+    }
+
+    /// Feed refresh + auto-download of the newest episode for opted-in shows.
+    func performBackgroundRefresh(_ task: BGAppRefreshTask?) async {
+        defer { scheduleBackgroundWork() }
+        await reloadLibrary()
+        for podcast in library {
+            await refresh(podcast)
+            guard podcast.autoDownloadEnabled else { continue }
+            if let newest = (try? await episodes.episodes(podcastID: podcast.id, limit: 1))?.first,
+               newest.localPath == nil {
+                _ = try? await downloadAudio(for: newest)
+            }
+        }
+        await enforceRetention()
+    }
+
+    /// Overnight transcription: one episode at a time (§9.7), newest first,
+    /// downloaded-but-untranscribed only. Scanning stays manual until the
+    /// model earns trust.
+    func performOvernightProcessing(_ task: BGProcessingTask?) async {
+        defer { scheduleBackgroundWork() }
+        await reloadLibrary()
+        for podcast in library {
+            guard let candidates = try? await episodes.episodes(podcastID: podcast.id, limit: 3)
+            else { continue }
+            for episode in candidates where episode.localPath != nil {
+                let has = (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
+                if !has {
+                    await transcribeOnDevice(episode)
+                    return   // one per wake; the scheduler calls us again
+                }
+            }
+        }
+    }
+
     // MARK: - Teaching: mark an ad during playback (§6.4)
 
     /// Set when the listener has pressed "Ad starts here" and the end is
@@ -542,7 +763,8 @@ final class AppModel {
         // found five confident false positives and zero real ads. Segments are
         // always *drawn* on the seek bar; skipping them is the user's call.
         var blocks: [SkipBlock] = []
-        if audioSettings.autoSkipAds, let outcome = await gatedSegments(for: episode) {
+        let skipEnabled = overrides(for: episode.podcastId).autoSkipAds ?? audioSettings.autoSkipAds
+        if skipEnabled, let outcome = await gatedSegments(for: episode) {
             blocks = outcome.autoSkippable.map { segment in
                 SkipBlock(startMs: segment.startMs, endMs: segment.endMs, segmentIDs: [segment.id])
             }
@@ -595,6 +817,11 @@ final class AppModel {
     /// Episode finished: mark it played, drop it from Up Next, start the next
     /// queued episode. Listening is a session (ux-architecture invariant 2).
     private func advanceQueue() async {
+        if case .endOfEpisode = sleepTimer {
+            sleepTimer = .off
+            player.pause()
+            return
+        }
         if let finished = nowPlaying {
             try? await episodes.setPlayed(true, episodeID: finished.id)
             if let queue = playlists.first(where: { $0.name == Playlist.upNextName }) {
@@ -692,6 +919,9 @@ final class AppModel {
             blocks: blocks
         )
         player.load(url: url, timeline: timeline, startAtMs: startAtMs ?? episode.playbackPositionMs)
+        // Per-show speed override beats the global (§10.4).
+        let override = overrides(for: episode.podcastId)
+        player.setRate(override.speed ?? audioSettings.speed)
         if autoplay {
             player.play()
         }

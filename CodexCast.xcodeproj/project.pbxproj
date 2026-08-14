@@ -13,6 +13,7 @@
 		0C91B4FED7A10D2C6A51ECD6 /* CodexCastFeeds in Frameworks */ = {isa = PBXBuildFile; productRef = C676E321AA8E8076B4217FD2 /* CodexCastFeeds */; };
 		579DA001537CC7E7E5DA8619 /* ShowSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */; };
 		641650F77684086614099CAD /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */; };
+		6557D740D1BD19FE8578A8DB /* LearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50975386D4925546C9385E4C /* LearningViews.swift */; };
 		6A3596860916D14D9C72CF87 /* CodexCastTranscription in Frameworks */ = {isa = PBXBuildFile; productRef = B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */; };
 		831AB4FA8508AE4E4C7A8D8C /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD1188313195CBCBA224CDCE /* AudioSettings.swift */; };
 		85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */; };
@@ -25,6 +26,7 @@
 		B5921459692445292AA156C4 /* CodexCastCore in Frameworks */ = {isa = PBXBuildFile; productRef = A76925BEF281D319E78B374D /* CodexCastCore */; };
 		B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */; };
 		B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DB3D0F2A114836988051EA /* SettingsView.swift */; };
+		BC5BD9A6EF9C364682E0E146 /* StorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C68376FFD04E8EE369D0ADF /* StorageView.swift */; };
 		D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E8479D847F921AB10493C /* CodexCastApp.swift */; };
 		D5E821C70D08C272C1EEA440 /* CodexCastDetection in Frameworks */ = {isa = PBXBuildFile; productRef = DC64841B03CDBB942BB0D71F /* CodexCastDetection */; };
 		DBA630E0541DABFEF58C8B77 /* CodexCastPipeline in Frameworks */ = {isa = PBXBuildFile; productRef = 25189ADD88E15C2C46F9169E /* CodexCastPipeline */; };
@@ -37,10 +39,12 @@
 		101C9BCE3F871996CCC31BCC /* CodexCast.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CodexCast.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13E01DDCDAB399DDADF254EB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		197ED145FAC304355353C8E1 /* EpisodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeListView.swift; sourceTree = "<group>"; };
+		1C68376FFD04E8EE369D0ADF /* StorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageView.swift; sourceTree = "<group>"; };
 		2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeLimitsView.swift; sourceTree = "<group>"; };
 		3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowSettingsView.swift; sourceTree = "<group>"; };
 		43BB462F4FC79B134F9443D6 /* EpisodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeDetailView.swift; sourceTree = "<group>"; };
 		4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
+		50975386D4925546C9385E4C /* LearningViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningViews.swift; sourceTree = "<group>"; };
 		5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettingsView.swift; sourceTree = "<group>"; };
 		854553ACD07CBF7CEEAEA0EB /* CodexCastKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CodexCastKit; path = Packages/CodexCastKit; sourceTree = SOURCE_ROOT; };
 		8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportExportView.swift; sourceTree = "<group>"; };
@@ -86,12 +90,14 @@
 				197ED145FAC304355353C8E1 /* EpisodeListView.swift */,
 				A0BB3042EAA04FA1A6611534 /* HomeView.swift */,
 				8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */,
+				50975386D4925546C9385E4C /* LearningViews.swift */,
 				B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */,
 				91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */,
 				4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */,
 				FF403B1AD1C1051907C4A47B /* PodcastsGridView.swift */,
 				D9DB3D0F2A114836988051EA /* SettingsView.swift */,
 				3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */,
+				1C68376FFD04E8EE369D0ADF /* StorageView.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -202,12 +208,14 @@
 				0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */,
 				A93FA27F7534529D008D51CD /* HomeView.swift in Sources */,
 				85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */,
+				6557D740D1BD19FE8578A8DB /* LearningViews.swift in Sources */,
 				A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */,
 				641650F77684086614099CAD /* NowPlayingView.swift in Sources */,
 				02083153A9EF952A315DB5C5 /* PlaylistsView.swift in Sources */,
 				FADF9A3D882B5E1EFF78654F /* PodcastsGridView.swift in Sources */,
 				B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */,
 				579DA001537CC7E7E5DA8619 /* ShowSettingsView.swift in Sources */,
+				BC5BD9A6EF9C364682E0E146 /* StorageView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,10 +230,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YFJ5Q82C77;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves your phone.";
-				INFOPLIST_KEY_UIBackgroundModes = audio;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -248,10 +253,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YFJ5Q82C77;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves your phone.";
-				INFOPLIST_KEY_UIBackgroundModes = audio;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

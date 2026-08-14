@@ -9,6 +9,7 @@ struct DiscoverView: View {
     @State private var searchTask: Task<Void, Never>?
     @State private var statusMessage: String?
     @State private var showAddByURL = false
+    @State private var chart: [TopChartsClient.ChartEntry] = []
 
     var body: some View {
         NavigationStack {
@@ -16,6 +17,16 @@ struct DiscoverView: View {
                 if let statusMessage {
                     Text(statusMessage)
                         .foregroundStyle(.secondary)
+                }
+                if query.isEmpty && results.isEmpty {
+                    Section("Top Podcasts") {
+                        ForEach(chart) { entry in
+                            ChartRow(entry: entry)
+                        }
+                        if chart.isEmpty {
+                            HStack { ProgressView(); Text("Loading charts…").foregroundStyle(.secondary) }
+                        }
+                    }
                 }
                 ForEach(results) { result in
                     SearchResultRow(result: result) {
@@ -43,6 +54,11 @@ struct DiscoverView: View {
             }
             .sheet(isPresented: $showAddByURL) {
                 AddByURLView()
+            }
+            .task {
+                if chart.isEmpty {
+                    chart = (try? await model.charts.topPodcasts()) ?? []
+                }
             }
         }
     }
@@ -161,6 +177,56 @@ private struct AddByURLView: View {
             } catch {
                 errorMessage = "Couldn't load that feed: \(error.localizedDescription)"
                 isWorking = false
+            }
+        }
+    }
+}
+
+/// A top-charts row: subscribing resolves the feed URL through one lookup.
+private struct ChartRow: View {
+    @Environment(AppModel.self) private var model
+    let entry: TopChartsClient.ChartEntry
+    @State private var isWorking = false
+
+    private var isSubscribed: Bool {
+        model.library.contains { $0.itunesCollectionID == entry.id }
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AsyncImage(url: entry.artworkURL) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 8).fill(.quaternary)
+            }
+            .frame(width: 48, height: 48)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.name).font(.subheadline.weight(.medium)).lineLimit(2)
+                if let artist = entry.artistName {
+                    Text(artist).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+
+            Spacer()
+
+            if isSubscribed {
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
+            } else if isWorking {
+                ProgressView()
+            } else {
+                Button("Follow") {
+                    isWorking = true
+                    Task {
+                        if let feedURL = try? await model.charts.feedURL(for: entry) {
+                            try? await model.subscribe(feedURL: feedURL, itunesCollectionID: entry.id)
+                        }
+                        isWorking = false
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
             }
         }
     }

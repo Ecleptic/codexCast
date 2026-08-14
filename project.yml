@@ -16,7 +16,9 @@ targets:
     type: application
     platform: iOS
     sources:
-      - App
+      - path: App
+        excludes:
+          - "Info.plist"
     dependencies:
       - package: CodexCastKit
         products:
@@ -31,17 +33,12 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.ckg.codexcast
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: >-
-          Codex Cast transcribes episodes on this device to find and skip ads.
-          Audio never leaves your phone.
-        INFOPLIST_KEY_UIBackgroundModes: audio
+        INFOPLIST_FILE: App/Info.plist
         SWIFT_VERSION: "6.0"
         SWIFT_STRICT_CONCURRENCY: complete
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: YFJ5Q82C77
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
-        GENERATE_INFOPLIST_FILE: YES
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0

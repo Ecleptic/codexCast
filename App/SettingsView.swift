@@ -4,10 +4,19 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
+                Section("Playback") {
                     NavigationLink("Audio Settings") { AudioSettingsView() }
+                }
+
+                Section("Library") {
                     NavigationLink("Episode Limits") { EpisodeLimitsView() }
+                    NavigationLink("Storage") { StorageView() }
                     NavigationLink("Import & Export") { ImportExportView() }
+                }
+
+                Section("Ad Detection") {
+                    NavigationLink("Learned Patterns") { PatternsView() }
+                    NavigationLink("Sponsors") { SponsorsView() }
                 }
 
                 Section("Privacy") {
@@ -23,11 +32,7 @@ struct SettingsView: View {
                     .font(.footnote)
                 }
 
-                Section("Coming soon") {
-                    LabeledContent("Pipeline defaults", value: "after detection lands")
-                    LabeledContent("Skip policies", value: "after detection lands")
-                    LabeledContent("Export learning data", value: "after learning lands")
-                }
+
             }
             .navigationTitle("Settings")
         }

@@ -1,4 +1,5 @@
 import CodexCastCore
+import AVKit
 import CodexCastFeeds
 import CodexCastPersistence
 import SwiftUI
@@ -19,6 +20,7 @@ struct EpisodeDetailView: View {
         case info = "Info"
     }
     @State private var page: Page = .notes
+    @State private var videoToPlay: URL?
     @State private var isLoadingTranscript = false
     @State private var transcriptError: String?
 
@@ -55,6 +57,15 @@ struct EpisodeDetailView: View {
                             Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
                         }
                         .buttonStyle(.bordered)
+
+                        if let videoURL = model.videoURL(for: episode) {
+                            Button {
+                                videoToPlay = videoURL
+                            } label: {
+                                Label("Video", systemImage: "play.rectangle")
+                            }
+                            .buttonStyle(.bordered)
+                        }
                     }
                     .padding(.top, 4)
                 }
@@ -233,6 +244,12 @@ struct EpisodeDetailView: View {
         }
         .navigationTitle("Episode")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: Binding(
+            get: { videoToPlay.map(VideoSheetItem.init) },
+            set: { videoToPlay = $0?.url }
+        )) { item in
+            VideoPlayerSheet(url: item.url)
+        }
         .task {
             transcript = try? await model.transcripts.transcript(episodeID: episode.id)
             segments = (try? await model.segmentRepository.segments(episodeID: episode.id)) ?? []
@@ -310,4 +327,36 @@ private extension String {
             .replacingOccurrences(of: "&quot;", with: "\"")
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
+}
+
+private struct VideoSheetItem: Identifiable {
+    let url: URL
+    var id: String { url.absoluteString }
+}
+
+/// Minimal video playback (§8.3): AVPlayerViewController with PiP. The audio
+/// player pauses first — two streams at once helps no one.
+private struct VideoPlayerSheet: View {
+    @Environment(AppModel.self) private var model
+    let url: URL
+
+    var body: some View {
+        VideoPlayerRepresentable(url: url)
+            .ignoresSafeArea()
+            .onAppear { model.player.pause() }
+    }
+}
+
+private struct VideoPlayerRepresentable: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        controller.player = AVPlayer(url: url)
+        controller.allowsPictureInPicturePlayback = true
+        controller.player?.play()
+        return controller
+    }
+
+    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {}
 }

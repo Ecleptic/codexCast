@@ -41,6 +41,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
     /// Downloads to keep for this show; nil means unlimited (A5.3).
     public var episodeLimit: Int?
     public var autoDownloadEnabled: Bool
+    /// Per-show playback overrides as JSON (§10.4); nil inherits globals.
+    public var playbackSettings: String?
 
     public init(
         id: Podcast.ID = Podcast.ID(),
@@ -57,7 +59,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         lastRefreshedAt: Date? = nil,
         lastErrorDescription: String? = nil,
         episodeLimit: Int? = nil,
-        autoDownloadEnabled: Bool = false
+        autoDownloadEnabled: Bool = false,
+        playbackSettings: String? = nil
     ) {
         self.id = id
         self.feedURL = feedURL
@@ -74,6 +77,7 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         self.lastErrorDescription = lastErrorDescription
         self.episodeLimit = episodeLimit
         self.autoDownloadEnabled = autoDownloadEnabled
+        self.playbackSettings = playbackSettings
     }
 
     public var domainModel: Podcast {
