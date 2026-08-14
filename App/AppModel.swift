@@ -7,6 +7,7 @@ import AVKit
 import BackgroundTasks
 import CodexCastDetection
 import MediaPlayer
+import NaturalLanguage
 import UIKit
 import UserNotifications
 import CodexCastDetectionAFM
@@ -37,6 +38,7 @@ final class AppModel {
     let chapters: ChapterRepository
     let positionRules: PositionRuleRepository
     let calibration: CalibrationRepository
+    let sponsors: SponsorRepository
     let charts = TopChartsClient()
 
     private(set) var library: [PodcastRecord] = []
@@ -83,6 +85,7 @@ final class AppModel {
         chapters = ChapterRepository(database: database)
         positionRules = PositionRuleRepository(database: database)
         calibration = CalibrationRepository(database: database)
+        sponsors = SponsorRepository(database: database)
     }
 
     // MARK: - Library
@@ -464,6 +467,13 @@ final class AppModel {
             let overlapsPattern = segments.contains { $0.overlaps(startMs: start, endMs: end) }
             guard !overlapsPattern else { continue }
 
+            // §6.2: a sponsor the model named becomes (or joins) a registry
+            // entity, so the same sponsor on a different show is recognized.
+            var sponsorID: UUID?
+            if let sponsorName = finding.sponsor, !sponsorName.isEmpty {
+                sponsorID = try? await sponsors.findOrCreate(name: sponsorName)
+            }
+
             let raw = finding.confidence
             let confidence: Double
             if degenerate {
@@ -488,7 +498,7 @@ final class AppModel {
                 rawConfidence: raw,
                 provenance: .onDeviceModel(windowIndex: 0, modelTier: "afm-device"),
                 rationale: finding.rationale,
-                sponsorID: nil
+                sponsorID: sponsorID
             ))
         }
 
@@ -666,6 +676,46 @@ final class AppModel {
         }
         await learnPosition(from: segment, episode: episode)
         await recordCalibrationOutcome(for: segment, confirmed: true)
+        await linkSponsor(for: segment, episode: episode)
+    }
+
+    /// §6.2: a confirmation is when a sponsor becomes real. Prefer the
+    /// model's sponsor field (already linked at scan time); fall back to
+    /// named-entity extraction over the confirmed span's words.
+    private func linkSponsor(for segment: DetectedSegment, episode: EpisodeRecord) async {
+        var sponsorID = segment.sponsorID
+        if sponsorID == nil,
+           let transcript = try? await transcripts.transcript(episodeID: episode.id) {
+            let text = transcript.text(fromMs: segment.startMs, toMs: segment.endMs)
+            let tagger = NLTagger(tagSchemes: [.nameType])
+            tagger.string = text
+            var organization: String?
+            tagger.enumerateTags(
+                in: text.startIndex..<text.endIndex,
+                unit: .word, scheme: .nameType,
+                options: [.omitWhitespace, .omitPunctuation, .joinNames]
+            ) { tag, range in
+                if tag == .organizationName {
+                    organization = String(text[range])
+                    return false
+                }
+                return true
+            }
+            if let organization {
+                sponsorID = try? await sponsors.findOrCreate(name: organization)
+                if let sponsorID {
+                    try? await database.write { db in
+                        try db.execute(
+                            sql: "UPDATE detected_segments SET sponsorId = ? WHERE id = ?",
+                            arguments: [sponsorID.uuidString, segment.id]
+                        )
+                    }
+                }
+            }
+        }
+        if let sponsorID {
+            try? await sponsors.recordConfirmation(sponsorID)
+        }
     }
 
     /// §6.4: every explicit verdict lands in the §5.7 calibration bins,

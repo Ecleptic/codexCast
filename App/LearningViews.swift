@@ -84,11 +84,41 @@ struct SponsorsView: View {
     @State private var entries: [Entry] = []
     @State private var isLoading = true
 
+    /// Registry entries — sponsors the detector has actually heard and the
+    /// listener confirmed (§6.2), distinct from show-notes hints below.
+    @State private var learned: [(record: SponsorRecord, shows: Set<String>)] = []
+
     var body: some View {
         List {
+            if !learned.isEmpty {
+                Section {
+                    ForEach(learned, id: \.record.id) { entry in
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack {
+                                Text(entry.record.canonicalName).font(.headline)
+                                Spacer()
+                                Text("\(entry.record.occurrenceCount)×")
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+                            if !entry.shows.isEmpty {
+                                Text(entry.shows.sorted().joined(separator: " · "))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Heard in Ads")
+                } footer: {
+                    Text("Sponsors from ads you've confirmed. When one turns up on another show, it's recognized immediately.")
+                }
+            }
+
             if isLoading {
                 HStack { ProgressView(); Text("Scanning show notes…").foregroundStyle(.secondary) }
-            } else if entries.isEmpty {
+            } else if entries.isEmpty && learned.isEmpty {
                 ContentUnavailableView(
                     "No Sponsors Found",
                     systemImage: "megaphone",
@@ -125,6 +155,10 @@ struct SponsorsView: View {
     /// Aggregates sponsor hints across the newest episodes of every show.
     /// Cheap: the summaries are already in the database.
     private func reload() async {
+        let records = (try? await model.sponsors.all()) ?? []
+        let shows = (try? await model.sponsors.showTitles()) ?? [:]
+        learned = records.map { ($0, shows[$0.id] ?? []) }
+
         var byName: [String: Entry] = [:]
 
         for podcast in model.library {
