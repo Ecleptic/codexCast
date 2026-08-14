@@ -53,6 +53,33 @@ public struct SegmentRepository: Sendable {
         }
     }
 
+    /// Inserts one segment — the user-marked path (§6.4 "Mark missed ad",
+    /// the highest-value correction in the system).
+    public func insert(_ segment: DetectedSegment) async throws {
+        let provenance = String(
+            data: (try? JSONEncoder().encode(segment.provenance)) ?? Data("{}".utf8),
+            encoding: .utf8
+        )
+        try await database.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO detected_segments
+                (id, episodeId, startMs, endMs, kind, confidence, provenance,
+                 rationale, userState, chunkId, createdAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                arguments: [
+                    segment.id, segment.episodeID,
+                    segment.startMs, segment.endMs,
+                    segment.kind.rawValue, segment.confidence,
+                    provenance, segment.rationale,
+                    segment.userState.rawValue,
+                    segment.chunkID?.uuidString, segment.createdAt,
+                ]
+            )
+        }
+    }
+
     public func segments(episodeID: Episode.ID) async throws -> [DetectedSegment] {
         let decoder = JSONDecoder()
         return try await database.read { db in

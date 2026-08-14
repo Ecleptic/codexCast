@@ -12,6 +12,10 @@ struct AudioSettings: Hashable, Sendable, Codable {
     var voiceBoostLevel: VoiceBoostLevel = .low
     var monoDownmix: Bool = false
     var volumeNormalization: Bool = false
+    /// Off by default while the model is unproven: the first field test
+    /// produced five confident false positives and zero real ads. Detected
+    /// segments are always shown; skipping them silently is opt-in.
+    var autoSkipAds: Bool = false
 
     /// Resolved per-show defaults for the playback engine.
     var resolvedDefaults: ResolvedPlaybackSettings {

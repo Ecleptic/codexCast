@@ -2,6 +2,7 @@ import CodexCastCore
 import CodexCastFeeds
 import CodexCastPersistence
 import CodexCastPipeline
+import AVFoundation
 import CodexCastDetection
 import CodexCastDetectionAFM
 import CodexCastPlayback
@@ -26,6 +27,8 @@ final class AppModel {
     let playlistRepository: PlaylistRepository
     let retention: RetentionPolicy
     let segmentRepository: SegmentRepository
+    let patternRepository: AdPatternRepository
+    let corrections: CorrectionRepository
 
     private(set) var library: [PodcastRecord] = []
     private(set) var playlists: [Playlist] = []
@@ -49,6 +52,8 @@ final class AppModel {
         playlistRepository = PlaylistRepository(database: database)
         retention = RetentionPolicy(database: database)
         segmentRepository = SegmentRepository(database: database)
+        patternRepository = AdPatternRepository(database: database)
+        corrections = CorrectionRepository(database: database)
     }
 
     // MARK: - Library
@@ -288,13 +293,41 @@ final class AppModel {
             scanState[episode.id] = .scanning(windowsDone: index + 1, windowsTotal: windows.count)
         }
 
-        // Snap, dedupe, gate — the same post-processing the harness uses.
+        // Stage 1 first: patterns the listener has taught. Text, not
+        // timestamps, so they survive dynamic insertion — and they are the
+        // trustworthy tier, unlike the model's self-reported confidence.
         var segments: [DetectedSegment] = []
+        if let patternRecords = try? await patternRepository.all() {
+            let patterns = patternRecords
+                .filter { $0.podcastId == nil || $0.podcastId == episode.podcastId }
+                .map { PatternBaselineDetector.Pattern(text: $0.text, durationMs: 60_000, sponsor: nil) }
+            if !patterns.isEmpty {
+                let detector = PatternBaselineDetector(patterns: patterns)
+                for match in detector.detect(in: transcript) {
+                    segments.append(DetectedSegment(
+                        episodeID: episode.id,
+                        startMs: match.startMs, endMs: match.endMs,
+                        kind: .ad,
+                        confidence: min(0.95, 0.6 + match.score),
+                        provenance: .patternMatch(patternID: UUID(), score: match.score),
+                        rationale: "Matches an ad you've marked before"
+                    ))
+                }
+            }
+        }
+
+        // Snap, dedupe, gate — the same post-processing the harness uses.
         for finding in TranscriptWindower.deduplicate(findings) {
             guard let start = transcript.nearestBoundary(toMs: finding.startMs),
                   let end = transcript.nearestBoundary(toMs: finding.endMs),
-                  end > start
+                  end > start,
+                  // Sub-5s output is noise (a "0:51–0:51 sponsor read" was
+                  // stored on the first device run); the gate floor applies
+                  // at storage, not just playback.
+                  end - start >= 5_000
             else { continue }
+            let overlapsPattern = segments.contains { $0.overlaps(startMs: start, endMs: end) }
+            guard !overlapsPattern else { continue }
             segments.append(DetectedSegment(
                 episodeID: episode.id,
                 startMs: start, endMs: end,
@@ -321,6 +354,82 @@ final class AppModel {
             segments: segments,
             episodeDurationMs: episode.durationMs ?? segments.map(\.endMs).max() ?? 0
         )
+    }
+
+    // MARK: - Teaching: mark an ad during playback (§6.4)
+
+    /// Set when the listener has pressed "Ad starts here" and the end is
+    /// pending. Media time, captured at the tap.
+    private(set) var pendingAdStartMs: Int?
+
+    func markAdStart() {
+        pendingAdStartMs = player.mediaPositionMs
+    }
+
+    func cancelAdMark() {
+        pendingAdStartMs = nil
+    }
+
+    /// Completes the mark: stores a confirmed manual segment, extracts the
+    /// transcript text as a learned pattern scoped to the show, and logs the
+    /// correction. The single highest-value input the system can receive —
+    /// this exact text is what Stage 1 matches in every future episode.
+    func markAdEnd() async {
+        guard let episode = nowPlaying, let startMs = pendingAdStartMs else { return }
+        let endMs = player.mediaPositionMs
+        pendingAdStartMs = nil
+        guard endMs > startMs + 1_000 else { return }
+
+        let segment = DetectedSegment(
+            episodeID: episode.id,
+            startMs: startMs, endMs: endMs,
+            kind: .ad,
+            confidence: 1.0,
+            provenance: .manual,
+            rationale: "Marked during playback",
+            userState: .confirmed
+        )
+        try? await segmentRepository.insert(segment)
+        nowPlayingSegments.append(segment)
+
+        try? await corrections.append(
+            episodeID: episode.id, segmentID: segment.id,
+            type: "markMissedAd", source: .explicit
+        )
+
+        // The learning step: the words inside the marked span become a pattern.
+        if let transcript = try? await transcripts.transcript(episodeID: episode.id) {
+            let text = transcript.segments
+                .filter { $0.startMs < endMs && startMs < $0.endMs }
+                .map(\.text)
+                .joined(separator: " ")
+            if text.split(separator: " ").count >= 8 {
+                try? await patternRepository.insert(
+                    AdPatternRecord(
+                        podcastId: episode.podcastId,
+                        text: text,
+                        confirmCount: 1,
+                        createdFrom: "markMissedAd"
+                    )
+                )
+            }
+        }
+    }
+
+    /// Rejects a detected segment — "this is not an ad" (§6.4).
+    func rejectSegment(_ segment: DetectedSegment) async {
+        guard let episode = nowPlaying ?? nil else { return }
+        try? await database.write { db in
+            try db.execute(
+                sql: "UPDATE detected_segments SET userState = 'rejected', reviewedAt = ? WHERE id = ?",
+                arguments: [Date(), segment.id]
+            )
+        }
+        try? await corrections.append(
+            episodeID: episode.id, segmentID: segment.id,
+            type: "notAnAd", source: .explicit
+        )
+        nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
     }
 
     // MARK: - Audio settings (A5.4)
@@ -412,14 +521,34 @@ final class AppModel {
     }
 
     private func playWithSegments(_ episode: EpisodeRecord, startAtMs: Int?) async {
-        let outcome = await gatedSegments(for: episode)
-        let blocks = (outcome?.autoSkippable ?? []).map { segment in
-            SkipBlock(startMs: segment.startMs, endMs: segment.endMs, segmentIDs: [segment.id])
+        nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
+
+        // Auto-skip is opt-in while the model is unproven: first field test
+        // found five confident false positives and zero real ads. Segments are
+        // always *drawn* on the seek bar; skipping them is the user's call.
+        var blocks: [SkipBlock] = []
+        if audioSettings.autoSkipAds, let outcome = await gatedSegments(for: episode) {
+            blocks = outcome.autoSkippable.map { segment in
+                SkipBlock(startMs: segment.startMs, endMs: segment.endMs, segmentIDs: [segment.id])
+            }
         }
         startPlayback(episode, startAtMs: startAtMs, blocks: blocks)
     }
 
+    /// Segments of the playing episode, for the seek-bar overlay.
+    private(set) var nowPlayingSegments: [DetectedSegment] = []
+
+    /// Media playback, not a sound effect: without the .playback category,
+    /// audio follows the ringer switch and dies when the screen locks — the
+    /// exact behavior Cam hit on the first real listen.
+    private func configureAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .spokenAudio, policy: .longFormAudio)
+        try? session.setActive(true)
+    }
+
     private func startPlayback(_ episode: EpisodeRecord, startAtMs: Int?, blocks: [SkipBlock]) {
+        configureAudioSession()
         guard let renditionData = episode.renditions?.data(using: .utf8),
               let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData),
               let url = renditions.first(where: \.isPrimaryEnclosure)?.sources.first

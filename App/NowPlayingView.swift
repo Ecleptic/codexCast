@@ -1,3 +1,4 @@
+import CodexCastCore
 import CodexCastPersistence
 import CodexCastPlayback
 import SwiftUI
@@ -46,6 +47,17 @@ struct NowPlayingView: View {
 
             speedControl
 
+            markAdControls
+
+            Toggle(isOn: Binding(
+                get: { model.audioSettings.autoSkipAds },
+                set: { model.audioSettings.autoSkipAds = $0 }
+            )) {
+                Text("Skip detected ads automatically")
+                    .font(.callout)
+            }
+            .padding(.horizontal, 32)
+
             Spacer(minLength: 12)
         }
         .presentationDragIndicator(.hidden)
@@ -86,7 +98,14 @@ struct NowPlayingView: View {
         let durationMs = max(1, model.player.displayDurationMs)
         let positionMs = scrubMs ?? Double(model.player.displayPositionMs)
 
-        return VStack(spacing: 4) {
+        return VStack(spacing: 6) {
+            SegmentBar(
+                segments: model.nowPlayingSegments,
+                durationMs: model.nowPlaying?.durationMs ?? durationMs,
+                positionMs: Int(positionMs)
+            )
+            .frame(height: 6)
+
             Slider(
                 value: Binding(
                     get: { positionMs },
@@ -162,5 +181,83 @@ struct NowPlayingView: View {
             return String(format: "%d:%02d:%02d", hours, (total % 3600) / 60, total % 60)
         }
         return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
+    // MARK: - Teaching (§6.4)
+
+    /// One tap at the moment an ad starts, one when it ends. The marked span
+    /// becomes a confirmed segment and a learned pattern for this show.
+    private var markAdControls: some View {
+        HStack(spacing: 12) {
+            if model.pendingAdStartMs == nil {
+                Button {
+                    model.markAdStart()
+                } label: {
+                    Label("Ad starts here", systemImage: "flag")
+                }
+                .buttonStyle(.bordered)
+            } else {
+                Button {
+                    Task { await model.markAdEnd() }
+                } label: {
+                    Label("Ad ends here", systemImage: "flag.checkered")
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.orange)
+
+                Button("Cancel") {
+                    model.cancelAdMark()
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+            }
+        }
+        .font(.callout)
+    }
+}
+
+/// The seek bar's segment overlay: detected regions drawn in place, like
+/// YouTube chapter markers. Confirmed segments are solid; unreviewed model
+/// output is translucent; rejected ones vanish.
+struct SegmentBar: View {
+    let segments: [DetectedSegment]
+    let durationMs: Int
+    let positionMs: Int
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.quaternary)
+
+                ForEach(segments.filter { $0.userState != .rejected }, id: \.id) { segment in
+                    let start = fraction(segment.startMs) * proxy.size.width
+                    let width = max(3, (fraction(segment.endMs) - fraction(segment.startMs)) * proxy.size.width)
+                    Capsule()
+                        .fill(color(for: segment))
+                        .frame(width: width)
+                        .offset(x: start)
+                }
+
+                // Playhead tick.
+                Rectangle()
+                    .fill(.primary)
+                    .frame(width: 2, height: 10)
+                    .offset(x: fraction(positionMs) * proxy.size.width - 1)
+            }
+        }
+    }
+
+    private func fraction(_ ms: Int) -> CGFloat {
+        guard durationMs > 0 else { return 0 }
+        return CGFloat(min(max(0, ms), durationMs)) / CGFloat(durationMs)
+    }
+
+    private func color(for segment: DetectedSegment) -> Color {
+        let base: Color = switch segment.kind {
+        case .ad, .sponsorRead: .orange
+        case .selfPromo: .purple
+        case .intro, .outro: .teal
+        }
+        return segment.userState == .confirmed ? base : base.opacity(0.45)
     }
 }
