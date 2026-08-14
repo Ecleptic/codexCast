@@ -196,7 +196,7 @@ private struct PlayerPage: View {
                 .font(.callout.monospacedDigit().weight(.semibold))
                 .frame(minWidth: 44)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.glass)
     }
 
     private var sleepMenu: some View {
@@ -213,7 +213,7 @@ private struct PlayerPage: View {
                 .font(.title3)
                 .foregroundStyle(model.sleepTimer == .off ? Color.primary : .indigo)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.glass)
     }
 
     private var markAdControls: some View {
@@ -224,7 +224,7 @@ private struct PlayerPage: View {
                 } label: {
                     Image(systemName: "flag").font(.title3)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
             } else {
                 Button {
                     Task { await model.markAdEnd() }
@@ -507,7 +507,7 @@ struct UndoSkipBanner: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(.regularMaterial, in: Capsule())
+            .glassEffect(.regular, in: Capsule())
             .padding(.bottom, 18)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }

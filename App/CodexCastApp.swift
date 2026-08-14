@@ -58,6 +58,9 @@ struct RootView: View {
                 SettingsView()
             }
         }
+        // Native Liquid Glass behavior: the tab bar shrinks away on scroll and
+        // the accessory floats inline with it — the system does the work.
+        .tabBarMinimizeBehavior(.onScrollDown)
         .task {
             await model.restoreSession()
             model.scheduleBackgroundWork()

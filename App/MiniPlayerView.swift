@@ -6,10 +6,13 @@ import SwiftUI
 /// detection; this makes listening work today.
 struct MiniPlayerView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.tabViewBottomAccessoryPlacement) private var placement
     @State private var showNowPlaying = false
 
     var body: some View {
-        HStack(spacing: 16) {
+        // Inline (tab bar minimized): just title and play — the system gives
+        // us a narrow strip. Expanded: full transport.
+        HStack(spacing: placement == .inline ? 10 : 16) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(model.nowPlaying?.title ?? "")
                     .font(.subheadline.weight(.medium))
@@ -27,10 +30,12 @@ struct MiniPlayerView: View {
 
             Spacer()
 
-            Button {
-                model.player.seek(toMediaMs: model.player.mediaPositionMs - 15_000)
-            } label: {
-                Image(systemName: "gobackward.15")
+            if placement != .inline {
+                Button {
+                    model.player.seek(toMediaMs: model.player.mediaPositionMs - 15_000)
+                } label: {
+                    Image(systemName: "gobackward.15")
+                }
             }
 
             Button {
@@ -44,15 +49,17 @@ struct MiniPlayerView: View {
                     .font(.title2)
             }
 
-            Button {
-                model.player.seek(toMediaMs: model.player.mediaPositionMs + 30_000)
-            } label: {
-                Image(systemName: "goforward.30")
+            if placement != .inline {
+                Button {
+                    model.player.seek(toMediaMs: model.player.mediaPositionMs + 30_000)
+                } label: {
+                    Image(systemName: "goforward.30")
+                }
             }
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-        .background(.bar)
+        .padding(.horizontal, 14)
+        // No background: the accessory itself is the Liquid Glass surface —
+        // painting .bar over it is what made it look flat and gray.
         .contentShape(Rectangle())
         .onTapGesture { showNowPlaying = true }
         .sheet(isPresented: $showNowPlaying) {
