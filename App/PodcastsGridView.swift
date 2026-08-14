@@ -48,6 +48,15 @@ struct PodcastsGridView: View {
                             .contextMenu {
                                 PodcastContextMenu(podcast: podcast)
                             }
+                            .overlay(alignment: .topTrailing) {
+                                if podcast.isPinned {
+                                    Image(systemName: "pin.fill")
+                                        .font(.caption2)
+                                        .padding(5)
+                                        .glassEffect(.regular, in: Circle())
+                                        .padding(4)
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal)

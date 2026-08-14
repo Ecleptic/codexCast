@@ -44,9 +44,21 @@ public struct PodcastRepository: Sendable {
         }
     }
 
+    /// Pinned first, then alphabetical — the favorites contract.
     public func all() async throws -> [PodcastRecord] {
         try await database.read { db in
-            try PodcastRecord.order(Column("title")).fetchAll(db)
+            try PodcastRecord
+                .order(Column("isPinned").desc, Column("title"))
+                .fetchAll(db)
+        }
+    }
+
+    public func setPinned(_ pinned: Bool, podcastID: Podcast.ID) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE podcasts SET isPinned = ? WHERE id = ?",
+                arguments: [pinned, podcastID]
+            )
         }
     }
 

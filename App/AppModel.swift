@@ -907,6 +907,18 @@ final class AppModel {
         await reloadLibrary()
     }
 
+    func renamePlaylist(_ playlist: Playlist, to name: String) async {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, !playlist.isBuiltIn else { return }
+        try? await database.write { db in
+            try db.execute(
+                sql: "UPDATE playlists SET name = ? WHERE id = ?",
+                arguments: [trimmed, playlist.id]
+            )
+        }
+        await reloadLibrary()
+    }
+
     func deletePlaylist(_ playlist: Playlist) async {
         try? await playlistRepository.delete(playlist.id)
         await reloadLibrary()

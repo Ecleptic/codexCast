@@ -6,14 +6,15 @@ import SwiftUI
 /// (ux-architecture invariant 3). Not the subscription list.
 struct HomeView: View {
     @Environment(AppModel.self) private var model
-    @State private var path = NavigationPath()
+    @Environment(Router.self) private var router
 
     @State private var inProgress: [EpisodeRecord] = []
     @State private var upNext: [EpisodeRecord] = []
     @State private var newReleases: [EpisodeRecord] = []
 
     var body: some View {
-        NavigationStack(path: $path) {
+        @Bindable var router = router
+        return NavigationStack(path: $router.homePath) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 26) {
                     if !inProgress.isEmpty {
@@ -26,8 +27,8 @@ struct HomeView: View {
                                                 EpisodeContextMenu(
                                                     episode: episode,
                                                     onChange: { Task { await reload() } },
-                                                    onGoToEpisode: { path.append(episode) },
-                                                    onGoToShow: { path.append(episode.podcastId) }
+                                                    onGoToEpisode: { router.homePath.append(episode) },
+                                                    onGoToShow: { router.homePath.append(episode.podcastId) }
                                                 )
                                             }
                                     }
@@ -42,7 +43,7 @@ struct HomeView: View {
                         shelf("Up Next") {
                             VStack(spacing: 0) {
                                 ForEach(upNext.prefix(3), id: \.id) { episode in
-                                    HomeEpisodeRow(episode: episode) { path.append($0) }
+                                    HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
                                     Divider().padding(.leading, 74)
                                 }
                                 if upNext.count > 3, let queue = queuePlaylist {
@@ -71,7 +72,7 @@ struct HomeView: View {
                         } else {
                             VStack(spacing: 0) {
                                 ForEach(newReleases, id: \.id) { episode in
-                                    HomeEpisodeRow(episode: episode) { path.append($0) }
+                                    HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
                                     Divider().padding(.leading, 74)
                                 }
                             }

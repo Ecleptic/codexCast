@@ -31,6 +31,7 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         case lastErrorDescription, episodeLimit, autoDownloadEnabled
         case playbackSettings
         case notificationSettingsRaw = "notificationSettings"
+        case isPinned
     }
 
     public var id: Podcast.ID
@@ -53,6 +54,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
     public var playbackSettings: String?
     /// Per-show notification trigger (§9.5); nil means never.
     public var notificationSettingsRaw: String?
+    /// Pinned shows sort to the top of the library (Cam's favorites).
+    public var isPinned: Bool
 
     public init(
         id: Podcast.ID = Podcast.ID(),
@@ -71,7 +74,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         episodeLimit: Int? = nil,
         autoDownloadEnabled: Bool = false,
         playbackSettings: String? = nil,
-        notificationSettingsRaw: String? = nil
+        notificationSettingsRaw: String? = nil,
+        isPinned: Bool = false
     ) {
         self.id = id
         self.feedURL = feedURL
@@ -90,6 +94,7 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         self.autoDownloadEnabled = autoDownloadEnabled
         self.playbackSettings = playbackSettings
         self.notificationSettingsRaw = notificationSettingsRaw
+        self.isPinned = isPinned
     }
 
     public var domainModel: Podcast {

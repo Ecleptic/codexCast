@@ -124,9 +124,28 @@ struct AddToPlaylistMenu: View {
 /// The long-press menu for a show tile.
 struct PodcastContextMenu: View {
     @Environment(AppModel.self) private var model
+    @Environment(Router.self) private var router
     let podcast: PodcastRecord
 
     var body: some View {
+        Button {
+            router.openShow(podcast.id)
+        } label: {
+            Label("Show Details", systemImage: "info.circle")
+        }
+
+        Button {
+            Task {
+                try? await model.podcasts.setPinned(!podcast.isPinned, podcastID: podcast.id)
+                await model.reloadLibrary()
+            }
+        } label: {
+            Label(
+                podcast.isPinned ? "Unpin" : "Pin to Top",
+                systemImage: podcast.isPinned ? "pin.slash" : "pin"
+            )
+        }
+
         Button {
             Task {
                 if let latest = (try? await model.episodes.episodes(podcastID: podcast.id, limit: 1))?.first {

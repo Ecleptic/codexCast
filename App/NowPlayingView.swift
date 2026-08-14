@@ -9,6 +9,8 @@ import SwiftUI
 /// (ux-architecture invariant 6).
 struct NowPlayingView: View {
     @Environment(AppModel.self) private var model
+    @Environment(Router.self) private var router
+    @Environment(\.dismiss) private var dismiss
 
     enum Page: Int {
         case queue = 0, player = 1, transcript = 2, info = 3
@@ -40,6 +42,12 @@ struct NowPlayingView: View {
         }
         .presentationDragIndicator(.visible)
         .padding(.top, 6)
+        .onChange(of: router.dismissPlayerSheet) {
+            if router.dismissPlayerSheet {
+                router.dismissPlayerSheet = false
+                dismiss()
+            }
+        }
     }
 }
 
@@ -47,6 +55,7 @@ struct NowPlayingView: View {
 
 private struct PlayerPage: View {
     @Environment(AppModel.self) private var model
+    @Environment(Router.self) private var router
     @State private var scrubMs: Double?
 
     var body: some View {
@@ -59,12 +68,31 @@ private struct PlayerPage: View {
                 .shadow(radius: 12, y: 6)
 
             VStack(spacing: 6) {
-                Text(model.nowPlaying?.title ?? "Nothing Playing")
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
+                // Tap the title for episode details, the show name for the
+                // show — the player is a hub, not a dead end.
+                Button {
+                    if let episode = model.nowPlaying {
+                        router.openEpisode(episode)
+                    }
+                } label: {
+                    Text(model.nowPlaying?.title ?? "Nothing Playing")
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Opens episode details")
+
                 if let show = showTitle {
-                    Text(show).font(.subheadline).foregroundStyle(.secondary)
+                    Button {
+                        if let episode = model.nowPlaying {
+                            router.openShow(episode.podcastId)
+                        }
+                    } label: {
+                        Text(show).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Opens show page")
                 }
             }
             .padding(.horizontal, 24)

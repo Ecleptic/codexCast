@@ -47,3 +47,14 @@ enum SchemaV2 {
         }
     }
 }
+
+/// v3 — pinned podcasts: favorites sort to the top of the library grid.
+enum SchemaV3 {
+    static func register(in migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v3.pinnedPodcasts") { db in
+            try db.alter(table: "podcasts") { table in
+                table.add(column: "isPinned", .boolean).notNull().defaults(to: false)
+            }
+        }
+    }
+}

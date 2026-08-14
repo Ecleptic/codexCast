@@ -28,6 +28,7 @@ struct CodexCastApp: App {
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @State private var router = Router()
 
     var body: some View {
         // The mini player is a tab-bar accessory (iOS 26 Liquid Glass), so it
@@ -44,20 +45,22 @@ struct RootView: View {
     }
 
     private var tabs: some View {
-        TabView {
-            Tab("Home", systemImage: "house") {
+        @Bindable var router = router
+        return TabView(selection: $router.tab) {
+            Tab("Home", systemImage: "house", value: Router.TabID.home) {
                 HomeView()
             }
-            Tab("Podcasts", systemImage: "square.grid.3x3") {
+            Tab("Podcasts", systemImage: "square.grid.3x3", value: Router.TabID.podcasts) {
                 PodcastsGridView()
             }
-            Tab("Discover", systemImage: "magnifyingglass") {
+            Tab("Discover", systemImage: "magnifyingglass", value: Router.TabID.discover) {
                 DiscoverView()
             }
-            Tab("Settings", systemImage: "gearshape") {
+            Tab("Settings", systemImage: "gearshape", value: Router.TabID.settings) {
                 SettingsView()
             }
         }
+        .environment(router)
         // Native Liquid Glass behavior: the tab bar shrinks away on scroll and
         // the accessory floats inline with it — the system does the work.
         .tabBarMinimizeBehavior(.onScrollDown)
