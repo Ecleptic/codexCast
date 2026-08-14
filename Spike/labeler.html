@@ -90,6 +90,13 @@
   <input type="text" id="showName" placeholder="Show name" size="18">
   <input type="text" id="episodeTitle" placeholder="Episode title" size="24">
   <button id="exportBtn" class="primary" disabled>Export JSON</button>
+  <select id="speedSel" title="Playback speed">
+    <option value="1" selected>1×</option><option value="1.5">1.5×</option>
+    <option value="2">2×</option><option value="2.5">2.5×</option>
+    <option value="3">3×</option><option value="3.5">3.5×</option>
+    <option value="4">4×</option><option value="4.5">4.5×</option>
+    <option value="5">5×</option>
+  </select>
   <span class="meta" id="status">No audio loaded.</span>
 </header>
 
@@ -115,7 +122,7 @@
   <span><kbd>o</kbd> mark out</span>
   <span><kbd>1</kbd>–<kbd>5</kbd> kind</span>
   <span><kbd>z</kbd> undo</span>
-  <span><kbd>-</kbd><kbd>=</kbd> speed</span>
+  <span><kbd>-</kbd><kbd>=</kbd> speed (up to 5×)</span>
   <span id="pending"></span>
 </footer>
 
@@ -133,7 +140,12 @@ const KINDS = [
 ];
 
 const state = {
-  audio: new Audio(),
+  audio: (() => {
+    const audio = new Audio();
+    // Keep voices natural-sounding at high speed instead of chipmunk-pitched.
+    audio.preservesPitch = true;
+    return audio;
+  })(),
   durationMs: 0,
   peaks: null,
   cues: [],
@@ -462,7 +474,7 @@ document.addEventListener("keydown", (event) => {
     }
     case "-": state.audio.playbackRate = Math.max(0.5, state.audio.playbackRate - 0.25); showRate(); break;
     case "=":
-    case "+": state.audio.playbackRate = Math.min(4, state.audio.playbackRate + 0.25); showRate(); break;
+    case "+": state.audio.playbackRate = Math.min(5, state.audio.playbackRate + 0.25); showRate(); break;
     default:
       if (/^[1-5]$/.test(event.key) && state.segments.length) {
         // Retypes the most recent segment, which is the one just marked.
@@ -481,7 +493,13 @@ function updatePending() {
 function showRate() {
   $("status").textContent = state.audioFileName + " · " + fmt(state.durationMs) +
     " · " + state.audio.playbackRate + "×";
+  $("speedSel").value = String(state.audio.playbackRate);
 }
+
+$("speedSel").addEventListener("change", (event) => {
+  state.audio.playbackRate = Number(event.target.value);
+  showRate();
+});
 
 // ------------------------------------------------------------------ export
 

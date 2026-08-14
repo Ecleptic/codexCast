@@ -50,3 +50,4 @@ Spike/out/
 
 # Playwright MCP scratch output
 .playwright-mcp/
+Spike/TranscribeTool/.build/
