@@ -83,6 +83,9 @@
 
 <header>
   <h1>Ad Boundary Labeler</h1>
+  <label class="file"><button type="button" class="primary" onclick="this.parentNode.querySelector('input').click()">Media folder…</button>
+    <input type="file" id="mediaFolder" webkitdirectory multiple></label>
+  <select id="episodeSel" style="display:none;max-width:340px"></select>
   <label class="file"><button type="button" onclick="this.parentNode.querySelector('input').click()">Audio…</button>
     <input type="file" accept="audio/*,video/*" id="audioFile"></label>
   <label class="file"><button type="button" onclick="this.parentNode.querySelector('input').click()">Transcript…</button>
@@ -166,9 +169,12 @@ const fmt = (ms) => {
 
 // ---------------------------------------------------------------- audio load
 
-$("audioFile").addEventListener("change", async (event) => {
+$("audioFile").addEventListener("change", (event) => {
   const file = event.target.files[0];
-  if (!file) return;
+  if (file) loadAudioFile(file);
+});
+
+async function loadAudioFile(file) {
   state.audioFileName = file.name;
   state.audio.src = URL.createObjectURL(file);
   $("status").textContent = "Decoding waveform…";
@@ -195,6 +201,95 @@ $("audioFile").addEventListener("change", async (event) => {
   }
   drawWave();
   renderOverlay();
+}
+
+// ------------------------------------------------------- media folder scan
+
+// Folder slugs (as created by fetch_episodes.py) to display names.
+const SHOW_NAMES = {
+  ridehome: "Tech Brew Ride Home",
+  nextlander: "The Nextlander Podcast",
+  linuxunplugged: "LINUX Unplugged",
+  pc20: "Podcasting 2.0",
+  podnews: "Podnews Daily",
+  podnewsweekly: "Podnews Weekly Review",
+  changelog: "The Changelog",
+  coderradio: "Coder Radio",
+};
+
+let library = [];   // [{show, title, audioFile, transcriptFile}]
+
+$("mediaFolder").addEventListener("change", (event) => {
+  library = buildLibrary(Array.from(event.target.files));
+  const select = $("episodeSel");
+  if (!library.length) {
+    $("status").textContent = "No audio files found in that folder.";
+    return;
+  }
+
+  select.innerHTML = '<option value="">— choose an episode —</option>';
+  library.forEach((entry, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = `${entry.show} · ${entry.title}` + (entry.transcriptFile ? "" : " (no transcript)");
+    select.appendChild(option);
+  });
+  select.style.display = "";
+  $("status").textContent = library.length + " episodes found — pick one.";
+});
+
+function buildLibrary(files) {
+  const audio = files.filter((file) => /\.(mp3|m4a|aac|wav)$/i.test(file.name));
+  const byPath = new Map(files.map((file) => [file.webkitRelativePath || file.name, file]));
+
+  return audio.map((file) => {
+    const path = file.webkitRelativePath || file.name;
+    const directory = path.split("/").slice(0, -1).join("/");
+    const slug = path.split("/").slice(-2, -1)[0] || "";
+    const stem = file.name.replace(/\.[^.]+$/, "");
+
+    // Transcripts sit next to the audio under one of two conventions:
+    // "01-title.mp3.vtt" (locally transcribed) or "01-title.vtt" (from feed).
+    let transcript = null;
+    const prefix = directory ? directory + "/" : "";
+    for (const candidate of [
+      `${prefix}${file.name}.vtt`,
+      `${prefix}${stem}.vtt`,
+      `${prefix}${stem}.srt`,
+      `${prefix}${stem}.json`,
+    ]) {
+      if (byPath.has(candidate)) { transcript = byPath.get(candidate); break; }
+    }
+
+    return {
+      show: SHOW_NAMES[slug] || slug || "Unknown Show",
+      // "01-679-the-last-shutdown" reads fine as a title once de-slugged.
+      title: stem.replace(/^\d+-/, "").replace(/-/g, " "),
+      audioFile: file,
+      transcriptFile: transcript,
+    };
+  }).sort((a, b) => (a.show + a.title).localeCompare(b.show + b.title));
+}
+
+$("episodeSel").addEventListener("change", async (event) => {
+  const entry = library[+event.target.value];
+  if (!entry) return;
+
+  // A fresh episode means fresh labels; carrying segments across episodes
+  // would corrupt the export.
+  state.segments = [];
+  state.undoStack = [];
+  state.pendingStartMs = null;
+  state.cues = [];
+  renderSegments();
+  updatePending();
+
+  $("showName").value = entry.show;
+  $("episodeTitle").value = entry.title;
+
+  if (entry.transcriptFile) await loadTranscriptFile(entry.transcriptFile);
+  else renderTranscript();
+  await loadAudioFile(entry.audioFile);
 });
 
 function computePeaks(buffer, bins) {
@@ -241,11 +336,14 @@ window.addEventListener("resize", () => { drawWave(); renderOverlay(); });
 
 $("transcriptFile").addEventListener("change", async (event) => {
   const file = event.target.files[0];
-  if (!file) return;
+  if (file) loadTranscriptFile(file);
+});
+
+async function loadTranscriptFile(file) {
   const text = await file.text();
   state.cues = file.name.endsWith(".json") ? parseJSONTranscript(text) : parseCues(text);
   renderTranscript();
-});
+}
 
 // Handles WebVTT and SRT together: SRT is the same shape with comma decimals
 // and an index line, both of which this tolerates.
