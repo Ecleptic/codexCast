@@ -14,6 +14,18 @@ public struct EvalResult: Sendable {
     /// |Δstart| + |Δend| per matched pair, in milliseconds.
     public var boundaryErrorsMs: [Int]
 
+    public init(
+        truePositives: Int = 0,
+        falsePositives: Int = 0,
+        falseNegatives: Int = 0,
+        boundaryErrorsMs: [Int] = []
+    ) {
+        self.truePositives = truePositives
+        self.falsePositives = falsePositives
+        self.falseNegatives = falseNegatives
+        self.boundaryErrorsMs = boundaryErrorsMs
+    }
+
     public var precision: Double {
         let denominator = truePositives + falsePositives
         return denominator == 0 ? 0 : Double(truePositives) / Double(denominator)
