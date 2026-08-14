@@ -7,6 +7,7 @@ import AVKit
 import BackgroundTasks
 import CodexCastDetection
 import MediaPlayer
+import UIKit
 import UserNotifications
 import CodexCastDetectionAFM
 import CodexCastPlayback
@@ -1137,6 +1138,24 @@ final class AppModel {
         }
     }
 
+    /// Artwork for the lock screen, fetched once per episode and cached.
+    private var lockScreenArtwork: (episodeID: Episode.ID, artwork: MPMediaItemArtwork)?
+
+    private func loadLockScreenArtwork(for episode: EpisodeRecord) {
+        guard lockScreenArtwork?.episodeID != episode.id else { return }
+        let urlString = episode.imageURL
+            ?? library.first { $0.id == episode.podcastId }?.imageURL
+        guard let urlString, let url = URL(string: urlString) else { return }
+        Task { [weak self] in
+            guard let (data, _) = try? await URLSession.shared.data(from: url),
+                  let image = UIImage(data: data)
+            else { return }
+            let artwork = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+            self?.lockScreenArtwork = (episode.id, artwork)
+            self?.updateNowPlayingInfo()
+        }
+    }
+
     /// Elapsed time on the lock screen comes from the display timeline, so it
     /// stays coherent across skips (§10.5, §11.4).
     private func updateNowPlayingInfo() {
@@ -1152,6 +1171,9 @@ final class AppModel {
         ]
         if let show = library.first(where: { $0.id == episode.podcastId })?.title {
             info[MPMediaItemPropertyArtist] = show
+        }
+        if let cached = lockScreenArtwork, cached.episodeID == episode.id {
+            info[MPMediaItemPropertyArtwork] = cached.artwork
         }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
@@ -1194,6 +1216,7 @@ final class AppModel {
             player.play()
         }
         nowPlaying = episode
+        loadLockScreenArtwork(for: episode)
         updateNowPlayingInfo()
     }
 }

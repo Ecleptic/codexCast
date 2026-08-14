@@ -53,6 +53,15 @@ public struct PodcastRepository: Sendable {
         }
     }
 
+    public func setFollowed(_ followed: Bool, podcastID: Podcast.ID) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE podcasts SET isFollowed = ? WHERE id = ?",
+                arguments: [followed, podcastID]
+            )
+        }
+    }
+
     public func setPinned(_ pinned: Bool, podcastID: Podcast.ID) async throws {
         try await database.write { db in
             try db.execute(
@@ -235,16 +244,19 @@ public struct EpisodeRepository: Sendable {
         }
     }
 
-    /// Newest unplayed episodes across every subscription — the New Releases
-    /// shelf.
+    /// Newest unplayed episodes from FOLLOWED shows only — the New Releases
+    /// shelf. Added-but-unfollowed shows stay out of the listener's face.
     public func newReleases(limit: Int = 30) async throws -> [EpisodeRecord] {
         try await database.read { db in
-            try EpisodeRecord
-                .filter(Column("isPlayed") == false)
-                .filter(Column("playbackPositionMs") == 0)
-                .order(Column("publishedAt").desc)
-                .limit(limit)
-                .fetchAll(db)
+            try EpisodeRecord.fetchAll(db, sql: """
+                SELECT episodes.* FROM episodes
+                JOIN podcasts ON podcasts.id = episodes.podcastId
+                WHERE episodes.isPlayed = 0
+                  AND episodes.playbackPositionMs = 0
+                  AND podcasts.isFollowed = 1
+                ORDER BY episodes.publishedAt DESC
+                LIMIT ?
+                """, arguments: [limit])
         }
     }
 

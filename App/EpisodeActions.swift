@@ -148,6 +148,18 @@ struct PodcastContextMenu: View {
 
         Button {
             Task {
+                try? await model.podcasts.setFollowed(!podcast.isFollowed, podcastID: podcast.id)
+                await model.reloadLibrary()
+            }
+        } label: {
+            Label(
+                podcast.isFollowed ? "Unfollow" : "Follow",
+                systemImage: podcast.isFollowed ? "bell.slash" : "bell"
+            )
+        }
+
+        Button {
+            Task {
                 if let latest = (try? await model.episodes.episodes(podcastID: podcast.id, limit: 1))?.first {
                     model.play(latest)
                 }

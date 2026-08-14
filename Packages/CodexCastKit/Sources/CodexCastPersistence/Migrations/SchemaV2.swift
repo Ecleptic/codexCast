@@ -58,3 +58,16 @@ enum SchemaV3 {
         }
     }
 }
+
+/// v4 — followed vs added: every subscription is "added"; only followed shows
+/// feed New Releases. Following defaults on, so existing libraries keep their
+/// behavior until curated.
+enum SchemaV4 {
+    static func register(in migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v4.followedPodcasts") { db in
+            try db.alter(table: "podcasts") { table in
+                table.add(column: "isFollowed", .boolean).notNull().defaults(to: true)
+            }
+        }
+    }
+}

@@ -21,6 +21,7 @@
 		907EAC666890080D4149551C /* CodexCastDetectionAFM in Frameworks */ = {isa = PBXBuildFile; productRef = C0E5F6D64EBAF513E79B555E /* CodexCastDetectionAFM */; };
 		91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA7694D224531A293462B9 /* DiscoverView.swift */; };
 		964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */; };
+		98319B83623D2BB42FAAE554 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D5E13B731CAF8F1E0022A0CB /* Assets.xcassets */; };
 		A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E01DDCDAB399DDADF254EB /* AppModel.swift */; };
 		A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */; };
 		A93FA27F7534529D008D51CD /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0BB3042EAA04FA1A6611534 /* HomeView.swift */; };
@@ -56,6 +57,7 @@
 		A0BB3042EAA04FA1A6611534 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
 		BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeActions.swift; sourceTree = "<group>"; };
+		D5E13B731CAF8F1E0022A0CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9DB3D0F2A114836988051EA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E743A8466E4494BE1627D01B /* Router.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Router.swift; sourceTree = "<group>"; };
 		EC5E8479D847F921AB10493C /* CodexCastApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexCastApp.swift; sourceTree = "<group>"; };
@@ -87,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				13E01DDCDAB399DDADF254EB /* AppModel.swift */,
+				D5E13B731CAF8F1E0022A0CB /* Assets.xcassets */,
 				FD1188313195CBCBA224CDCE /* AudioSettings.swift */,
 				5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */,
 				EC5E8479D847F921AB10493C /* CodexCastApp.swift */,
@@ -144,6 +147,7 @@
 			buildConfigurationList = 803AA8D555BD3C73310AD4FC /* Build configuration list for PBXNativeTarget "CodexCast" */;
 			buildPhases = (
 				9690A5B4495E26F3314555A4 /* Sources */,
+				B550A04D63331EDBC9EE9438 /* Resources */,
 				4CD956DDF1F446AAC87D0DD4 /* Frameworks */,
 			);
 			buildRules = (
@@ -202,6 +206,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		B550A04D63331EDBC9EE9438 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				98319B83623D2BB42FAAE554 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		9690A5B4495E26F3314555A4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -238,6 +253,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -261,6 +277,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

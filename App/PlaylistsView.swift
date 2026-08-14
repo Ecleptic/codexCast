@@ -2,9 +2,8 @@ import CodexCastCore
 import CodexCastPersistence
 import SwiftUI
 
-/// Playlists as native list rows (Apple Library style): tinted icon in a
-/// rounded square, name, chevron. Creation is an explicit row; rename and
-/// delete live on long-press.
+/// Playlists as one compact row of chips — capsule per playlist, like the
+/// filter chips in Apple Music. Long-press for rename/delete; "+" creates.
 struct PlaylistStrip: View {
     @Environment(AppModel.self) private var model
     @State private var showNewPlaylist = false
@@ -18,47 +17,45 @@ struct PlaylistStrip: View {
                 .font(.title3.bold())
                 .padding(.horizontal)
 
-            VStack(spacing: 0) {
-                ForEach(model.playlists, id: \.id) { playlist in
-                    NavigationLink(value: playlist.id) {
-                        PlaylistRow(playlist: playlist)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        if !playlist.isBuiltIn {
-                            Button {
-                                renaming = playlist
-                                renameText = playlist.name
-                            } label: {
-                                Label("Rename", systemImage: "pencil")
-                            }
-                            Button(role: .destructive) {
-                                Task { await model.deletePlaylist(playlist) }
-                            } label: {
-                                Label("Delete Playlist", systemImage: "trash")
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(model.playlists, id: \.id) { playlist in
+                        NavigationLink(value: playlist.id) {
+                            PlaylistChip(playlist: playlist)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            if !playlist.isBuiltIn {
+                                Button {
+                                    renaming = playlist
+                                    renameText = playlist.name
+                                } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                }
+                                Button(role: .destructive) {
+                                    Task { await model.deletePlaylist(playlist) }
+                                } label: {
+                                    Label("Delete Playlist", systemImage: "trash")
+                                }
                             }
                         }
                     }
-                    Divider().padding(.leading, 62)
-                }
 
-                Button {
-                    showNewPlaylist = true
-                } label: {
-                    HStack(spacing: 12) {
+                    Button {
+                        showNewPlaylist = true
+                    } label: {
                         Image(systemName: "plus")
-                            .font(.body.weight(.medium))
-                            .foregroundStyle(.tint)
-                            .frame(width: 34, height: 34)
-                        Text("New Playlist…")
-                            .foregroundStyle(.tint)
-                        Spacer()
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(.quaternary, in: Capsule())
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 10)
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("New playlist")
                 }
-                .buttonStyle(.plain)
+                .padding(.horizontal)
             }
+            .scrollIndicators(.hidden)
         }
         .alert("New Playlist", isPresented: $showNewPlaylist) {
             TextField("Name", text: $newName)
@@ -83,8 +80,7 @@ struct PlaylistStrip: View {
     }
 }
 
-private struct PlaylistRow: View {
-    @Environment(AppModel.self) private var model
+private struct PlaylistChip: View {
     let playlist: Playlist
 
     private var tint: Color {
@@ -98,27 +94,17 @@ private struct PlaylistRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
-            RoundedRectangle(cornerRadius: 8)
-                .fill(tint.gradient)
-                .frame(width: 34, height: 34)
-                .overlay {
-                    Image(systemName: playlist.iconName ?? "list.bullet")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                }
-
-            Text(playlist.name)
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
+        HStack(spacing: 6) {
+            Image(systemName: playlist.iconName ?? "list.bullet")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.tertiary)
+            Text(playlist.name)
+                .font(.subheadline)
+                .lineLimit(1)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 10)
-        .contentShape(Rectangle())
+        .padding(.horizontal, 13)
+        .padding(.vertical, 8)
+        .background(tint.opacity(0.16), in: Capsule())
+        .foregroundStyle(tint)
     }
 }
 
@@ -129,6 +115,7 @@ struct PlaylistDetailView: View {
 
     @State private var episodes: [EpisodeRecord] = []
     @State private var showAddEpisodes = false
+    @State private var showManageShows = false
 
     var body: some View {
         List {
@@ -160,11 +147,29 @@ struct PlaylistDetailView: View {
         .navigationTitle(playlist.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if playlist.decodedRules == nil {
-                Button("Add", systemImage: "plus") {
-                    showAddEpisodes = true
+            if !playlist.isBuiltIn || playlist.decodedRules == nil {
+                Menu {
+                    if !playlist.isBuiltIn {
+                        Button {
+                            showManageShows = true
+                        } label: {
+                            Label("Manage Shows…", systemImage: "square.stack")
+                        }
+                    }
+                    Button {
+                        showAddEpisodes = true
+                    } label: {
+                        Label("Add Episodes…", systemImage: "plus")
+                    }
+                } label: {
+                    Image(systemName: "plus")
                 }
                 EditButton()
+            }
+        }
+        .sheet(isPresented: $showManageShows) {
+            ManageShowsSheet(playlist: playlist) {
+                Task { episodes = await model.episodes(in: playlist) }
             }
         }
         .sheet(isPresented: $showAddEpisodes) {
@@ -243,6 +248,65 @@ private struct AddEpisodesSheet: View {
                     all += (try? await model.episodes.episodes(podcastID: podcast.id, limit: 15)) ?? []
                 }
                 candidates = all.sorted { ($0.publishedAt ?? .distantPast) > ($1.publishedAt ?? .distantPast) }
+            }
+        }
+    }
+}
+
+/// Category membership: pick whole shows whose new episodes flow into this
+/// playlist automatically — "Daily always has my daily podcasts".
+private struct ManageShowsSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let playlist: Playlist
+    var onDone: () -> Void
+
+    @State private var selected: Set<Podcast.ID> = []
+
+    var body: some View {
+        NavigationStack {
+            List(model.library, id: \.id) { podcast in
+                Button {
+                    if selected.contains(podcast.id) {
+                        selected.remove(podcast.id)
+                    } else {
+                        selected.insert(podcast.id)
+                    }
+                } label: {
+                    HStack {
+                        Text(podcast.title).lineLimit(1)
+                        Spacer()
+                        if selected.contains(podcast.id) {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+            .navigationTitle("Shows in \(playlist.name)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task {
+                            try? await model.playlistRepository.setIncludedShows(
+                                Array(selected), playlistID: playlist.id
+                            )
+                            await model.reloadLibrary()
+                            onDone()
+                            dismiss()
+                        }
+                    }
+                }
+            }
+            .task {
+                selected = Set(
+                    (try? await model.playlistRepository.includedShows(playlistID: playlist.id)) ?? []
+                )
             }
         }
     }

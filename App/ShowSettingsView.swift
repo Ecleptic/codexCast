@@ -14,6 +14,7 @@ struct ShowSettingsView: View {
     @State private var storageBytes: Int64?
     @State private var confirmUnsubscribe = false
     @State private var autoDownload = false
+    @State private var followed = true
     @State private var speedOverride: Double = 0   // 0 = inherit
     @State private var pipelinePrefs = AppModel.ShowPipelinePrefs()
     @State private var notifyOn: AppModel.NotifyOn = .never
@@ -69,6 +70,7 @@ struct ShowSettingsView: View {
                     }
                 }
                 Toggle("Auto-download new episodes", isOn: autoDownloadBinding)
+                Toggle("Show in New Releases", isOn: followBinding)
             } header: {
                 Text("Downloads")
             } footer: {
@@ -167,6 +169,7 @@ struct ShowSettingsView: View {
         .task {
             limitIndex = Self.limitChoices.firstIndex(of: podcast.episodeLimit) ?? 0
             autoDownload = podcast.autoDownloadEnabled
+            followed = podcast.isFollowed
             speedOverride = model.overrides(for: podcast.id).speed ?? 0
             pipelinePrefs = model.pipelinePrefs(for: podcast.id)
             notifyOn = model.notifySetting(for: podcast.id)
@@ -192,6 +195,19 @@ struct ShowSettingsView: View {
             set: { newValue in
                 notifyOn = newValue
                 Task { await model.setNotifySetting(newValue, podcastID: podcast.id) }
+            }
+        )
+    }
+
+    private var followBinding: Binding<Bool> {
+        Binding(
+            get: { followed },
+            set: { newValue in
+                followed = newValue
+                Task {
+                    try? await model.podcasts.setFollowed(newValue, podcastID: podcast.id)
+                    await model.reloadLibrary()
+                }
             }
         )
     }

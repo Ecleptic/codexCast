@@ -16,17 +16,23 @@ final class Router {
 
     var tab: TabID = .home
     var homePath = NavigationPath()
+    /// The full player sheet, presented at root level. Presenting it from
+    /// inside the tab-bar accessory made it dismiss whenever the accessory
+    /// was rebuilt (every tab-bar minimize/expand on scroll).
+    var showPlayer = false
 
     /// Set when a sheet (the player) needs to close before navigation runs.
     var dismissPlayerSheet = false
 
     func openEpisode(_ episode: EpisodeRecord) {
+        showPlayer = false
         dismissPlayerSheet = true
         tab = .home
         homePath.append(episode)
     }
 
     func openShow(_ podcastID: Podcast.ID) {
+        showPlayer = false
         dismissPlayerSheet = true
         tab = .home
         homePath.append(podcastID)

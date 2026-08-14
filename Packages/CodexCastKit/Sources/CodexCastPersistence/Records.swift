@@ -32,6 +32,7 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         case playbackSettings
         case notificationSettingsRaw = "notificationSettings"
         case isPinned
+        case isFollowed
     }
 
     public var id: Podcast.ID
@@ -56,6 +57,9 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
     public var notificationSettingsRaw: String?
     /// Pinned shows sort to the top of the library (Cam's favorites).
     public var isPinned: Bool
+    /// Followed shows feed New Releases; added-but-unfollowed shows stay in
+    /// the library without pushing new episodes at the listener.
+    public var isFollowed: Bool
 
     public init(
         id: Podcast.ID = Podcast.ID(),
@@ -75,7 +79,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         autoDownloadEnabled: Bool = false,
         playbackSettings: String? = nil,
         notificationSettingsRaw: String? = nil,
-        isPinned: Bool = false
+        isPinned: Bool = false,
+        isFollowed: Bool = true
     ) {
         self.id = id
         self.feedURL = feedURL
@@ -95,6 +100,7 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         self.playbackSettings = playbackSettings
         self.notificationSettingsRaw = notificationSettingsRaw
         self.isPinned = isPinned
+        self.isFollowed = isFollowed
     }
 
     public var domainModel: Podcast {

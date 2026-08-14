@@ -35,10 +35,15 @@ struct RootView: View {
         // docks ABOVE the tab bar instead of covering it — a bottom inset on
         // TabView buries the tabs entirely, which is exactly what happened.
         // Applied conditionally: an empty accessory still draws its capsule.
+        @Bindable var router = router
         if model.nowPlaying != nil {
-            tabs.tabViewBottomAccessory {
-                MiniPlayerView()
-            }
+            tabs
+                .tabViewBottomAccessory {
+                    MiniPlayerView()
+                }
+                .sheet(isPresented: $router.showPlayer) {
+                    NowPlayingView()
+                }
         } else {
             tabs
         }

@@ -6,8 +6,8 @@ import SwiftUI
 /// detection; this makes listening work today.
 struct MiniPlayerView: View {
     @Environment(AppModel.self) private var model
+    @Environment(Router.self) private var router
     @Environment(\.tabViewBottomAccessoryPlacement) private var placement
-    @State private var showNowPlaying = false
 
     var body: some View {
         // Inline (tab bar minimized): just title and play — the system gives
@@ -64,9 +64,8 @@ struct MiniPlayerView: View {
         // No background: the accessory itself is the Liquid Glass surface —
         // painting .bar over it is what made it look flat and gray.
         .contentShape(Rectangle())
-        .onTapGesture { showNowPlaying = true }
-        .sheet(isPresented: $showNowPlaying) {
-            NowPlayingView()
-        }
+        // Presentation lives at root: this view is torn down and rebuilt as
+        // the accessory transitions, and a sheet anchored here dies with it.
+        .onTapGesture { router.showPlayer = true }
     }
 }

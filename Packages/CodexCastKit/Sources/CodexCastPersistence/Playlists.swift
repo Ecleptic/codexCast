@@ -230,37 +230,15 @@ public struct PlaylistRepository: Sendable {
         }
     }
 
-    /// Resolves a playlist to its episodes: rules-based lists are evaluated as
-    /// a query, hand-curated lists read their entries in order.
+    /// Resolves a playlist to its episodes.
+    ///
+    /// Membership is the UNION of two sources, because a category playlist
+    /// like "Daily" holds whole shows (new episodes appear automatically) AND
+    /// individually added episodes. Manual entries come first in their kept
+    /// order; rule matches follow in the rules' sort.
     public func episodes(in playlist: Playlist, limit: Int = 200) async throws -> [EpisodeRecord] {
         try await database.read { db in
-            if let rules = playlist.decodedRules {
-                var request = EpisodeRecord.all()
-
-                if !rules.includedPodcastIDs.isEmpty {
-                    request = request.filter(rules.includedPodcastIDs.contains(Column("podcastId")))
-                }
-                if !rules.excludedPodcastIDs.isEmpty {
-                    request = request.filter(!rules.excludedPodcastIDs.contains(Column("podcastId")))
-                }
-                if rules.unplayedOnly {
-                    request = request.filter(Column("isPlayed") == false)
-                }
-                if rules.downloadedOnly {
-                    request = request.filter(Column("localPath") != nil)
-                }
-
-                switch rules.sortOrder {
-                case .newestFirst: request = request.order(Column("publishedAt").desc)
-                case .oldestFirst: request = request.order(Column("publishedAt"))
-                case .shortestFirst: request = request.order(Column("durationMs"))
-                case .longestFirst: request = request.order(Column("durationMs").desc)
-                }
-
-                return try request.limit(min(rules.limit ?? limit, limit)).fetchAll(db)
-            }
-
-            return try EpisodeRecord
+            let manual = try EpisodeRecord
                 .fetchAll(db, sql: """
                     SELECT episodes.* FROM episodes
                     JOIN playlist_entries ON playlist_entries.episodeId = episodes.id
@@ -268,6 +246,63 @@ public struct PlaylistRepository: Sendable {
                     ORDER BY playlist_entries.position
                     LIMIT ?
                     """, arguments: [playlist.id, limit])
+
+            guard let rules = playlist.decodedRules else { return manual }
+
+            var request = EpisodeRecord.all()
+            if !rules.includedPodcastIDs.isEmpty {
+                request = request.filter(rules.includedPodcastIDs.contains(Column("podcastId")))
+            } else if manual.isEmpty {
+                // A rules playlist with no shows selected matches everything;
+                // one that ALSO has manual entries matches nothing extra.
+            } else {
+                return manual
+            }
+            if !rules.excludedPodcastIDs.isEmpty {
+                request = request.filter(!rules.excludedPodcastIDs.contains(Column("podcastId")))
+            }
+            if rules.unplayedOnly {
+                request = request.filter(Column("isPlayed") == false)
+            }
+            if rules.downloadedOnly {
+                request = request.filter(Column("localPath") != nil)
+            }
+            switch rules.sortOrder {
+            case .newestFirst: request = request.order(Column("publishedAt").desc)
+            case .oldestFirst: request = request.order(Column("publishedAt"))
+            case .shortestFirst: request = request.order(Column("durationMs"))
+            case .longestFirst: request = request.order(Column("durationMs").desc)
+            }
+
+            let ruled = try request.limit(min(rules.limit ?? limit, limit)).fetchAll(db)
+            let manualIDs = Set(manual.map(\.id))
+            return manual + ruled.filter { !manualIDs.contains($0.id) }
+        }
+    }
+
+    /// Sets the shows a playlist follows as a category — "Daily always has my
+    /// daily podcasts". New episodes of these shows appear automatically.
+    public func setIncludedShows(
+        _ podcastIDs: [Podcast.ID],
+        playlistID: Playlist.ID
+    ) async throws {
+        try await database.write { db in
+            guard let playlist = try Playlist.fetchOne(db, key: playlistID) else { return }
+            var rules = playlist.decodedRules ?? Playlist.Rules(unplayedOnly: false)
+            rules.includedPodcastIDs = podcastIDs
+            let json = (try? JSONEncoder().encode(rules))
+                .flatMap { String(data: $0, encoding: .utf8) }
+            try db.execute(
+                sql: "UPDATE playlists SET rules = ? WHERE id = ?",
+                arguments: [json, playlistID]
+            )
+        }
+    }
+
+    public func includedShows(playlistID: Playlist.ID) async throws -> [Podcast.ID] {
+        try await database.read { db in
+            guard let playlist = try Playlist.fetchOne(db, key: playlistID) else { return [] }
+            return playlist.decodedRules?.includedPodcastIDs ?? []
         }
     }
 }
