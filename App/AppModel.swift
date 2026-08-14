@@ -302,9 +302,32 @@ final class AppModel {
     /// results. Sponsor hints from the show notes feed the model's context
     /// (A6) — who to look for, known before any learning has happened.
     func scanForAds(_ episode: EpisodeRecord) async {
-        guard let transcript = try? await transcripts.transcript(episodeID: episode.id) else {
+        guard var transcript = try? await transcripts.transcript(episodeID: episode.id) else {
             scanState[episode.id] = .unavailable("Transcribe the episode first.")
             return
+        }
+
+        // A1: a feed transcript's timestamps must be verified against the
+        // audio we actually downloaded before detection trusts them — a
+        // transcript made from the ad-free master runs minutes early after
+        // dynamic insertion, and it is silent about exactly the ads we're
+        // looking for. Three 20s samples, once per episode.
+        if transcript.source == .podcasting20,
+           let path = episode.localPath, FileManager.default.fileExists(atPath: path),
+           !((try? await transcripts.isDriftChecked(episodeID: episode.id)) ?? true) {
+            let engine = TranscriptionEngine()
+            let audioURL = URL(fileURLWithPath: path)
+            if let samples = try? await engine.sampleTranscripts(fileAt: audioURL) {
+                let verdict = TranscriptDriftDetector.verdict(feed: transcript, samples: samples)
+                if verdict.isDesynced,
+                   let local = try? await engine.transcribe(fileAt: audioURL) {
+                    // Correct timestamps beat prettier text: replace the feed
+                    // transcript with one made from this exact file.
+                    try? await transcripts.save(local, episodeID: episode.id)
+                    transcript = local
+                }
+            }
+            try? await transcripts.markDriftChecked(episodeID: episode.id)
         }
 
         let classifier = OnDeviceClassifier()
@@ -467,6 +490,34 @@ final class AppModel {
                 rationale: finding.rationale,
                 sponsorID: nil
             ))
+        }
+
+        // Stage 3 (§5.4): snap machine boundaries to real silence in the
+        // audio. Transcript boundaries wobble by a sentence; a skip that cuts
+        // mid-word is instantly noticeable. Uses the same silence map Smart
+        // Speed keeps, computing it here if playback hasn't yet.
+        if let path = episode.localPath, FileManager.default.fileExists(atPath: path) {
+            let audioURL = URL(fileURLWithPath: path)
+            var map = SilenceMap.load(for: audioURL)
+            if map == nil {
+                map = await Task.detached(priority: .utility) {
+                    let computed = try? SilenceMap.analyze(fileURL: audioURL)
+                    try? computed?.save(for: audioURL)
+                    return computed
+                }.value
+            }
+            if let map, !map.gaps.isEmpty {
+                let detector = SilenceDetector()
+                for index in segments.indices {
+                    if let snapped = detector.snap(boundaryMs: segments[index].startMs, toGaps: map.gaps) {
+                        segments[index].startMs = snapped
+                    }
+                    if let snapped = detector.snap(boundaryMs: segments[index].endMs, toGaps: map.gaps),
+                       snapped > segments[index].startMs {
+                        segments[index].endMs = snapped
+                    }
+                }
+            }
         }
 
         try? await segmentRepository.replaceMachineSegments(segments, episodeID: episode.id)

@@ -84,3 +84,15 @@ enum SchemaV5 {
         }
     }
 }
+
+/// v6 — A1: remembers that a feed transcript was checked against the actual
+/// audio, so the (transcribe-3-samples) drift check runs once per episode.
+enum SchemaV6 {
+    static func register(in migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v6.transcriptDriftCheck") { db in
+            try db.alter(table: "transcripts") { table in
+                table.add(column: "driftCheckedAt", .datetime)
+            }
+        }
+    }
+}

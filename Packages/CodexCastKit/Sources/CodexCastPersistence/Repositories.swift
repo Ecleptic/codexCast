@@ -340,6 +340,27 @@ public struct TranscriptRepository: Sendable {
         self.database = database
     }
 
+    /// A1: the feed-transcript drift check runs once per episode; this is
+    /// the once.
+    public func markDriftChecked(episodeID: Episode.ID) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE transcripts SET driftCheckedAt = ? WHERE episodeId = ?",
+                arguments: [Date(), episodeID]
+            )
+        }
+    }
+
+    public func isDriftChecked(episodeID: Episode.ID) async throws -> Bool {
+        try await database.read { db in
+            try Date.fetchOne(
+                db,
+                sql: "SELECT driftCheckedAt FROM transcripts WHERE episodeId = ?",
+                arguments: [episodeID]
+            ) != nil
+        }
+    }
+
     /// Transcripts are persisted and never recomputed. Transcription is the most
     /// expensive stage in the pipeline; doing it twice for one episode is pure
     /// waste (§9.9).
