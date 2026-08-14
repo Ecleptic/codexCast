@@ -15,6 +15,16 @@ each additional ad. A "free" transcript that silently disagrees with the audio
 is worse than no transcript, because everything downstream (labeling, ad
 detection, tap-the-transcript navigation) trusts those timestamps.
 
+**Measured (2026-08-14, `Spike/check_transcript_drift.py`):** matching the same
+sentences in the feed transcript and a transcription of the actual audio, LUP
+678's offset is ~0 for the first 23 minutes, jumps to **+90 s**, holds, then
+jumps to **+183 s** around minute 43 — two inserted ~90-second ads, invisible
+in the feed transcript. The human labeler missed the first insertion precisely
+because the transcript being read contained no trace of it: the desync problem
+demonstrably causes missed ads, not just misaligned text. The matching
+technique itself (token-overlap between sampled sentences, offset per anchor)
+worked cleanly and is a candidate implementation for the in-app check.
+
 **What the app must do:**
 
 1. **Detect the drift before trusting a feed transcript.** Cheap check:
