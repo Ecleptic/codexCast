@@ -84,6 +84,10 @@ public struct DetectedSegment: Identifiable, Hashable, Sendable, Codable {
     public var kind: SegmentKind
     /// Calibrated, never raw and never 1.0 (§5.7).
     public var confidence: Double
+    /// The score the stage originally reported, before calibration —
+    /// calibration bins are keyed by ITS decile, so corrections must be
+    /// counted against it, not against the adjusted value.
+    public var rawConfidence: Double?
     public var provenance: Provenance
     public var rationale: String?
     public var sponsorID: UUID?
@@ -102,6 +106,7 @@ public struct DetectedSegment: Identifiable, Hashable, Sendable, Codable {
         endMs: Int,
         kind: SegmentKind,
         confidence: Double,
+        rawConfidence: Double? = nil,
         provenance: Provenance,
         rationale: String? = nil,
         sponsorID: UUID? = nil,
@@ -116,6 +121,7 @@ public struct DetectedSegment: Identifiable, Hashable, Sendable, Codable {
         self.endMs = endMs
         self.kind = kind
         self.confidence = confidence
+        self.rawConfidence = rawConfidence
         self.provenance = provenance
         self.rationale = rationale
         self.sponsorID = sponsorID

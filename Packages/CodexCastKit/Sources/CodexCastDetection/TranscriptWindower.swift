@@ -99,6 +99,7 @@ public enum TranscriptWindower {
                 union.endMs = max(last.endMs, finding.endMs)
                 union.confidence = max(last.confidence, finding.confidence)
                 union.sponsor = last.sponsor ?? finding.sponsor
+                union.agreementCount = last.agreementCount + finding.agreementCount
                 merged[merged.count - 1] = union
             } else {
                 merged.append(finding)

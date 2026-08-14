@@ -36,6 +36,7 @@ final class AppModel {
     let corrections: CorrectionRepository
     let chapters: ChapterRepository
     let positionRules: PositionRuleRepository
+    let calibration: CalibrationRepository
     let charts = TopChartsClient()
 
     private(set) var library: [PodcastRecord] = []
@@ -81,6 +82,7 @@ final class AppModel {
         corrections = CorrectionRepository(database: database)
         chapters = ChapterRepository(database: database)
         positionRules = PositionRuleRepository(database: database)
+        calibration = CalibrationRepository(database: database)
     }
 
     // MARK: - Library
@@ -416,6 +418,16 @@ final class AppModel {
             }
         }
 
+        // §5.7: calibrate the model's self-reported scores against the
+        // listener's own correction history — or, when the model reports the
+        // same number for everything, fall back to how many overlapping
+        // windows agreed.
+        let calibrator = ConfidenceCalibrator(bins: (try? await calibration.bins()) ?? [])
+        let recentRaw = (try? await calibration.recentModelRawConfidences()) ?? []
+        let degenerate = ConfidenceCalibrator.isDegenerate(
+            recentRawConfidences: recentRaw + findings.map(\.confidence)
+        )
+
         // Snap, dedupe, gate — the same post-processing the harness uses.
         for finding in TranscriptWindower.deduplicate(findings) {
             guard let start = transcript.nearestBoundary(toMs: finding.startMs),
@@ -428,11 +440,29 @@ final class AppModel {
             else { continue }
             let overlapsPattern = segments.contains { $0.overlaps(startMs: start, endMs: end) }
             guard !overlapsPattern else { continue }
+
+            let raw = finding.confidence
+            let confidence: Double
+            if degenerate {
+                let possible = windows.filter { window in
+                    guard let first = window.cues.first, let last = window.cues.last else { return false }
+                    return first.startMs < end && last.endMs > start
+                }.count
+                confidence = ConfidenceCalibrator.agreementConfidence(
+                    agreeing: finding.agreementCount, possible: possible
+                )
+            } else if calibrator.hasHistory(stage: "onDeviceModel") {
+                confidence = calibrator.calibrated(stage: "onDeviceModel", rawConfidence: raw)
+            } else {
+                confidence = min(0.98, raw)
+            }
+
             segments.append(DetectedSegment(
                 episodeID: episode.id,
                 startMs: start, endMs: end,
                 kind: finding.kind,
-                confidence: finding.confidence,
+                confidence: confidence,
+                rawConfidence: raw,
                 provenance: .onDeviceModel(windowIndex: 0, modelTier: "afm-device"),
                 rationale: finding.rationale,
                 sponsorID: nil
@@ -440,6 +470,16 @@ final class AppModel {
         }
 
         try? await segmentRepository.replaceMachineSegments(segments, episodeID: episode.id)
+
+        // Every stored proposal opens its calibration bin (§6.4's table).
+        var proposalDeciles: [String: [Int]] = [:]
+        for segment in segments {
+            proposalDeciles[segment.provenance.stageIdentifier, default: []]
+                .append(ConfidenceCalibrator.decile(for: segment.rawConfidence ?? segment.confidence))
+        }
+        for (stage, deciles) in proposalDeciles {
+            try? await calibration.recordProposals(stage: stage, deciles: deciles)
+        }
 
         let elapsed = Int(Date().timeIntervalSince(started))
         scanState[episode.id] = .done(found: segments.count, seconds: elapsed)
@@ -574,6 +614,18 @@ final class AppModel {
             }
         }
         await learnPosition(from: segment, episode: episode)
+        await recordCalibrationOutcome(for: segment, confirmed: true)
+    }
+
+    /// §6.4: every explicit verdict lands in the §5.7 calibration bins,
+    /// keyed by the stage's RAW score decile.
+    private func recordCalibrationOutcome(for segment: DetectedSegment, confirmed: Bool) async {
+        guard !segment.provenance.isUserOriginated else { return }
+        try? await calibration.recordOutcome(
+            stage: segment.provenance.stageIdentifier,
+            decile: ConfidenceCalibrator.decile(for: segment.rawConfidence ?? segment.confidence),
+            confirmed: confirmed
+        )
     }
 
     // MARK: - Position rules (§5.1/§6.3)
@@ -642,6 +694,7 @@ final class AppModel {
             episodeID: episode.id, segmentID: segment.id, type: "notAnAd", source: .explicit
         )
         await recordPositionMiss(for: segment, podcastID: episode.podcastId)
+        await recordCalibrationOutcome(for: segment, confirmed: false)
     }
 
     // MARK: - Video (§8.3 minimal)

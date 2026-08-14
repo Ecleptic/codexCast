@@ -50,6 +50,7 @@ public struct AppDatabase: Sendable {
         SchemaV2.register(in: &migrator)
         SchemaV3.register(in: &migrator)
         SchemaV4.register(in: &migrator)
+        SchemaV5.register(in: &migrator)
         return migrator
     }
 

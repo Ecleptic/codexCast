@@ -36,15 +36,15 @@ public struct SegmentRepository: Sendable {
                 try db.execute(
                     sql: """
                     INSERT INTO detected_segments
-                    (id, episodeId, startMs, endMs, kind, confidence, provenance,
-                     rationale, userState, chunkId, createdAt)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, episodeId, startMs, endMs, kind, confidence, rawConfidence,
+                     provenance, rationale, userState, chunkId, createdAt)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     arguments: [
                         segment.id, segment.episodeID,
                         segment.startMs, segment.endMs,
                         segment.kind.rawValue, segment.confidence,
-                        provenance, segment.rationale,
+                        segment.rawConfidence, provenance, segment.rationale,
                         segment.userState.rawValue,
                         segment.chunkID?.uuidString, segment.createdAt,
                     ]
@@ -64,15 +64,15 @@ public struct SegmentRepository: Sendable {
             try db.execute(
                 sql: """
                 INSERT INTO detected_segments
-                (id, episodeId, startMs, endMs, kind, confidence, provenance,
-                 rationale, userState, chunkId, createdAt)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (id, episodeId, startMs, endMs, kind, confidence, rawConfidence,
+                 provenance, rationale, userState, chunkId, createdAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 arguments: [
                     segment.id, segment.episodeID,
                     segment.startMs, segment.endMs,
                     segment.kind.rawValue, segment.confidence,
-                    provenance, segment.rationale,
+                    segment.rawConfidence, provenance, segment.rationale,
                     segment.userState.rawValue,
                     segment.chunkID?.uuidString, segment.createdAt,
                 ]
@@ -158,6 +158,7 @@ public struct SegmentRepository: Sendable {
                     endMs: row["endMs"],
                     kind: kind,
                     confidence: row["confidence"],
+                    rawConfidence: row["rawConfidence"],
                     provenance: provenance ?? .manual,
                     rationale: row["rationale"],
                     userState: state,

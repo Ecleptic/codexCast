@@ -71,3 +71,16 @@ enum SchemaV4 {
         }
     }
 }
+
+/// v5 — calibration needs the score a stage actually reported, before any
+/// adjustment: bins are keyed by raw-score decile, and the stored (possibly
+/// calibrated) confidence would drift the keys (§5.7).
+enum SchemaV5 {
+    static func register(in migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v5.rawConfidence") { db in
+            try db.alter(table: "detected_segments") { table in
+                table.add(column: "rawConfidence", .double)
+            }
+        }
+    }
+}

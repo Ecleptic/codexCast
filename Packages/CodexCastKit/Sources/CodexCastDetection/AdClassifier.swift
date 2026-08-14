@@ -61,6 +61,9 @@ public struct WindowFinding: Sendable {
     public var confidence: Double
     public var sponsor: String?
     public var rationale: String?
+    /// How many overlapping windows independently proposed this span — set
+    /// by deduplication; the §5.7 agreement signal.
+    public var agreementCount: Int
 
     public init(
         startMs: Int,
@@ -68,7 +71,8 @@ public struct WindowFinding: Sendable {
         kind: SegmentKind,
         confidence: Double,
         sponsor: String? = nil,
-        rationale: String? = nil
+        rationale: String? = nil,
+        agreementCount: Int = 1
     ) {
         self.startMs = startMs
         self.endMs = endMs
@@ -76,6 +80,7 @@ public struct WindowFinding: Sendable {
         self.confidence = confidence
         self.sponsor = sponsor
         self.rationale = rationale
+        self.agreementCount = agreementCount
     }
 }
 
