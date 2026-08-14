@@ -3,6 +3,8 @@ import CodexCastFeeds
 import CodexCastPersistence
 import CodexCastPipeline
 import CodexCastPlayback
+import CodexCastTranscription
+import CryptoKit
 import Foundation
 import Observation
 
@@ -136,6 +138,101 @@ final class AppModel {
         return transcript
     }
 
+    // MARK: - Download and on-device transcription
+
+    enum EpisodeWork: Equatable {
+        case downloading(fraction: Double?)
+        case preparingSpeechModel
+        case transcribing
+    }
+
+    /// Per-episode work in flight, driving progress UI.
+    private(set) var episodeWork: [Episode.ID: EpisodeWork] = [:]
+    private(set) var episodeWorkErrors: [Episode.ID: String] = [:]
+
+    private var mediaDirectory: URL {
+        let support = FileManager.default.urls(
+            for: .applicationSupportDirectory, in: .userDomainMask
+        )[0].appendingPathComponent("CodexCast/media")
+        try? FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
+        return support
+    }
+
+    /// Downloads the analysis rendition — always audio, and the cheapest one,
+    /// since detection and transcription are all it exists for (§8.3).
+    func downloadAudio(for episode: EpisodeRecord) async throws -> URL {
+        if let path = episode.localPath, FileManager.default.fileExists(atPath: path) {
+            return URL(fileURLWithPath: path)
+        }
+
+        guard let json = episode.renditions?.data(using: .utf8),
+              let renditions = try? JSONDecoder().decode([Rendition].self, from: json)
+        else { throw WorkError.noAudio }
+
+        let core = Episode(
+            podcastID: episode.podcastId, guid: episode.guid, title: episode.title,
+            renditions: renditions
+        )
+        guard let source = core.analysisRendition?.sources.first
+            ?? renditions.first(where: \.isPrimaryEnclosure)?.sources.first
+        else { throw WorkError.noAudio }
+
+        episodeWork[episode.id] = .downloading(fraction: nil)
+        defer { if case .downloading = episodeWork[episode.id] { episodeWork[episode.id] = nil } }
+
+        let (temp, _) = try await URLSession.shared.download(from: source)
+        let destination = mediaDirectory
+            .appendingPathComponent(episode.id.rawValue.uuidString)
+            .appendingPathExtension(source.pathExtension.isEmpty ? "mp3" : source.pathExtension)
+        try? FileManager.default.removeItem(at: destination)
+        try FileManager.default.moveItem(at: temp, to: destination)
+
+        // Content hash: if a re-download differs, dynamic insertion changed the
+        // ads and cached segments die with the old file (§4.1).
+        let digest = SHA256.hash(data: try Data(contentsOf: destination, options: .mappedIfSafe))
+        let hash = digest.map { String(format: "%02x", $0) }.joined()
+        _ = try await episodes.recordDownload(
+            episodeID: episode.id, localPath: destination.path, mediaHash: hash
+        )
+        return destination
+    }
+
+    /// The full on-device path: download, transcribe, persist. This is the
+    /// primary transcript path — only ~9% of a real library publishes usable
+    /// feed transcripts (A6), so the phone does the work for the rest.
+    func transcribeOnDevice(_ episode: EpisodeRecord) async {
+        episodeWorkErrors[episode.id] = nil
+        do {
+            let file = try await downloadAudio(for: episode)
+
+            let engine = TranscriptionEngine()
+            episodeWork[episode.id] = .preparingSpeechModel
+            if let request = try await engine.assetInstallationRequest() {
+                try await request.downloadAndInstall()
+            }
+
+            episodeWork[episode.id] = .transcribing
+            let transcript = try await engine.transcribe(fileAt: file)
+
+            // §9.8: a music show or corrupt file is marked, not retried forever.
+            let durationMs = episode.durationMs ?? transcript.durationMs
+            if TranscriptQualityGate.verdict(transcript, mediaDurationMs: durationMs) != nil {
+                episodeWorkErrors[episode.id] =
+                    "This episode doesn't seem to be mostly speech, so the transcript was discarded."
+            } else {
+                try await transcripts.save(transcript, episodeID: episode.id)
+            }
+        } catch {
+            episodeWorkErrors[episode.id] = "Transcription failed: \(error.localizedDescription)"
+        }
+        episodeWork[episode.id] = nil
+    }
+
+    enum WorkError: LocalizedError {
+        case noAudio
+        var errorDescription: String? { "This episode has no downloadable audio." }
+    }
+
     // MARK: - Audio settings (A5.4)
 
     func applyAudioSettings() {
@@ -198,10 +295,14 @@ final class AppModel {
                 imageURL: episode.imageURL?.absoluteString,
                 episodeNumber: episode.episodeNumber,
                 seasonNumber: episode.seasonNumber,
-                renditionsJSON: (try? encoder.encode(episode.renditions))
-                    .flatMap { String(data: $0, encoding: .utf8) },
-                feedTranscriptsJSON: (try? encoder.encode(episode.transcripts))
-                    .flatMap { String(data: $0, encoding: .utf8) },
+                renditionsJSON: episode.renditions.isEmpty ? nil
+                    : (try? encoder.encode(episode.renditions))
+                        .flatMap { String(data: $0, encoding: .utf8) },
+                // Empty must be stored as absent: "[]" is not "has transcripts",
+                // and the distinction drives which action the episode screen offers.
+                feedTranscriptsJSON: episode.transcripts.isEmpty ? nil
+                    : (try? encoder.encode(episode.transcripts))
+                        .flatMap { String(data: $0, encoding: .utf8) },
                 feedChaptersURL: episode.chaptersURL?.absoluteString
             )
         }

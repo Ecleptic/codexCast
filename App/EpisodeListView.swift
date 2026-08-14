@@ -33,6 +33,13 @@ struct EpisodeListView: View {
         }
         .navigationTitle(podcast.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            NavigationLink {
+                ShowSettingsView(podcast: podcast)
+            } label: {
+                Image(systemName: "gearshape")
+            }
+        }
         .overlay {
             if episodes.isEmpty {
                 ContentUnavailableView(

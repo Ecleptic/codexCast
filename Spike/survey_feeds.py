@@ -97,11 +97,18 @@ def survey(entry):
     )
     description_text = " ".join(descriptions)
 
+    # Count real tags inside items only. A naive substring search over the
+    # whole document counts show-notes prose as a capability: ATP links to the
+    # <podcast:transcript> documentation in its notes, which is not a
+    # transcript. Escaped text (&lt;podcast:transcript&gt;) must not match.
+    transcript_tags = re.findall(r"<podcast:transcript\b", blob)
+    chapter_tags = re.findall(r"<podcast:chapters\b", blob)
+
     return {
         **entry,
         "ok": True,
-        "hasTranscriptTag": "podcast:transcript" in xml,
-        "hasChapters": "podcast:chapters" in xml,
+        "hasTranscriptTag": bool(transcript_tags),
+        "hasChapters": bool(chapter_tags),
         "namesSponsors": bool(SPONSOR_RE.search(description_text)),
         "sponsorPhrase": (SPONSOR_RE.search(description_text) or [None])
                          and (SPONSOR_RE.search(description_text).group(0)

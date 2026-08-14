@@ -1,4 +1,5 @@
 import CodexCastCore
+import CodexCastFeeds
 import CodexCastPersistence
 import SwiftUI
 
@@ -84,22 +85,46 @@ struct EpisodeDetailView: View {
                         }
                         .buttonStyle(.plain)
                     }
+                } else if let work = model.episodeWork[episode.id] {
+                    HStack(spacing: 10) {
+                        ProgressView()
+                        Text(workLabel(work)).foregroundStyle(.secondary)
+                    }
                 } else if isLoadingTranscript {
                     HStack {
                         ProgressView()
                         Text("Loading transcript…").foregroundStyle(.secondary)
                     }
                 } else {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(transcriptError ?? "No transcript yet.")
-                            .foregroundStyle(.secondary)
-                            .font(.callout)
-                        if episode.feedTranscripts != nil {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if let error = model.episodeWorkErrors[episode.id] ?? transcriptError {
+                            Text(error).foregroundStyle(.orange).font(.callout)
+                        }
+
+                        if hasFeedTranscript {
                             Button("Fetch from feed") {
                                 Task { await loadFeedTranscript() }
                             }
+                        } else {
+                            // Honest about why, and about what happens instead:
+                            // only ~1 show in 11 publishes usable transcripts.
+                            Text("This show doesn't publish transcripts.")
+                                .foregroundStyle(.secondary)
+                                .font(.callout)
                         }
+
+                        Button {
+                            Task { await transcribeHere() }
+                        } label: {
+                            Label("Transcribe on this iPhone", systemImage: "waveform")
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Text("Downloads the episode and transcribes it on-device. Audio never leaves your phone.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
+                    .padding(.vertical, 4)
                 }
             }
         }
@@ -111,6 +136,28 @@ struct EpisodeDetailView: View {
                 await loadFeedTranscript()
             }
         }
+    }
+
+    /// True only when the feed advertises at least one actual transcript —
+    /// an empty stored list must not grow a button that does nothing.
+    private var hasFeedTranscript: Bool {
+        guard let json = episode.feedTranscripts?.data(using: .utf8),
+              let references = try? JSONDecoder().decode([FeedTranscriptReference].self, from: json)
+        else { return false }
+        return !references.isEmpty
+    }
+
+    private func workLabel(_ work: AppModel.EpisodeWork) -> String {
+        switch work {
+        case .downloading: "Downloading episode…"
+        case .preparingSpeechModel: "Preparing the speech model (first run only)…"
+        case .transcribing: "Transcribing on this iPhone…"
+        }
+    }
+
+    private func transcribeHere() async {
+        await model.transcribeOnDevice(episode)
+        transcript = try? await model.transcripts.transcript(episodeID: episode.id)
     }
 
     private func timestamp(_ ms: Int) -> String {

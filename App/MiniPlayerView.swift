@@ -6,6 +6,7 @@ import SwiftUI
 /// detection; this makes listening work today.
 struct MiniPlayerView: View {
     @Environment(AppModel.self) private var model
+    @State private var showNowPlaying = false
 
     var body: some View {
         HStack(spacing: 16) {
@@ -52,5 +53,10 @@ struct MiniPlayerView: View {
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(.bar)
+        .contentShape(Rectangle())
+        .onTapGesture { showNowPlaying = true }
+        .sheet(isPresented: $showNowPlaying) {
+            NowPlayingView()
+        }
     }
 }
