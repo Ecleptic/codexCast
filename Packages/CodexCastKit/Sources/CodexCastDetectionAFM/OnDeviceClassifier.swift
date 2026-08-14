@@ -57,6 +57,22 @@ public struct OnDeviceClassifier: AdClassifier {
         }
     }
 
+    /// The on-device model's context length in tokens, covering instructions,
+    /// prompt, and output combined. The OS exposes no query for this today;
+    /// this constant is the platform's documented figure and lives HERE — the
+    /// one place to change when introspection becomes possible — while window
+    /// sizing itself stays dynamic (§5.3.2).
+    public static let contextWindowTokens = 4_096
+
+    /// Tokens the window budget must leave alone: the instructions for this
+    /// context (measured, not guessed — show notes and exemplars vary) plus
+    /// room for the model's structured output.
+    public func reservedTokens(for context: ClassificationContext) -> Int {
+        let instructionChars = instructions(for: context).count
+        let outputReserve = 900
+        return Int(Double(instructionChars) / 3.8) + outputReserve
+    }
+
     /// Which tier is running, recorded into provenance so the harness can
     /// report per-tier quality (§7.2).
     public var modelTier: String {

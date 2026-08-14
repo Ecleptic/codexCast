@@ -39,6 +39,7 @@ final class AppModel {
     let positionRules: PositionRuleRepository
     let calibration: CalibrationRepository
     let sponsors: SponsorRepository
+    let neverSkip: NeverSkipRepository
     let charts = TopChartsClient()
 
     private(set) var library: [PodcastRecord] = []
@@ -86,6 +87,7 @@ final class AppModel {
         positionRules = PositionRuleRepository(database: database)
         calibration = CalibrationRepository(database: database)
         sponsors = SponsorRepository(database: database)
+        neverSkip = NeverSkipRepository(database: database)
     }
 
     // MARK: - Library
@@ -374,7 +376,16 @@ final class AppModel {
         )
 
         let started = Date()
-        let windows = TranscriptWindower.windows(for: transcript)
+        // §5.3.2: window size derives from the model's context and this
+        // transcript's measured density — never a hardcoded token budget.
+        let windowConfiguration = TranscriptWindower.Configuration.fitted(
+            to: transcript,
+            contextTokens: OnDeviceClassifier.contextWindowTokens,
+            reservedTokens: classifier.reservedTokens(for: context)
+        )
+        let windows = TranscriptWindower.windows(
+            for: transcript, configuration: windowConfiguration
+        )
         scanState[episode.id] = .scanning(windowsDone: 0, windowsTotal: windows.count)
         classifier.prewarm(context: context)
 
@@ -504,6 +515,16 @@ final class AppModel {
                 rationale: finding.rationale,
                 sponsorID: sponsorID
             ))
+        }
+
+        // §6.4: regions the listener protected are dropped before storage —
+        // a rejected span must never resurface on a re-scan.
+        if let protections = try? await neverSkip.rules(
+            episodeID: episode.id, podcastID: episode.podcastId
+        ), !protections.isEmpty {
+            segments.removeAll { segment in
+                protections.contains { $0.startMs < segment.endMs && segment.startMs < $0.endMs }
+            }
         }
 
         // Stage 3 (§5.4): snap machine boundaries to real silence in the
@@ -802,6 +823,17 @@ final class AppModel {
         try? await positionRules.save(rule)
     }
 
+    /// "Never skip this show's intro" (§6.4): protects the opening stretch of
+    /// every episode of this show, and rejects the segment that prompted it.
+    func neverSkipIntro(_ segment: DetectedSegment, episode: EpisodeRecord) async {
+        try? await neverSkip.addShowRule(
+            podcastID: episode.podcastId,
+            startMs: 0, endMs: max(segment.endMs, 60_000),
+            reason: "This show's intro"
+        )
+        await rejectSegment(segment, episode: episode)
+    }
+
     /// "Always skip this position" — one tap from a segment (§6.4). Promotes
     /// the matching rule to user-created, which never auto-disables.
     func alwaysSkipPosition(_ segment: DetectedSegment, episode: EpisodeRecord) async {
@@ -837,6 +869,13 @@ final class AppModel {
         )
         await recordPositionMiss(for: segment, podcastID: episode.podcastId)
         await recordCalibrationOutcome(for: segment, confirmed: false)
+        // §6.4: a rejection protects this span from ever being re-flagged on
+        // a future scan of the same episode.
+        try? await neverSkip.addEpisodeRule(
+            episodeID: episode.id,
+            startMs: segment.startMs, endMs: segment.endMs,
+            reason: "Rejected by you"
+        )
     }
 
     // MARK: - Video (§8.3 minimal)

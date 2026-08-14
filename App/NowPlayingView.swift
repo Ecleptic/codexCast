@@ -495,6 +495,13 @@ struct SegmentReviewRow: View {
             } label: {
                 Label("Always Skip This Position", systemImage: "pin.slash")
             }
+            if segment.startMs < 120_000 {
+                Button {
+                    Task { await model.neverSkipIntro(segment, episode: episode) }
+                } label: {
+                    Label("Never Skip This Show's Intro", systemImage: "hand.raised")
+                }
+            }
             Button(role: .destructive) {
                 Task { await model.deleteSegment(segment) }
             } label: {
