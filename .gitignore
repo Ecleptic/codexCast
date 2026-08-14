@@ -51,3 +51,8 @@ Spike/out/
 # Playwright MCP scratch output
 .playwright-mcp/
 Spike/TranscribeTool/.build/
+
+# Personal drops: OPML exports and similar contain private feed URLs with
+# embedded credentials and auth tokens. The repo is public.
+Spike/tempUserDrop/
+*.opml
