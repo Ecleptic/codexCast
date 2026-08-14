@@ -1,0 +1,45 @@
+# XcodeGen spec — run `xcodegen generate` after editing.
+# The .xcodeproj is generated and disposable; this file is the source of truth.
+name: CodexCast
+options:
+  bundleIdPrefix: app.ckg
+  deploymentTarget:
+    iOS: "27.0"
+  createIntermediateGroups: true
+
+packages:
+  CodexCastKit:
+    path: Packages/CodexCastKit
+
+targets:
+  CodexCast:
+    type: application
+    platform: iOS
+    sources:
+      - App
+    dependencies:
+      - package: CodexCastKit
+        products:
+          - CodexCastCore
+          - CodexCastPersistence
+          - CodexCastFeeds
+          - CodexCastPlayback
+          - CodexCastTranscription
+          - CodexCastPipeline
+          - CodexCastDetection
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.ckg.codexcast
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: >-
+          Codex Cast transcribes episodes on this device to find and skip ads.
+          Audio never leaves your phone.
+        INFOPLIST_KEY_UIBackgroundModes: audio
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        SUPPORTS_MACCATALYST: NO
+        GENERATE_INFOPLIST_FILE: YES
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0

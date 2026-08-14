@@ -1,0 +1,408 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		017F9AD9EC7C76C8F060F510 /* CodexCastPlayback in Frameworks */ = {isa = PBXBuildFile; productRef = BC78C732AD3598A35D9D51E8 /* CodexCastPlayback */; };
+		0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197ED145FAC304355353C8E1 /* EpisodeListView.swift */; };
+		0C91B4FED7A10D2C6A51ECD6 /* CodexCastFeeds in Frameworks */ = {isa = PBXBuildFile; productRef = C676E321AA8E8076B4217FD2 /* CodexCastFeeds */; };
+		6A3596860916D14D9C72CF87 /* CodexCastTranscription in Frameworks */ = {isa = PBXBuildFile; productRef = B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */; };
+		91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA7694D224531A293462B9 /* DiscoverView.swift */; };
+		A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E01DDCDAB399DDADF254EB /* AppModel.swift */; };
+		A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */; };
+		B5921459692445292AA156C4 /* CodexCastCore in Frameworks */ = {isa = PBXBuildFile; productRef = A76925BEF281D319E78B374D /* CodexCastCore */; };
+		B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DB3D0F2A114836988051EA /* SettingsView.swift */; };
+		C028E001E608E9F8DB9CDA35 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6D33741B085330D540C26A /* LibraryView.swift */; };
+		D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E8479D847F921AB10493C /* CodexCastApp.swift */; };
+		D5E821C70D08C272C1EEA440 /* CodexCastDetection in Frameworks */ = {isa = PBXBuildFile; productRef = DC64841B03CDBB942BB0D71F /* CodexCastDetection */; };
+		DBA630E0541DABFEF58C8B77 /* CodexCastPipeline in Frameworks */ = {isa = PBXBuildFile; productRef = 25189ADD88E15C2C46F9169E /* CodexCastPipeline */; };
+		EB3302B80A235F91E1CF6CFE /* CodexCastPersistence in Frameworks */ = {isa = PBXBuildFile; productRef = 07BB042596B56F7046A78F6D /* CodexCastPersistence */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		101C9BCE3F871996CCC31BCC /* CodexCast.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CodexCast.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13E01DDCDAB399DDADF254EB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		197ED145FAC304355353C8E1 /* EpisodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeListView.swift; sourceTree = "<group>"; };
+		854553ACD07CBF7CEEAEA0EB /* CodexCastKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CodexCastKit; path = Packages/CodexCastKit; sourceTree = SOURCE_ROOT; };
+		8A6D33741B085330D540C26A /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
+		D9DB3D0F2A114836988051EA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		EC5E8479D847F921AB10493C /* CodexCastApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexCastApp.swift; sourceTree = "<group>"; };
+		F2DA7694D224531A293462B9 /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4CD956DDF1F446AAC87D0DD4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5921459692445292AA156C4 /* CodexCastCore in Frameworks */,
+				EB3302B80A235F91E1CF6CFE /* CodexCastPersistence in Frameworks */,
+				0C91B4FED7A10D2C6A51ECD6 /* CodexCastFeeds in Frameworks */,
+				017F9AD9EC7C76C8F060F510 /* CodexCastPlayback in Frameworks */,
+				6A3596860916D14D9C72CF87 /* CodexCastTranscription in Frameworks */,
+				DBA630E0541DABFEF58C8B77 /* CodexCastPipeline in Frameworks */,
+				D5E821C70D08C272C1EEA440 /* CodexCastDetection in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2FAE9BEBFC1BB948E05D3E4F /* App */ = {
+			isa = PBXGroup;
+			children = (
+				13E01DDCDAB399DDADF254EB /* AppModel.swift */,
+				EC5E8479D847F921AB10493C /* CodexCastApp.swift */,
+				F2DA7694D224531A293462B9 /* DiscoverView.swift */,
+				197ED145FAC304355353C8E1 /* EpisodeListView.swift */,
+				8A6D33741B085330D540C26A /* LibraryView.swift */,
+				B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */,
+				D9DB3D0F2A114836988051EA /* SettingsView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		32652594218DD89C758024FF = {
+			isa = PBXGroup;
+			children = (
+				2FAE9BEBFC1BB948E05D3E4F /* App */,
+				5B72FB7359ACA202AF7419C6 /* Packages */,
+				3767605CE31A5E5FF1E8452B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		3767605CE31A5E5FF1E8452B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				101C9BCE3F871996CCC31BCC /* CodexCast.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5B72FB7359ACA202AF7419C6 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				854553ACD07CBF7CEEAEA0EB /* CodexCastKit */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5F307C30B3D7733EF4C1095D /* CodexCast */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 803AA8D555BD3C73310AD4FC /* Build configuration list for PBXNativeTarget "CodexCast" */;
+			buildPhases = (
+				9690A5B4495E26F3314555A4 /* Sources */,
+				4CD956DDF1F446AAC87D0DD4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CodexCast;
+			packageProductDependencies = (
+				A76925BEF281D319E78B374D /* CodexCastCore */,
+				07BB042596B56F7046A78F6D /* CodexCastPersistence */,
+				C676E321AA8E8076B4217FD2 /* CodexCastFeeds */,
+				BC78C732AD3598A35D9D51E8 /* CodexCastPlayback */,
+				B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */,
+				25189ADD88E15C2C46F9169E /* CodexCastPipeline */,
+				DC64841B03CDBB942BB0D71F /* CodexCastDetection */,
+			);
+			productName = CodexCast;
+			productReference = 101C9BCE3F871996CCC31BCC /* CodexCast.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F0D54182BCCB50573BD71717 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					5F307C30B3D7733EF4C1095D = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 33FDB8100CA6EB358825E93D /* Build configuration list for PBXProject "CodexCast" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 32652594218DD89C758024FF;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4B85D869FFF1A776C5FF0FFB /* XCLocalSwiftPackageReference "Packages/CodexCastKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3767605CE31A5E5FF1E8452B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5F307C30B3D7733EF4C1095D /* CodexCast */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9690A5B4495E26F3314555A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */,
+				D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */,
+				91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */,
+				0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */,
+				C028E001E608E9F8DB9CDA35 /* LibraryView.swift in Sources */,
+				A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */,
+				B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0FFCF337473F9D663F80A631 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves your phone.";
+				INFOPLIST_KEY_UIBackgroundModes = audio;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.ckg.codexcast;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		4A39AD32D6501E6C7C8580FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves your phone.";
+				INFOPLIST_KEY_UIBackgroundModes = audio;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.ckg.codexcast;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		586AE059FC0C747F4CD00FD3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9DC61A5F05AC0C622B8C689F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		33FDB8100CA6EB358825E93D /* Build configuration list for PBXProject "CodexCast" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				586AE059FC0C747F4CD00FD3 /* Debug */,
+				9DC61A5F05AC0C622B8C689F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		803AA8D555BD3C73310AD4FC /* Build configuration list for PBXNativeTarget "CodexCast" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0FFCF337473F9D663F80A631 /* Debug */,
+				4A39AD32D6501E6C7C8580FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		4B85D869FFF1A776C5FF0FFB /* XCLocalSwiftPackageReference "Packages/CodexCastKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/CodexCastKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		07BB042596B56F7046A78F6D /* CodexCastPersistence */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastPersistence;
+		};
+		25189ADD88E15C2C46F9169E /* CodexCastPipeline */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastPipeline;
+		};
+		A76925BEF281D319E78B374D /* CodexCastCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastCore;
+		};
+		B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastTranscription;
+		};
+		BC78C732AD3598A35D9D51E8 /* CodexCastPlayback */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastPlayback;
+		};
+		C676E321AA8E8076B4217FD2 /* CodexCastFeeds */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastFeeds;
+		};
+		DC64841B03CDBB942BB0D71F /* CodexCastDetection */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CodexCastDetection;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F0D54182BCCB50573BD71717 /* Project object */;
+}
