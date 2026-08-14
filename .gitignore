@@ -1,0 +1,49 @@
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+!default.pbxuser
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3
+xcuserdata/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+*.xcuserstate
+.swiftpm/
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+
+# Swift Package Manager
+.build/
+Packages/*/.build/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Signing — never commit provisioning or credentials
+*.mobileprovision
+*.p12
+*.cer
+Secrets.xcconfig
+
+# Media and personal data. The repo is public: podcast audio/video is
+# copyrighted, and the learning database contains personal listening history.
+*.mp3
+*.m4a
+*.aac
+*.opus
+*.mp4
+*.m3u8
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+Fixtures/media/
+Spike/media/
+Spike/out/
