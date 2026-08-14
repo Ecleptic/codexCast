@@ -189,3 +189,67 @@ the existing three-state mechanism:
 Wording note: the reference app labels its advanced group "Premium Audio
 Effects". Codex Cast has no premium tier and never will; the group is simply
 **Advanced**.
+
+---
+
+## A6. Shows name their own sponsors — use it (2026-08-14)
+
+Cam noticed that Accidental Tech Podcast lists its sponsors in the episode
+description. Surveying his real 97-feed subscription list turned this from an
+anecdote into a design input.
+
+### Survey of a real library (97 feeds, 96 reachable)
+
+| Signal | Shows | Share |
+|---|---|---|
+| Publish `<podcast:transcript>` | 12 | **12%** |
+| Publish `<podcast:chapters>` | 4 | 4% |
+| **Name sponsors in the episode description** | 9 | **9%** |
+
+Two conclusions:
+
+1. **The transcript fast path is the exception, not the rule.** One feed in
+   eight. On-device transcription is the primary path and its cost dominates
+   the pipeline — which is what §9.3's overnight default and §9.7's
+   one-at-a-time rule already assume. (Cam's impression was that *no* show had
+   transcripts; it is 12%, including ATP itself, Darknet Diaries, The
+   Changelog, JS Party, Giant Bomb Presents, and Bankless.)
+2. **Roughly one show in eleven hands us its sponsor list for free**, in the
+   feed, before a single second of audio is fetched.
+
+### Why the sponsor list matters more than its 9% suggests
+
+§5.3.5 already wants a bounded list of "advertisers that have appeared on this
+show before" injected into the model's instructions — but the spec assumes
+that list is *earned* through corrections over weeks. Where a show publishes
+it, the app has it on the **first episode of a new subscription**, with no
+learning required. It also seeds §6.2's sponsor registry directly.
+
+Promo codes are the strongest anchor available anywhere in the design.
+"atp50off" appearing in a transcript is not a coincidence; a plain exact-string
+match on it locates the ad read with near-certainty and near-zero cost. This
+also delivers §16's sponsor-card feature (brand, code, offer) essentially free.
+
+### Formats found in the wild, all handled
+
+| Show | Shape |
+|---|---|
+| ATP | `Sponsored by:` then `<li>Name: blurb. Use code X.</li>` |
+| The Changelog | `Sponsors:` then `Name – blurb` per paragraph |
+| Waveform | `brought to you by:` then `Name: URL` per line |
+| CodePen Radio | `Sponsor: Name` in a heading, prose below |
+
+`SponsorHintExtractor` (CodexCastFeeds) parses all four. It is deliberately
+conservative about what counts as a sponsor name — a show *discussing*
+advertising must yield nothing, which is the same trap §5.2 warns about for
+pattern matching, and there is a test for it.
+
+### Where this plugs in
+
+- Feeds `ClassificationContext.knownSponsors` on episode one (§5.3.5).
+- Seeds the sponsor registry (§6.2) without waiting for corrections.
+- Promo codes become exact-match pattern anchors for Stage 1 (§5.2).
+- Powers sponsor cards (§16) with no extra extraction.
+
+It never *asserts* an ad by itself: a named sponsor tells the app who to look
+for, not where. That remains detection's job.
