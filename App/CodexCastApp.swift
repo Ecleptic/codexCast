@@ -42,7 +42,11 @@ struct RootView: View {
                     MiniPlayerView()
                 }
                 .sheet(isPresented: $router.showPlayer) {
+                    // The sheet is hosted outside the tab hierarchy, so the
+                    // router injected inside `tabs` never reaches it — inject
+                    // it again here or the first environment read traps.
                     NowPlayingView()
+                        .environment(router)
                 }
         } else {
             tabs
