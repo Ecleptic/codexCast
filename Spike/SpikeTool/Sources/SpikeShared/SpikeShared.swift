@@ -53,24 +53,27 @@ public enum SpikeEnvironment {
     public static func report(
         _ rows: [(episode: CorpusEpisode, predicted: [ClosedRange<Int>])]
     ) {
-        var total = EvalResult()
+        var total = EvalReport(strict: EvalResult(), located: EvalResult())
 
+        print("  (strict = skippable as-is; located = found the right region)")
         for (episode, predicted) in rows {
             let truth = EvalMetrics.mergeSpans(episode.adSpans())
-            let result = EvalMetrics.evaluate(predicted: predicted, truth: truth)
-            total = total + result
-            let name = "\(episode.show.prefix(18))/\(episode.episodeTitle.prefix(12))"
+            let report = EvalMetrics.report(predicted: predicted, truth: truth)
+            total = total + report
+            let name = "\(episode.show.prefix(16))/\(episode.episodeTitle.prefix(12))"
             print(String(
-                format: "  %-33@ P %.2f  R %.2f  F1 %.2f  (tp %d fp %d fn %d)",
+                format: "  %-31@ strict F1 %.2f | located P %.2f R %.2f F1 %.2f",
                 name as NSString,
-                result.precision, result.recall, result.f1,
-                result.truePositives, result.falsePositives, result.falseNegatives
+                report.strict.f1,
+                report.located.precision, report.located.recall, report.located.f1
             ))
         }
 
         print(String(
-            format: "  TOTAL  P %.2f  R %.2f  F1 %.2f  boundary %.0f ms",
-            total.precision, total.recall, total.f1, total.meanBoundaryErrorMs
+            format: "  TOTAL  strict F1 %.2f | located P %.2f R %.2f F1 %.2f | boundary %.0f ms",
+            total.strict.f1,
+            total.located.precision, total.located.recall, total.located.f1,
+            total.located.meanBoundaryErrorMs
         ))
     }
 }

@@ -49,9 +49,33 @@ arm 4 and the more promising half, since the author found a missed ad by its
 `spikelm`. 3-minute windows, 60-second overlap, one session per window,
 boundaries snapped to transcript cues afterward.
 
-**Result on the Mac's model generation: F1 0.00 across three episodes.** The
-model produced 1–4 segments per episode, but none overlapped a true ad enough
-to count (IoU ≥ 0.5). Roughly 2 of every 10 windows failed outright.
+**Result, and the distinction matters more than the number:**
+
+| Measure | Score |
+|---|---|
+| Strict (IoU ≥ 0.5 — skippable as-is) | **F1 0.00** |
+| Located (found the right region) | **P 0.67 · R 0.67 · F1 0.67** |
+| Mean boundary error on located hits | **44 s** |
+
+The first pass reported only the strict figure and concluded the model was
+useless. Printing the predictions against truth showed otherwise:
+
+```
+new pixels   predicted 12-52s, 110-147s     truth 33-76s
+ai 50 off    predicted 7-59s                truth 34-74s, 531-612s
+```
+
+**The model finds the ads and then draws the boundaries ~20 seconds early**,
+swallowing the intro that precedes the sponsor read. That is a boundary
+problem, and Stage 3 (§5.4 — snap to chapter marks, then to silence gaps)
+exists precisely to fix it. A detector that misses ads and a detector that
+finds them with sloppy edges need completely different work, and a single
+strict F1 makes them look identical.
+
+The harness now reports both thresholds for every arm, so this cannot be
+misread again.
+
+Roughly 1–3 of every 10 windows still failed outright on this machine.
 
 Important caveats before drawing conclusions:
 
@@ -85,8 +109,16 @@ ads have no sibling to be learned from. That number rises with every episode
 listened to and corrected, which is the entire product thesis: **a mediocre
 classifier with a good memory beats a good classifier with no memory.**
 
-On this corpus, the learning layer alone already outperforms the Mac-preview
-language model by every measure.
+On this corpus the two are complementary rather than competing, which is the
+architecture the spec already assumes:
+
+- **Patterns** are exact where they fire (precision 1.00, boundaries inherited
+  from the confirmed span) but only fire on ads seen before.
+- **The model** locates ads it has never seen (located recall 0.67) but places
+  edges badly (44 s error) and occasionally invents one.
+
+Patterns first, model for the remainder, Stage 3 to fix edges — precisely the
+pipeline in §5. The measurements support the design rather than undermining it.
 
 ## Open, pending hardware
 

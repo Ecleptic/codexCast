@@ -57,7 +57,44 @@ public struct EvalResult: Sendable {
     }
 }
 
+/// Scores at two thresholds, because "did it find the ad?" and "did it place
+/// the edges well?" are different questions with different fixes.
+///
+/// A detector that lands on every ad but 20 seconds early is a boundary
+/// problem — Stage 3's job. A detector that misses ads entirely is a detection
+/// problem. Reporting only the strict score makes those two look identical,
+/// and they are not remotely the same bug.
+public struct EvalReport: Sendable {
+    /// Strict: IoU ≥ 0.5. "Skippable as-is."
+    public var strict: EvalResult
+    /// Loose: any meaningful overlap. "Found the right region."
+    public var located: EvalResult
+
+    public init(strict: EvalResult, located: EvalResult) {
+        self.strict = strict
+        self.located = located
+    }
+
+    public static func + (lhs: EvalReport, rhs: EvalReport) -> EvalReport {
+        EvalReport(strict: lhs.strict + rhs.strict, located: lhs.located + rhs.located)
+    }
+}
+
 public enum EvalMetrics {
+    /// Loose-match threshold: enough overlap to be the same ad, loose enough
+    /// that a boundary error alone does not read as a miss.
+    public static let locatedIoUThreshold = 0.2
+
+    public static func report(
+        predicted: [ClosedRange<Int>],
+        truth: [ClosedRange<Int>]
+    ) -> EvalReport {
+        EvalReport(
+            strict: evaluate(predicted: predicted, truth: truth, iouThreshold: 0.5),
+            located: evaluate(predicted: predicted, truth: truth, iouThreshold: locatedIoUThreshold)
+        )
+    }
+
     public static func evaluate(
         predicted: [ClosedRange<Int>],
         truth: [ClosedRange<Int>],
