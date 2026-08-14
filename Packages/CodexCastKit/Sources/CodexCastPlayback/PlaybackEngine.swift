@@ -29,9 +29,17 @@ private final class ObserverBox: @unchecked Sendable {
     private let player: AVPlayer
     var boundary: Any?
     var periodic: Any?
+    var trimBoundary: Any?
 
     init(player: AVPlayer) {
         self.player = player
+    }
+
+    func removeTrim() {
+        if let trimBoundary {
+            player.removeTimeObserver(trimBoundary)
+            self.trimBoundary = nil
+        }
     }
 
     func removeAll() {
@@ -43,6 +51,7 @@ private final class ObserverBox: @unchecked Sendable {
             player.removeTimeObserver(periodic)
             self.periodic = nil
         }
+        removeTrim()
     }
 
     deinit {
@@ -87,6 +96,43 @@ public final class PlaybackEngine {
     /// `deinit`, which is nonisolated and cannot touch main-actor state.
     private let observers: ObserverBox
 
+    // MARK: DSP (§10.1/§10.4) — Voice Boost, mono, normalization via audio tap
+
+    private let tapController = AudioTapController()
+    private var processing = PlaybackSettings.globalDefaults
+
+    /// Applies (or re-applies) the processing chain. Safe mid-playback: live
+    /// taps read the shared state, so the change lands within a buffer.
+    public func setProcessing(_ settings: ResolvedPlaybackSettings) {
+        processing = settings
+        tapController.update(settings)
+    }
+
+    // MARK: Smart Speed (§10.2) — glide the rate up through silences
+
+    /// Silence gaps of the loaded media, from its `SilenceMap`.
+    private var trimGaps: [SilenceDetector.Gap] = []
+    private var trimEnabled = false
+    /// The gap the playhead is currently speeding through, if any.
+    private var activeTrimGap: SilenceDetector.Gap?
+    /// Wall-clock milliseconds saved by trimming, this app-session. Feed for
+    /// the eventual stats screen; also proof the feature is doing something.
+    public private(set) var timeSavedByTrimMs: Int = 0
+
+    /// How much faster to run inside a silence. A glide, not a cut: pitch is
+    /// preserved by the player's time-domain stretcher and there is nothing
+    /// to clip because the region is silent.
+    private static let trimMultiplier = 1.75
+    private static let trimRateCap = 3.0
+
+    public func setTrimSilence(gaps: [SilenceDetector.Gap], enabled: Bool) {
+        trimGaps = gaps.sorted { $0.startMs < $1.startMs }
+        trimEnabled = enabled && !gaps.isEmpty
+        activeTrimGap = nil
+        configureTrimObservers()
+        applyTrimRate()
+    }
+
     public init(player: AVPlayer = AVPlayer(), timeline: DisplayTimeline = DisplayTimeline(mediaDurationMs: 0)) {
         self.player = player
         self.timeline = timeline
@@ -101,6 +147,13 @@ public final class PlaybackEngine {
     public func load(url: URL, timeline: DisplayTimeline, startAtMs: Int = 0) {
         let item = AVPlayerItem(url: url)
         player.replaceCurrentItem(with: item)
+        tapController.attach(to: item)
+        tapController.update(processing)
+        // The old episode's silence map means nothing here; the caller
+        // provides a new one via setTrimSilence once it is analyzed.
+        trimGaps = []
+        trimEnabled = false
+        activeTrimGap = nil
         self.timeline = timeline
         seek(toMediaMs: startAtMs)
         configureObservers()
@@ -132,6 +185,7 @@ public final class PlaybackEngine {
     public func play() {
         player.play()
         isPlaying = true
+        applyTrimRate()
     }
 
     public func pause() {
@@ -144,6 +198,9 @@ public final class PlaybackEngine {
         if isPlaying {
             player.rate = player.defaultRate
         }
+        // The base changed under the glide; recompute from scratch.
+        activeTrimGap = nil
+        applyTrimRate()
     }
 
     /// Seeks in true media time.
@@ -158,6 +215,7 @@ public final class PlaybackEngine {
             toleranceBefore: .zero,
             toleranceAfter: .zero
         )
+        applyTrimRate()
     }
 
     /// Seeks in the timeline the user sees. Never lands inside a skipped region.
@@ -210,6 +268,7 @@ public final class PlaybackEngine {
 
     private func configureObservers() {
         observers.removeAll()
+        defer { configureTrimObservers() }
 
         observers.periodic = player.addPeriodicTimeObserver(
             forInterval: CMTime(value: 500, timescale: 1000),
@@ -237,6 +296,78 @@ public final class PlaybackEngine {
                 self.mediaPositionMs = Int(self.player.currentTime().seconds * 1000)
                 self.skipIfNeeded()
             }
+        }
+    }
+
+    // MARK: - Silence trimming
+
+    /// One boundary time at each gap edge, so the glide starts and ends
+    /// exactly where the silence does — the same exactness argument as ad
+    /// skipping (§11.1), and far cheaper than polling.
+    private func configureTrimObservers() {
+        observers.removeTrim()
+        guard trimEnabled else { return }
+
+        // An hour of conversation can carry over a thousand gap edges; keep
+        // the longest gaps if the count gets silly, they hold most of the win.
+        var gaps = trimGaps
+        if gaps.count > 1500 {
+            gaps = gaps.sorted { $0.durationMs > $1.durationMs }.prefix(1500)
+                .sorted { $0.startMs < $1.startMs }
+        }
+
+        let times = gaps.flatMap { [$0.startMs, $0.endMs] }
+            .map { NSValue(time: CMTime(value: CMTimeValue($0), timescale: 1000)) }
+        guard !times.isEmpty else { return }
+
+        observers.trimBoundary = player.addBoundaryTimeObserver(
+            forTimes: times, queue: .main
+        ) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.mediaPositionMs = Int(self.player.currentTime().seconds * 1000)
+                self.applyTrimRate()
+            }
+        }
+    }
+
+    private func trimGap(at mediaMs: Int) -> SilenceDetector.Gap? {
+        // Sorted; a linear scan with early exit is fine at this size and this
+        // call rate (gap edges + seeks, not per-frame).
+        for gap in trimGaps {
+            if gap.startMs > mediaMs { return nil }
+            if mediaMs < gap.endMs { return gap }
+        }
+        return nil
+    }
+
+    /// Moves between base rate and the glide rate depending on where the
+    /// playhead is. Idempotent; called from every place position or intent
+    /// can change.
+    private func applyTrimRate() {
+        guard isPlaying else { return }
+        let base = Double(player.defaultRate)
+        let inGap = trimEnabled && !isScrubbing
+            ? trimGap(at: mediaPositionMs)
+            : nil
+        // Inside a skip block the skip observer owns the playhead.
+        let target = (inGap != nil && timeline.block(at: mediaPositionMs) == nil)
+            ? min(base * Self.trimMultiplier, Self.trimRateCap)
+            : base
+
+        if let leaving = activeTrimGap, leaving != inGap {
+            // Credit the whole gap on exit; partial passes under-credit
+            // occasionally, which is the honest direction to err.
+            let boost = min(base * Self.trimMultiplier, Self.trimRateCap)
+            if boost > base {
+                let saved = Double(leaving.durationMs) * (1 / base - 1 / boost)
+                timeSavedByTrimMs += max(0, Int(saved))
+            }
+        }
+        activeTrimGap = inGap
+
+        if abs(Double(player.rate) - target) > 0.01 {
+            player.rate = Float(target)
         }
     }
 }

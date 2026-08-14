@@ -54,7 +54,9 @@ struct MigrationV2Tests {
         let applied = try await fixture.database.read { db in
             try AppDatabase.migrator.appliedMigrations(db)
         }
-        #expect(applied == ["v1.initial", "v2.libraryManagement"])
+        // The chain grows over time; what matters here is that v2 applied
+        // and in order after v1.
+        #expect(Array(applied.prefix(2)) == ["v1.initial", "v2.libraryManagement"])
 
         // v1 data survives the v2 migration.
         let surviving = try await fixture.episodes.episodes(podcastID: show.id)

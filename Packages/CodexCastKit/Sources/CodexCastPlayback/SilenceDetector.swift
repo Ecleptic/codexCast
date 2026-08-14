@@ -27,7 +27,7 @@ public struct SilenceDetector: Sendable {
         self.absoluteFloor = absoluteFloor
     }
 
-    public struct Gap: Hashable, Sendable {
+    public struct Gap: Hashable, Sendable, Codable {
         public var startMs: Int
         public var endMs: Int
 
@@ -72,7 +72,21 @@ public struct SilenceDetector: Sendable {
         minimumDurationMs: Int = 180,
         startOffsetMs: Int = 0
     ) -> [Gap] {
-        let energies = frameEnergies(samples: samples, sampleRate: sampleRate)
+        gaps(
+            energies: frameEnergies(samples: samples, sampleRate: sampleRate),
+            minimumDurationMs: minimumDurationMs,
+            startOffsetMs: startOffsetMs
+        )
+    }
+
+    /// Same thresholding, starting from precomputed frame energies — the entry
+    /// point for whole-file analysis, where samples are streamed in chunks and
+    /// only the energies are kept.
+    public func gaps(
+        energies: [Double],
+        minimumDurationMs: Int = 180,
+        startOffsetMs: Int = 0
+    ) -> [Gap] {
         guard !energies.isEmpty else { return [] }
 
         // A percentile rather than the mean: a passage that is mostly speech

@@ -135,6 +135,9 @@ final class AppModel {
 
             for eviction in evictions {
                 try? FileManager.default.removeItem(atPath: eviction.localPath)
+                try? FileManager.default.removeItem(
+                    at: SilenceMap.sidecarURL(for: URL(fileURLWithPath: eviction.localPath))
+                )
             }
             try? await retention.markEvicted(evictions.map(\.episodeID))
         }
@@ -720,7 +723,41 @@ final class AppModel {
     // MARK: - Audio settings (A5.4)
 
     func applyAudioSettings() {
-        player.setRate(audioSettings.speed)
+        let override = nowPlaying.map { overrides(for: $0.podcastId) }
+        player.setRate(override?.speed ?? audioSettings.speed)
+        player.setProcessing(audioSettings.resolvedDefaults)
+        if let episode = nowPlaying {
+            let localURL = episode.localPath.flatMap { path in
+                FileManager.default.fileExists(atPath: path) ? URL(fileURLWithPath: path) : nil
+            }
+            prepareTrimSilence(for: episode, localURL: localURL)
+        }
+    }
+
+    /// Loads or computes the episode's silence map off the main actor, then
+    /// hands the gaps to the engine — if this episode is still the one
+    /// playing by the time the analysis lands.
+    private func prepareTrimSilence(for episode: EpisodeRecord, localURL: URL?) {
+        guard audioSettings.trimSilence, let localURL else {
+            player.setTrimSilence(gaps: [], enabled: false)
+            return
+        }
+        let episodeID = episode.id
+        Task.detached(priority: .utility) { [weak self] in
+            let map: SilenceMap
+            if let cached = SilenceMap.load(for: localURL) {
+                map = cached
+            } else if let computed = try? SilenceMap.analyze(fileURL: localURL) {
+                try? computed.save(for: localURL)
+                map = computed
+            } else {
+                return
+            }
+            await MainActor.run { [weak self] in
+                guard let self, self.nowPlaying?.id == episodeID else { return }
+                self.player.setTrimSilence(gaps: map.gaps, enabled: true)
+            }
+        }
     }
 
     /// The bug Cam hit: skip blocks were computed only at play() time, so the
@@ -829,6 +866,9 @@ final class AppModel {
     func deleteDownload(_ episode: EpisodeRecord) async {
         guard let path = episode.localPath, episode.id != nowPlaying?.id else { return }
         try? FileManager.default.removeItem(atPath: path)
+        try? FileManager.default.removeItem(
+            at: SilenceMap.sidecarURL(for: URL(fileURLWithPath: path))
+        )
         try? await retention.markEvicted([episode.id])
     }
 
@@ -1207,11 +1247,18 @@ final class AppModel {
         installPlaybackCallbacks()
         UserDefaults.standard.set(episode.id.rawValue.uuidString, forKey: "lastEpisodeID")
         lastSavedPositionMs = startAtMs ?? episode.playbackPositionMs
-        guard let renditionData = episode.renditions?.data(using: .utf8),
-              let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData),
-              let url = renditions.first(where: \.isPrimaryEnclosure)?.sources.first
+        // A downloaded copy always beats streaming: instant start, works
+        // offline, and it is the only source Smart Speed can pre-analyze.
+        let localURL = episode.localPath.flatMap { path in
+            FileManager.default.fileExists(atPath: path) ? URL(fileURLWithPath: path) : nil
+        }
+        guard let url = localURL ?? {
+            guard let renditionData = episode.renditions?.data(using: .utf8),
+                  let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData)
+            else { return nil }
+            return renditions.first(where: \.isPrimaryEnclosure)?.sources.first
                 ?? renditions.first?.sources.first
-        else { return }
+        }() else { return }
 
         let timeline = DisplayTimeline(
             mediaDurationMs: episode.durationMs ?? 0,
@@ -1221,6 +1268,8 @@ final class AppModel {
         // Per-show speed override beats the global (§10.4).
         let override = overrides(for: episode.podcastId)
         player.setRate(override.speed ?? audioSettings.speed)
+        player.setProcessing(audioSettings.resolvedDefaults)
+        prepareTrimSilence(for: episode, localURL: localURL)
         if autoplay {
             player.play()
         }
