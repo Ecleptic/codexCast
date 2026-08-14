@@ -47,6 +47,7 @@ public struct AppDatabase: Sendable {
         #endif
 
         Schema.register(in: &migrator)
+        SchemaV2.register(in: &migrator)
         return migrator
     }
 

@@ -8,13 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		017F9AD9EC7C76C8F060F510 /* CodexCastPlayback in Frameworks */ = {isa = PBXBuildFile; productRef = BC78C732AD3598A35D9D51E8 /* CodexCastPlayback */; };
+		02083153A9EF952A315DB5C5 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */; };
 		0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197ED145FAC304355353C8E1 /* EpisodeListView.swift */; };
 		0C91B4FED7A10D2C6A51ECD6 /* CodexCastFeeds in Frameworks */ = {isa = PBXBuildFile; productRef = C676E321AA8E8076B4217FD2 /* CodexCastFeeds */; };
 		6A3596860916D14D9C72CF87 /* CodexCastTranscription in Frameworks */ = {isa = PBXBuildFile; productRef = B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */; };
+		831AB4FA8508AE4E4C7A8D8C /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD1188313195CBCBA224CDCE /* AudioSettings.swift */; };
+		85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */; };
 		91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2DA7694D224531A293462B9 /* DiscoverView.swift */; };
+		964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */; };
 		A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E01DDCDAB399DDADF254EB /* AppModel.swift */; };
 		A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */; };
 		B5921459692445292AA156C4 /* CodexCastCore in Frameworks */ = {isa = PBXBuildFile; productRef = A76925BEF281D319E78B374D /* CodexCastCore */; };
+		B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */; };
 		B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DB3D0F2A114836988051EA /* SettingsView.swift */; };
 		C028E001E608E9F8DB9CDA35 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6D33741B085330D540C26A /* LibraryView.swift */; };
 		D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E8479D847F921AB10493C /* CodexCastApp.swift */; };
@@ -27,12 +32,17 @@
 		101C9BCE3F871996CCC31BCC /* CodexCast.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CodexCast.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13E01DDCDAB399DDADF254EB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		197ED145FAC304355353C8E1 /* EpisodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeListView.swift; sourceTree = "<group>"; };
+		2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeLimitsView.swift; sourceTree = "<group>"; };
+		4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
+		5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettingsView.swift; sourceTree = "<group>"; };
 		854553ACD07CBF7CEEAEA0EB /* CodexCastKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CodexCastKit; path = Packages/CodexCastKit; sourceTree = SOURCE_ROOT; };
 		8A6D33741B085330D540C26A /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportExportView.swift; sourceTree = "<group>"; };
 		B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
 		D9DB3D0F2A114836988051EA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		EC5E8479D847F921AB10493C /* CodexCastApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexCastApp.swift; sourceTree = "<group>"; };
 		F2DA7694D224531A293462B9 /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
+		FD1188313195CBCBA224CDCE /* AudioSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,11 +67,16 @@
 			isa = PBXGroup;
 			children = (
 				13E01DDCDAB399DDADF254EB /* AppModel.swift */,
+				FD1188313195CBCBA224CDCE /* AudioSettings.swift */,
+				5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */,
 				EC5E8479D847F921AB10493C /* CodexCastApp.swift */,
 				F2DA7694D224531A293462B9 /* DiscoverView.swift */,
+				2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */,
 				197ED145FAC304355353C8E1 /* EpisodeListView.swift */,
+				8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */,
 				8A6D33741B085330D540C26A /* LibraryView.swift */,
 				B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */,
+				4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */,
 				D9DB3D0F2A114836988051EA /* SettingsView.swift */,
 			);
 			path = App;
@@ -162,11 +177,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */,
+				831AB4FA8508AE4E4C7A8D8C /* AudioSettings.swift in Sources */,
+				964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */,
 				D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */,
 				91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */,
+				B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */,
 				0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */,
+				85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */,
 				C028E001E608E9F8DB9CDA35 /* LibraryView.swift in Sources */,
 				A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */,
+				02083153A9EF952A315DB5C5 /* PlaylistsView.swift in Sources */,
 				B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

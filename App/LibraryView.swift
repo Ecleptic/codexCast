@@ -7,32 +7,60 @@ struct LibraryView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if model.library.isEmpty {
-                    ContentUnavailableView(
-                        "No Subscriptions",
-                        systemImage: "square.stack",
-                        description: Text("Find shows in Discover, or add a feed by URL.")
-                    )
-                } else {
-                    List(model.library, id: \.id) { podcast in
-                        NavigationLink(value: podcast.id) {
-                            PodcastRow(podcast: podcast)
-                        }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    if !model.playlists.isEmpty {
+                        PlaylistStrip()
                     }
-                    .navigationDestination(for: CodexCastCore.Podcast.ID.self) { id in
-                        if let podcast = model.library.first(where: { $0.id == id }) {
-                            EpisodeListView(podcast: podcast)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Podcasts")
+                            .font(.title3.bold())
+                            .padding(.horizontal)
+
+                        if model.library.isEmpty {
+                            ContentUnavailableView(
+                                "No Subscriptions",
+                                systemImage: "square.stack",
+                                description: Text("Find shows in Discover, or add a feed by URL.")
+                            )
+                            .padding(.top, 40)
+                        } else {
+                            ForEach(model.library, id: \.id) { podcast in
+                                NavigationLink(value: podcast.id) {
+                                    PodcastRow(podcast: podcast)
+                                        .padding(.horizontal)
+                                }
+                                .buttonStyle(.plain)
+                                Divider().padding(.leading, 84)
+                            }
                         }
                     }
                 }
+                .padding(.vertical)
             }
             .navigationTitle("Library")
+            .navigationDestination(for: Podcast.ID.self) { id in
+                if let podcast = model.library.first(where: { $0.id == id }) {
+                    EpisodeListView(podcast: podcast)
+                }
+            }
+            .navigationDestination(for: Playlist.ID.self) { id in
+                if let playlist = model.playlists.first(where: { $0.id == id }) {
+                    PlaylistDetailView(playlist: playlist)
+                }
+            }
             .refreshable {
                 for podcast in model.library {
                     await model.refresh(podcast)
                 }
                 await model.reloadLibrary()
+                await model.enforceRetention()
+            }
+            .safeAreaInset(edge: .bottom) {
+                if model.nowPlaying != nil {
+                    MiniPlayerView()
+                }
             }
         }
         .task {
@@ -51,7 +79,7 @@ private struct PodcastRow: View {
             } placeholder: {
                 RoundedRectangle(cornerRadius: 8).fill(.quaternary)
             }
-            .frame(width: 56, height: 56)
+            .frame(width: 60, height: 60)
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 2) {
@@ -59,8 +87,8 @@ private struct PodcastRow: View {
                     .font(.headline)
                     .lineLimit(2)
                 if let author = podcast.author {
-                    Text(author)
-                        .font(.subheadline)
+                    Text(author.uppercased())
+                        .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -71,6 +99,13 @@ private struct PodcastRow: View {
                         .lineLimit(1)
                 }
             }
+
+            Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
         }
+        .contentShape(Rectangle())
     }
 }

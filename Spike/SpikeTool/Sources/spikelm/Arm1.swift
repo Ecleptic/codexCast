@@ -19,8 +19,12 @@ import SpikeShared
 @main
 struct SpikeLM {
     static func main() async {
+        setvbuf(stdout, nil, _IONBF, 0)
         let limit: Int
         let arguments = CommandLine.arguments
+        let only = arguments.firstIndex(of: "--only").flatMap { index in
+            index + 1 < arguments.count ? arguments[index + 1] : nil
+        }
         if let index = arguments.firstIndex(of: "--limit"), index + 1 < arguments.count {
             limit = Int(arguments[index + 1]) ?? .max
         } else {
@@ -28,7 +32,7 @@ struct SpikeLM {
         }
 
         do {
-            try await Arm1.run(limit: limit)
+            try await Arm1.run(limit: limit, only: only)
         } catch {
             FileHandle.standardError.write(Data("error: \(error)\n".utf8))
             exit(1)
@@ -64,14 +68,17 @@ enum Arm1 {
         var confidence: Double
     }
 
-    static func run(limit: Int) async throws {
+    static func run(limit: Int, only: String? = nil) async throws {
         let model = SystemLanguageModel.default
         guard case .available = model.availability else {
             print("model unavailable: \(model.availability)")
             exit(1)
         }
 
-        let episodes = Array(try Corpus.load(from: SpikeEnvironment.corpusDir).prefix(limit))
+        var all = try Corpus.load(from: SpikeEnvironment.corpusDir)
+        if let only { all = all.filter { $0.episodeTitle.lowercased().contains(only.lowercased()) } }
+        all.sort { $0.durationMs < $1.durationMs }
+        let episodes = Array(all.prefix(limit))
         var rows: [(CorpusEpisode, [ClosedRange<Int>])] = []
 
         print("Arm 1 — transcript-only, Apple on-device model (Mac preview, JSON mode)")
@@ -82,7 +89,8 @@ enum Arm1 {
             var failures = 0
             let windows = makeWindows(of: transcript)
 
-            for window in windows {
+            for (windowIndex, window) in windows.enumerated() {
+                print("    window \(windowIndex + 1)/\(windows.count)", terminator: "\r")
                 do {
                     let found = try await classify(window: window)
                     spans.append(contentsOf: found.compactMap { snap($0, to: transcript) })
@@ -93,6 +101,11 @@ enum Arm1 {
 
             let merged = EvalMetrics.mergeSpans(spans)
             let elapsed = Int(Date().timeIntervalSince(started))
+            // Diagnostic: predicted vs truth, so a zero score can be explained
+            // rather than merely reported.
+            let truth = EvalMetrics.mergeSpans(episode.adSpans())
+            print("      predicted: " + merged.map { "\($0.lowerBound/1000)-\($0.upperBound/1000)s" }.joined(separator: ", "))
+            print("      truth:     " + truth.map { "\($0.lowerBound/1000)-\($0.upperBound/1000)s" }.joined(separator: ", "))
             print("  \(episode.episodeTitle.prefix(26)): \(windows.count) windows, \(failures) failed, \(merged.count) segments, \(elapsed)s")
             rows.append((episode, merged))
         }

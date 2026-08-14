@@ -133,3 +133,59 @@ immediately after the intro, and is the same sponsor (Vanguard) with a similar
 script. One show, two episodes, and already position rules (§6.3) and text
 patterns (§5.2) would have caught the next episode's opening ad with no model
 inference. The design's core bet, visible in the first four labeled episodes.
+
+---
+
+## A5. Library management features (from reference screenshots, 2026-08-14)
+
+Cam supplied four screenshots from a current podcast app as the bar to meet.
+These are table stakes that §10/§12 gestured at but never specified.
+
+### A5.1 OPML import and export
+
+Already required by §8.1 and already implemented in `CodexCastFeeds`
+(`OPML.parse` / `OPML.export`, folder-flattening and dedupe included). What was
+missing is the UI: a plain **Import & Export** screen in Settings with two rows,
+plus the honest note that OPML carries subscriptions only — not episodes,
+playback positions, or (importantly here) any learned ad data. Export of the
+*learning* database is a separate feature (§6.10, A3).
+
+### A5.2 Playlists
+
+A named, ordered, filterable collection of episodes across shows — the primary
+way to actually listen, more so than browsing one show at a time.
+
+- A built-in **All Episodes** list that cannot be deleted.
+- User-created lists with a name, colour, and icon.
+- Rules-based membership: include/exclude specific shows, unplayed-only,
+  downloaded-only, sort order, and an episode cap.
+- Manual reordering within a list, which doubles as the Up Next queue from §12.
+
+The queue in §12 and playlists are the same object seen two ways; build one
+model, not two.
+
+### A5.3 Episode limits (retention) per show
+
+"Keep the N newest episodes" per podcast, with Unlimited as an option, edited
+from one screen listing every show — the screenshot's **Episode Limits**. This
+is §8.4's keep-latest-N made per-show and directly editable, and it matters far
+more with video (§8.3), where episodes are gigabytes rather than megabytes.
+
+Retention deletes downloaded *media* only. Transcripts, detected segments, and
+everything the learning layer accumulated are kept: they are small, and they
+are the part that cannot be re-derived cheaply.
+
+### A5.4 Audio settings screen
+
+One screen carrying what §10 specifies, global with per-show overrides through
+the existing three-state mechanism:
+
+- **Playback speed** with fine steps (the reference app shows 2.3×; Codex Cast
+  supports 0.5–5.0× per Cam's request — the labeler already goes to 5×)
+- **Smart Speed** — shorten silences (§10.2)
+- **Voice Boost** — clear, consistent volume (§10.1)
+- **Advanced effects** — mono downmix, EQ, volume normalization (§10.4)
+
+Wording note: the reference app labels its advanced group "Premium Audio
+Effects". Codex Cast has no premium tier and never will; the group is simply
+**Advanced**.

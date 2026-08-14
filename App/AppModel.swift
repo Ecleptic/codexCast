@@ -19,9 +19,14 @@ final class AppModel {
     let fetcher: FeedFetcher
     let search: ITunesSearchClient
     let player: PlaybackEngine
+    let playlistRepository: PlaylistRepository
+    let retention: RetentionPolicy
 
     private(set) var library: [PodcastRecord] = []
+    private(set) var playlists: [Playlist] = []
     private(set) var refreshError: String?
+    /// Global audio settings (A5.4). Per-show overrides resolve against these.
+    var audioSettings = AudioSettings()
 
     init() throws {
         let support = FileManager.default.urls(
@@ -36,12 +41,85 @@ final class AppModel {
         fetcher = FeedFetcher()
         search = ITunesSearchClient()
         player = PlaybackEngine()
+        playlistRepository = PlaylistRepository(database: database)
+        retention = RetentionPolicy(database: database)
     }
 
     // MARK: - Library
 
     func reloadLibrary() async {
         library = (try? await podcasts.all()) ?? []
+        try? await playlistRepository.ensureBuiltIns()
+        playlists = (try? await playlistRepository.all()) ?? []
+    }
+
+    // MARK: - Playlists (A5.2)
+
+    func episodes(in playlist: Playlist) async -> [EpisodeRecord] {
+        (try? await playlistRepository.episodes(in: playlist)) ?? []
+    }
+
+    func reorderPlaylist(_ id: Playlist.ID, episodeIDs: [Episode.ID]) async {
+        try? await playlistRepository.reorder(playlistID: id, episodeIDs: episodeIDs)
+    }
+
+    func addToUpNext(_ episode: EpisodeRecord) async {
+        guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }) else { return }
+        try? await playlistRepository.append(episodeID: episode.id, to: queue.id)
+    }
+
+    // MARK: - Retention (A5.3)
+
+    func setEpisodeLimit(_ limit: Int?, for podcastID: Podcast.ID) async {
+        try? await retention.setLimit(limit, podcastID: podcastID)
+        await reloadLibrary()
+    }
+
+    /// Applies every show's retention limit, deleting media only.
+    func enforceRetention() async {
+        for podcast in library {
+            guard let evictions = try? await retention.evictions(
+                podcastID: podcast.id,
+                nowPlayingEpisodeID: nowPlaying?.id
+            ) else { continue }
+
+            for eviction in evictions {
+                try? FileManager.default.removeItem(atPath: eviction.localPath)
+            }
+            try? await retention.markEvicted(evictions.map(\.episodeID))
+        }
+    }
+
+    // MARK: - OPML (A5.1)
+
+    func exportOPML() -> String {
+        OPML.export(
+            library.compactMap { podcast in
+                URL(string: podcast.feedURL).map { OPMLEntry(title: podcast.title, feedURL: $0) }
+            }
+        )
+    }
+
+    /// Subscribes to everything in an OPML file, skipping what fails so one
+    /// broken feed cannot abort the whole import.
+    func importOPML(_ entries: [OPMLEntry]) async -> Int {
+        var added = 0
+        for entry in entries {
+            do {
+                try await subscribe(feedURL: entry.feedURL)
+                added += 1
+            } catch {
+                continue
+            }
+        }
+        await reloadLibrary()
+        return added
+    }
+
+    // MARK: - Audio settings (A5.4)
+
+    func applyAudioSettings() {
+        player.setRate(audioSettings.speed)
     }
 
     /// Subscribes to a feed URL: fetch, parse, store the show and episodes.

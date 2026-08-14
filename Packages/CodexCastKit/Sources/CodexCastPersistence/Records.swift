@@ -38,6 +38,9 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
     public var lastModified: String?
     public var lastRefreshedAt: Date?
     public var lastErrorDescription: String?
+    /// Downloads to keep for this show; nil means unlimited (A5.3).
+    public var episodeLimit: Int?
+    public var autoDownloadEnabled: Bool
 
     public init(
         id: Podcast.ID = Podcast.ID(),
@@ -52,7 +55,9 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         etag: String? = nil,
         lastModified: String? = nil,
         lastRefreshedAt: Date? = nil,
-        lastErrorDescription: String? = nil
+        lastErrorDescription: String? = nil,
+        episodeLimit: Int? = nil,
+        autoDownloadEnabled: Bool = false
     ) {
         self.id = id
         self.feedURL = feedURL
@@ -67,6 +72,8 @@ public struct PodcastRecord: Codable, FetchableRecord, MutablePersistableRecord,
         self.lastModified = lastModified
         self.lastRefreshedAt = lastRefreshedAt
         self.lastErrorDescription = lastErrorDescription
+        self.episodeLimit = episodeLimit
+        self.autoDownloadEnabled = autoDownloadEnabled
     }
 
     public var domainModel: Podcast {

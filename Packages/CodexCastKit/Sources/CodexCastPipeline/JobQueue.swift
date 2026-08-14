@@ -152,10 +152,14 @@ public struct JobQueue: Sendable {
                 .filter { Self.exclusiveKinds.contains($0.kind) }
                 .map(\.kind)
 
+            // rowid breaks ties on createdAt: jobs enqueued in the same
+            // millisecond would otherwise come back in arbitrary order, making
+            // "oldest first" a coin flip.
             let candidates = try Job
-                .filter(Column("state") == "pending")
-                .order(Column("priority").desc, Column("createdAt"))
-                .fetchAll(db)
+                .fetchAll(db, sql: """
+                    SELECT * FROM jobs WHERE state = 'pending'
+                    ORDER BY priority DESC, createdAt ASC, rowid ASC
+                    """)
 
             guard var job = candidates.first(where: { candidate in
                 !(Self.exclusiveKinds.contains(candidate.kind)
@@ -209,9 +213,10 @@ public struct JobQueue: Sendable {
 
     public func jobs(inState state: Job.State) async throws -> [Job] {
         try await database.read { db in
-            try Job.filter(Column("state") == state.rawValue)
-                .order(Column("priority").desc, Column("createdAt"))
-                .fetchAll(db)
+            try Job.fetchAll(db, sql: """
+                SELECT * FROM jobs WHERE state = ?
+                ORDER BY priority DESC, createdAt ASC, rowid ASC
+                """, arguments: [state.rawValue])
         }
     }
 }

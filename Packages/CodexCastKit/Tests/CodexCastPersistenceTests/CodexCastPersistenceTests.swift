@@ -38,7 +38,8 @@ struct MigrationTests {
         let applied = try await queue.read { db in
             try AppDatabase.migrator.appliedMigrations(db)
         }
-        #expect(applied == ["v1.initial"])
+        // Every registered migration, applied exactly once.
+        #expect(applied == AppDatabase.migrator.migrations)
     }
 
     /// Deleting a show must not leave its episodes, transcripts, and segments

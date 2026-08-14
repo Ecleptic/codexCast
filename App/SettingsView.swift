@@ -4,6 +4,12 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    NavigationLink("Audio Settings") { AudioSettingsView() }
+                    NavigationLink("Episode Limits") { EpisodeLimitsView() }
+                    NavigationLink("Import & Export") { ImportExportView() }
+                }
+
                 Section("Privacy") {
                     // §12.1 — the product claim, stated plainly where it lives.
                     Text(
