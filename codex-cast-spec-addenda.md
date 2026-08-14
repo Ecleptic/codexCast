@@ -72,7 +72,13 @@ what kind of promotional content we've found in its episodes, e.g.:
   never name a specific platform in the UI.
 
 Badges are derived from confirmed/detected segment kinds per show, and give an
-at-a-glance answer to "what does this app actually do for this show?" This may
+at-a-glance answer to "what does this app actually do for this show?"
+
+Related idea from labeling Podcasting 2.0: some segments are worth *flagging
+without skipping* — e.g. a listener-mail/donation-reading section that is
+really part of the show. A future "flagged, not skipped" state would let the
+timeline mark these so the listener can jump past them by choice, without the
+app ever auto-skipping them. This may
 add a `membershipPlug` kind (or fold into `selfPromo` with a sub-tag) — decide
 when implementing; the existing `SegmentKind` enum was built to be extended.
 
