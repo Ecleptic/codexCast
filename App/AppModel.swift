@@ -482,7 +482,35 @@ final class AppModel {
             }
             scanState[episode.id] = .scanning(windowsDone: index + 1, windowsTotal: windows.count)
         }
-        let candidates = Self.mergeCandidates(rawSweeps)
+        // Chapter-shaped candidates (hybrid architecture, measured recall
+        // 0.36→0.82 on the corpus): topic-segment the transcript, then a
+        // chapter earns verification if the sweep flagged inside it OR it
+        // contains a lexical ad marker — "use promo code" can't appear in
+        // editorial content by accident, and unlike the sweep it can't doze
+        // off an hour into the episode.
+        let chapters = await Task.detached(priority: .userInitiated) { [transcript] in
+            TopicSegmenter.chapters(for: transcript)
+        }.value
+        var candidates: [(span: ClosedRange<Int>, agreement: Int)]
+        if let chapters {
+            candidates = []
+            for chapter in chapters {
+                let overlappingSweeps = rawSweeps.filter {
+                    $0.startMs < chapter.endMs && chapter.startMs < $0.endMs
+                }.count
+                let marker = LexicalAdMarkers.hit(
+                    transcript.text(fromMs: chapter.startMs, toMs: chapter.endMs)
+                )
+                guard overlappingSweeps > 0 || marker else { continue }
+                candidates.append((
+                    chapter.startMs...chapter.endMs,
+                    overlappingSweeps + (marker ? 1 : 0)
+                ))
+            }
+        } else {
+            // Embedding assets unavailable: candidates from the sweep alone.
+            candidates = Self.mergeCandidates(rawSweeps)
+        }
 
         // §5.7 calibration inputs.
         let calibrator = ConfidenceCalibrator(bins: (try? await calibration.bins()) ?? [])
@@ -509,6 +537,11 @@ final class AppModel {
             let endAnchor = verdict.lastWords.flatMap {
                 TranscriptQuoteLocator.locate(quote: $0, in: transcript, nearMs: candidate.span.upperBound)
             }
+            // Evidence must ground: a verdict whose quoted words appear
+            // nowhere in the transcript is a rubber stamp, and on the corpus
+            // the ungrounded approvals were exactly the false positives and
+            // the chapter-width boundary blowouts.
+            guard startAnchor != nil || endAnchor != nil else { continue }
             let start = startAnchor?.startMs
                 ?? transcript.nearestBoundary(toMs: candidate.span.lowerBound)
                 ?? candidate.span.lowerBound

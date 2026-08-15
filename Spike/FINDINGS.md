@@ -188,3 +188,32 @@ Remaining weaknesses, in order:
    quote fell back to the sweep span. Candidate-width cap worth considering.
 
 Shipped to the device path (guided generation) same day.
+
+## Hybrid: chapters + lexical markers + grounded verify (2026-08-15)
+
+Three-signal architecture measured on the corpus (Mac preview):
+
+| metric | two-pass | hybrid |
+|---|---|---|
+| located F1 | 0.42 | **0.75** |
+| located recall | 0.36 | **0.82** |
+| strict F1 | 0.42 | **0.50** |
+| boundary error | 10.8 s | 39.9 s |
+
+- TopicSegmenter (embedding TextTiling + TreeSeg smoothing) isolates ads
+  into their own chapters cleanly — the segmentation itself is excellent.
+- Pure chapters-first FAILED on precision: asked neutrally about every
+  chapter, the Mac-preview verifier approved 7-9 of 9. Lesson: two-pass
+  precision lives in the sweep's selectivity, not the verifier.
+- Hybrid: chapters are the unit of verification, but only chapters
+  earning suspicion (sweep overlap OR lexical ad marker) are judged.
+  Markers found the mid-rolls the sweep slept through: LUP 3/4 ads
+  (was 1/4), Tech Brew and Nextlander mid-rolls caught.
+- Boundary regression comes from verdicts whose quotes failed to locate,
+  falling back to chapter-width spans — which were ALSO where the false
+  positives lived. Device path therefore requires at least one grounded
+  quote anchor per verdict (ungrounded approval = rubber stamp), plus
+  Stage 3 silence snapping the Mac eval lacks.
+
+Shipped to the device path same day. Next measurement should be run
+on-device (guided generation, no JSON failures) before further tuning.
