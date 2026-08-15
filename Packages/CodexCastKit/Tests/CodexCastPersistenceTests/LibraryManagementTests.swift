@@ -321,3 +321,26 @@ struct RetentionTests {
         #expect(segmentCount == 1)
     }
 }
+
+@Suite("Discover re-follow backfill")
+struct ResubscribeBackfillTests {
+    @Test("Re-subscribing an OPML-imported show backfills the iTunes ID")
+    func backfillsCollectionID() async throws {
+        let podcasts = PodcastRepository(database: try AppDatabase.inMemory())
+        let url = URL(string: "https://example.com/feed.rss")!
+
+        // OPML import: no iTunes identity.
+        let imported = try await podcasts.subscribe(feedURL: url, title: "Show")
+        #expect(imported.itunesCollectionID == nil)
+
+        // Discover follow: same feed, now with the ID.
+        let followed = try await podcasts.subscribe(
+            feedURL: url, title: "Show", itunesCollectionID: 12345
+        )
+        #expect(followed.id == imported.id)
+        #expect(followed.itunesCollectionID == 12345)
+
+        let reloaded = try await podcasts.all().first { $0.id == imported.id }
+        #expect(reloaded?.itunesCollectionID == 12345)
+    }
+}

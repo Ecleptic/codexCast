@@ -24,10 +24,26 @@ public struct PodcastRepository: Sendable {
         itunesCollectionID: Int? = nil
     ) async throws -> PodcastRecord {
         try await database.write { db in
-            if let existing = try PodcastRecord
+            if var existing = try PodcastRecord
                 .filter(Column("feedURL") == feedURL.absoluteString)
                 .fetchOne(db)
             {
+                // Re-subscribing (e.g. tapping Follow in Discover on a show
+                // that arrived via OPML) backfills identity the first source
+                // didn't have — notably the iTunes ID, which is how Discover
+                // decides to show the checkmark instead of the button.
+                var changed = false
+                if existing.itunesCollectionID == nil, let itunesCollectionID {
+                    existing.itunesCollectionID = itunesCollectionID
+                    changed = true
+                }
+                if existing.imageURL == nil, let imageURL {
+                    existing.imageURL = imageURL.absoluteString
+                    changed = true
+                }
+                if changed {
+                    try existing.update(db)
+                }
                 return existing
             }
 

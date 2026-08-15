@@ -32,10 +32,17 @@ struct DiscoverView: View {
                     SearchResultRow(result: result) {
                         guard let feedURL = result.feedURL else { return }
                         Task {
-                            try? await model.subscribe(
-                                feedURL: feedURL,
-                                itunesCollectionID: result.collectionID
-                            )
+                            do {
+                                try await model.subscribe(
+                                    feedURL: feedURL,
+                                    itunesCollectionID: result.collectionID
+                                )
+                                statusMessage = nil
+                            } catch {
+                                // A dead button teaches the user the app is
+                                // broken; a reason teaches them what happened.
+                                statusMessage = "Couldn't add \(result.title): \(error.localizedDescription)"
+                            }
                         }
                     }
                 }
@@ -94,7 +101,12 @@ private struct SearchResultRow: View {
     let onSubscribe: () -> Void
 
     private var isSubscribed: Bool {
-        model.library.contains { $0.itunesCollectionID == result.collectionID }
+        // Match by feed URL as well as iTunes ID: shows imported via OPML
+        // have no iTunes ID until a re-follow backfills it.
+        model.library.contains {
+            $0.itunesCollectionID == result.collectionID
+                || (result.feedURL.map(\.absoluteString) == $0.feedURL)
+        }
     }
 
     var body: some View {
@@ -187,6 +199,7 @@ private struct ChartRow: View {
     @Environment(AppModel.self) private var model
     let entry: TopChartsClient.ChartEntry
     @State private var isWorking = false
+    @State private var errorText: String?
 
     private var isSubscribed: Bool {
         model.library.contains { $0.itunesCollectionID == entry.id }
@@ -207,6 +220,9 @@ private struct ChartRow: View {
                 if let artist = entry.artistName {
                     Text(artist).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
+                if let errorText {
+                    Text(errorText).font(.caption2).foregroundStyle(.red).lineLimit(2)
+                }
             }
 
             Spacer()
@@ -218,9 +234,15 @@ private struct ChartRow: View {
             } else {
                 Button("Follow") {
                     isWorking = true
+                    errorText = nil
                     Task {
-                        if let feedURL = try? await model.charts.feedURL(for: entry) {
-                            try? await model.subscribe(feedURL: feedURL, itunesCollectionID: entry.id)
+                        do {
+                            guard let feedURL = try await model.charts.feedURL(for: entry) else {
+                                throw HTTPError.status(404)
+                            }
+                            try await model.subscribe(feedURL: feedURL, itunesCollectionID: entry.id)
+                        } catch {
+                            errorText = "Couldn't add: \(error.localizedDescription)"
                         }
                         isWorking = false
                     }
