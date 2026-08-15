@@ -32,7 +32,11 @@ struct SpikeLM {
         }
 
         do {
-            try await Arm1.run(limit: limit, only: only)
+            if arguments.contains("--two-pass") {
+                try await TwoPass.run(limit: limit, only: only)
+            } else {
+                try await Arm1.run(limit: limit, only: only)
+            }
         } catch {
             FileHandle.standardError.write(Data("error: \(error)\n".utf8))
             exit(1)
