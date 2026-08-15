@@ -468,57 +468,80 @@ final class AppModel {
         scanState[episode.id] = .scanning(windowsDone: 0, windowsTotal: windows.count)
         classifier.prewarm(context: context)
 
-        var findings: [WindowFinding] = []
+        // Two-pass Stage 2, measured 6x better than single-pass on the
+        // corpus (strict F1 0.07→0.42, boundary error 49s→11s).
+        // Pass 1: recall-tuned sweep for candidate stretches.
+        var rawSweeps: [(startMs: Int, endMs: Int)] = []
         for (index, window) in windows.enumerated() {
             // Thermal courtesy (§5.3.6): back off rather than cook the phone.
             if ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue {
                 break
             }
-            if let result = try? await classifier.classify(window: window, context: context) {
-                findings.append(contentsOf: result)
+            if let spans = try? await classifier.sweep(window: window) {
+                rawSweeps.append(contentsOf: spans)
             }
             scanState[episode.id] = .scanning(windowsDone: index + 1, windowsTotal: windows.count)
         }
+        let candidates = Self.mergeCandidates(rawSweeps)
 
-        // §5.7: calibrate the model's self-reported scores against the
-        // listener's own correction history — or, when the model reports the
-        // same number for everything, fall back to how many overlapping
-        // windows agreed.
+        // §5.7 calibration inputs.
         let calibrator = ConfidenceCalibrator(bins: (try? await calibration.bins()) ?? [])
         let recentRaw = (try? await calibration.recentModelRawConfidences()) ?? []
+
+        // Pass 2: precision-tuned verification of each candidate. The
+        // verdict must cite evidence, and boundaries come from the quoted
+        // first/last words located in the transcript — the model copies far
+        // better than it counts.
+        var verdictConfidences: [Double] = []
+        var verified: [(candidate: (span: ClosedRange<Int>, agreement: Int),
+                        verdict: OnDeviceClassifier.Verification,
+                        startMs: Int, endMs: Int)] = []
+        for candidate in candidates {
+            let excerpt = Self.excerptPrompt(for: candidate.span, transcript: transcript)
+            guard let verdict = try? await classifier.verify(excerpt: excerpt, context: context),
+                  verdict.isAd
+            else { continue }
+            verdictConfidences.append(verdict.confidence)
+
+            let startAnchor = verdict.firstWords.flatMap {
+                TranscriptQuoteLocator.locate(quote: $0, in: transcript, nearMs: candidate.span.lowerBound)
+            }
+            let endAnchor = verdict.lastWords.flatMap {
+                TranscriptQuoteLocator.locate(quote: $0, in: transcript, nearMs: candidate.span.upperBound)
+            }
+            let start = startAnchor?.startMs
+                ?? transcript.nearestBoundary(toMs: candidate.span.lowerBound)
+                ?? candidate.span.lowerBound
+            let end = endAnchor?.endMs
+                ?? transcript.nearestBoundary(toMs: candidate.span.upperBound)
+                ?? candidate.span.upperBound
+            // Sub-5s output is noise; the gate floor applies at storage too.
+            guard end > start, end - start >= 5_000 else { continue }
+            guard !segments.contains(where: { $0.overlaps(startMs: start, endMs: end) }) else { continue }
+            verified.append((candidate, verdict, start, end))
+        }
+
         let degenerate = ConfidenceCalibrator.isDegenerate(
-            recentRawConfidences: recentRaw + findings.map(\.confidence)
+            recentRawConfidences: recentRaw + verdictConfidences
         )
 
-        // Snap, dedupe, gate — the same post-processing the harness uses.
-        for finding in TranscriptWindower.deduplicate(findings) {
-            guard let start = transcript.nearestBoundary(toMs: finding.startMs),
-                  let end = transcript.nearestBoundary(toMs: finding.endMs),
-                  end > start,
-                  // Sub-5s output is noise (a "0:51–0:51 sponsor read" was
-                  // stored on the first device run); the gate floor applies
-                  // at storage, not just playback.
-                  end - start >= 5_000
-            else { continue }
-            let overlapsPattern = segments.contains { $0.overlaps(startMs: start, endMs: end) }
-            guard !overlapsPattern else { continue }
-
+        for entry in verified {
             // §6.2: a sponsor the model named becomes (or joins) a registry
             // entity, so the same sponsor on a different show is recognized.
             var sponsorID: UUID?
-            if let sponsorName = finding.sponsor, !sponsorName.isEmpty {
+            if let sponsorName = entry.verdict.sponsor {
                 sponsorID = try? await sponsors.findOrCreate(name: sponsorName)
             }
 
-            let raw = finding.confidence
+            let raw = entry.verdict.confidence
             let confidence: Double
             if degenerate {
                 let possible = windows.filter { window in
                     guard let first = window.cues.first, let last = window.cues.last else { return false }
-                    return first.startMs < end && last.endMs > start
+                    return first.startMs < entry.endMs && last.endMs > entry.startMs
                 }.count
                 confidence = ConfidenceCalibrator.agreementConfidence(
-                    agreeing: finding.agreementCount, possible: possible
+                    agreeing: entry.candidate.agreement, possible: max(possible, 1)
                 )
             } else if calibrator.hasHistory(stage: "onDeviceModel") {
                 confidence = calibrator.calibrated(stage: "onDeviceModel", rawConfidence: raw)
@@ -528,12 +551,13 @@ final class AppModel {
 
             segments.append(DetectedSegment(
                 episodeID: episode.id,
-                startMs: start, endMs: end,
-                kind: finding.kind,
+                startMs: entry.startMs, endMs: entry.endMs,
+                kind: entry.verdict.kind,
                 confidence: confidence,
                 rawConfidence: raw,
                 provenance: .onDeviceModel(windowIndex: 0, modelTier: "afm-device"),
-                rationale: finding.rationale,
+                rationale: entry.verdict.sponsor.map { "Sponsor read for \($0)" }
+                    ?? "Promotional read detected",
                 sponsorID: sponsorID
             ))
         }
@@ -594,6 +618,46 @@ final class AppModel {
 
         let elapsed = Int(Date().timeIntervalSince(started))
         scanState[episode.id] = .done(found: segments.count, seconds: elapsed)
+    }
+
+    /// Overlapping sweep spans collapse into one candidate; the count of
+    /// spans that merged is the §5.7 agreement signal.
+    static func mergeCandidates(
+        _ spans: [(startMs: Int, endMs: Int)]
+    ) -> [(span: ClosedRange<Int>, agreement: Int)] {
+        let sorted = spans.sorted { $0.startMs < $1.startMs }
+        var merged: [(span: ClosedRange<Int>, agreement: Int)] = []
+        for span in sorted {
+            guard span.endMs > span.startMs else { continue }
+            if let last = merged.last, span.startMs <= last.span.upperBound + 5_000 {
+                merged[merged.count - 1] = (
+                    min(last.span.lowerBound, span.startMs)...max(last.span.upperBound, span.endMs),
+                    last.agreement + 1
+                )
+            } else {
+                merged.append((span.startMs...span.endMs, 1))
+            }
+        }
+        return merged
+    }
+
+    /// The verify prompt: the candidate ±60s of transcript, timestamped,
+    /// with the flagged range stated up front.
+    static func excerptPrompt(for span: ClosedRange<Int>, transcript: TimedTranscript) -> String {
+        let lines = transcript.segments
+            .filter { $0.endMs > span.lowerBound - 60_000 && $0.startMs < span.upperBound + 60_000 }
+            .map { cue in
+                let seconds = cue.startMs / 1000
+                return String(format: "[%d:%02d] %@", seconds / 60, seconds % 60, cue.text)
+            }
+        let from = span.lowerBound / 1000
+        let to = span.upperBound / 1000
+        return """
+        A first pass flagged [\(from / 60):\(String(format: "%02d", from % 60))] to \
+        [\(to / 60):\(String(format: "%02d", to % 60))] as possible advertising.
+
+        \(lines.joined(separator: "\n"))
+        """
     }
 
     /// §6.6 cold-start exemplars: product NEWS that superficially resembles

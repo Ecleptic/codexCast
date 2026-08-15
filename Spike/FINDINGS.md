@@ -155,3 +155,36 @@ product, exactly as §1 claimed.
 3. Loudness-delta features to complete arm 4.
 4. The §14.5 go/no-go: audio earns a place only if fused beats transcript-only
    by ≥0.05 F1 or materially reduces boundary error, at acceptable thermal cost.
+
+## Two-pass with quote-anchored boundaries (2026-08-15, Mac preview)
+
+Same-day, same-model comparison on the 6-episode corpus. "Baseline" is the
+Arm 1 single-pass approach re-run fresh; day-to-day model variance is real
+(this baseline scored below the earlier Arm 1 run), which is exactly why the
+comparison was run side by side.
+
+| metric | single-pass baseline | two-pass + quote anchors |
+|---|---|---|
+| strict F1 (skippable as-is) | 0.07 | **0.42** |
+| located F1 (found the ad) | 0.22 | **0.42** |
+| located precision | 0.19 | **0.50** |
+| mean boundary error | 49.3 s | **10.8 s** |
+
+Tech Brew "new pixels" scored strict F1 1.00 — found and skippable exactly.
+
+Architecture: pass 1 sweeps windows recall-tuned for candidate stretches;
+pass 2 re-examines each candidate ±60s and must name the sponsor and QUOTE
+the read's exact first/last words; `TranscriptQuoteLocator` turns those
+quotes into cue-edge boundaries. Small models copy far better than they
+count.
+
+Remaining weaknesses, in order:
+1. Mid-roll recall — every pre-roll was found, most mid-rolls missed. Partly
+   masked by ~30% JSON-mode window failures on the Mac, which guided
+   generation eliminates on device; re-measure there before tuning further.
+2. Podcasting 2.0 control still produces one merged false positive (down
+   from five in the field) — the "discussing ads" trap survives pass 2.
+3. Nextlander end-boundary overshot (0-220s vs 4-33s truth): a bad lastWords
+   quote fell back to the sweep span. Candidate-width cap worth considering.
+
+Shipped to the device path (guided generation) same day.

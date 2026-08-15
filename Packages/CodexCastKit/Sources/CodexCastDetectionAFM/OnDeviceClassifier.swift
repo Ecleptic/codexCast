@@ -39,6 +39,55 @@ struct AdSegmentCandidate {
     var rationale: String
 }
 
+// MARK: - Two-pass output schemas
+//
+// Measured on the corpus (Mac preview, 2026-08-15): two-pass with
+// quote-anchored boundaries took strict F1 0.07→0.42 and boundary error
+// 49s→11s over the single-pass baseline. The sweep casts a wide net; the
+// verifier demands evidence; boundaries come from quotes, not arithmetic.
+
+@Generable
+struct SweepOutput {
+    @Guide(description: "Every stretch that might plausibly be advertising or promotion. Wide net; a later step rejects false alarms. Empty if none.")
+    var candidates: [SweepCandidate]
+}
+
+@Generable
+struct SweepCandidate {
+    @Guide(description: "Approximate start in whole seconds, from the line timestamps.")
+    var startSeconds: Int
+
+    @Guide(description: "Approximate end in whole seconds.")
+    var endSeconds: Int
+
+    @Guide(description: "The few words that made this look promotional.")
+    var hint: String
+}
+
+/// Property order is the reasoning order: evidence (sponsor, quotes) is
+/// generated BEFORE the verdict and confidence, so the decision conditions
+/// on the evidence instead of the other way around.
+@Generable
+struct VerifyOutput {
+    @Guide(description: "The advertiser or product being promoted, or empty if none is named.")
+    var sponsor: String
+
+    @Guide(description: "The EXACT first 8-12 words of the promotional read, copied verbatim from the excerpt. Empty if there is no real promotional read.")
+    var firstWords: String
+
+    @Guide(description: "The EXACT last 8-12 words of the promotional read, copied verbatim from the excerpt. Empty if there is no real promotional read.")
+    var lastWords: String
+
+    @Guide(.anyOf(["ad", "sponsor_read", "self_promo", "none"]))
+    var kind: String
+
+    @Guide(description: "True only if the excerpt contains a real promotional read addressing the listener.")
+    var isAd: Bool
+
+    @Guide(description: "Confidence from 0.0 to 1.0. Below 0.5 if no specific advertiser AND no offer, URL, or promo code is named.")
+    var confidence: Double
+}
+
 /// Stage 2: the on-device Apple Foundation model (§5.3, §7.1).
 ///
 /// Default classifier, and the only one enabled at ship. Instructions are the
@@ -112,6 +161,94 @@ public struct OnDeviceClassifier: AdClassifier {
     public func prewarm(context: ClassificationContext) {
         let session = LanguageModelSession(instructions: instructions(for: context))
         session.prewarm()
+    }
+
+    // MARK: - Two-pass detection
+
+    /// Pass 1: recall-tuned sweep of one window. Approximate spans only —
+    /// the verifier owns precision and the quote anchors own boundaries.
+    public func sweep(window: TranscriptWindow) async throws -> [(startMs: Int, endMs: Int)] {
+        let session = LanguageModelSession(instructions: sweepInstructions)
+        let response = try await session.respond(
+            to: window.promptText(),
+            generating: SweepOutput.self
+        )
+        return response.content.candidates.compactMap { candidate in
+            guard candidate.endSeconds > candidate.startSeconds else { return nil }
+            return (candidate.startSeconds * 1000, candidate.endSeconds * 1000)
+        }
+    }
+
+    public struct Verification: Sendable {
+        public var isAd: Bool
+        public var kind: SegmentKind
+        public var sponsor: String?
+        public var firstWords: String?
+        public var lastWords: String?
+        public var confidence: Double
+    }
+
+    /// Pass 2: precision-tuned judgment of one candidate, given the excerpt
+    /// text with timestamps. The verdict must cite evidence — sponsor and
+    /// verbatim first/last words — generated before the yes/no.
+    public func verify(
+        excerpt: String,
+        context: ClassificationContext
+    ) async throws -> Verification {
+        let session = LanguageModelSession(instructions: verifyInstructions(for: context))
+        let response = try await session.respond(to: excerpt, generating: VerifyOutput.self)
+        let output = response.content
+        return Verification(
+            isAd: output.isAd && output.kind != "none",
+            kind: SegmentKind(modelValue: output.kind == "none" ? "ad" : output.kind),
+            sponsor: output.sponsor.isEmpty ? nil : output.sponsor,
+            firstWords: output.firstWords.isEmpty ? nil : output.firstWords,
+            lastWords: output.lastWords.isEmpty ? nil : output.lastWords,
+            confidence: min(max(output.confidence, 0), 1)
+        )
+    }
+
+    let sweepInstructions = """
+    You scan podcast transcripts for stretches that might be advertising. \
+    Each line has a [mm:ss] timestamp.
+
+    Flag ANY stretch that could plausibly be: a paid advertisement, a \
+    host-read sponsor message, or the show promoting its own products or \
+    memberships. This is a first pass — casting a wide net is fine; a later \
+    step rejects false alarms. Do not agonize over exact boundaries. Ads \
+    commonly run back-to-back in blocks of two to four; finding one raises \
+    the chance another follows immediately.
+    """
+
+    func verifyInstructions(for context: ClassificationContext) -> String {
+        var text = """
+        You judge whether a flagged stretch of a podcast transcript is \
+        actually advertising. Each line has a [mm:ss] timestamp.
+
+        A real promotional read addresses the listener directly with a call \
+        to action — "you should try", "go to", "use code", "sign up" — and \
+        names a specific advertiser or offer. News or reviews describing a \
+        product in the third person, with no action asked of the listener, \
+        are CONTENT, however commercial they sound. Discussion ABOUT \
+        advertising is content.
+
+        When a real promotional read is present, copy its exact first 8-12 \
+        words and last 8-12 words verbatim from the excerpt — these place \
+        the skip boundaries, so they must be character-accurate.
+
+        This episode is from the show "\(context.showName)".
+        """
+        if !context.knownSponsors.isEmpty {
+            text += "\n\nThese advertisers have appeared on this show before; presence is evidence, not proof: "
+            text += context.knownSponsors.joined(separator: ", ") + "."
+        }
+        if let notes = context.showNotes {
+            text += "\n\nShow notes from the listener: \(notes)"
+        }
+        for exemplar in context.negativeExemplars {
+            text += "\n\nExample of a passage that looks like an ad but is CONTENT — do not flag passages like this: \"\(exemplar)\""
+        }
+        return text
     }
 
     // MARK: - Instructions (classify_v1)
