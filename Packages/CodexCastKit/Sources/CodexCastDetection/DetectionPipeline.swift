@@ -127,7 +127,7 @@ public struct DetectionPipeline: Sendable {
 
     /// Groups segments separated by less than 5 seconds under a shared chunk,
     /// keeping them individually correctable (§5.5).
-    static func assignChunks(_ segments: [DetectedSegment]) -> [DetectedSegment] {
+    public static func assignChunks(_ segments: [DetectedSegment]) -> [DetectedSegment] {
         guard !segments.isEmpty else { return [] }
         var result = segments
         var chunkID = UUID()

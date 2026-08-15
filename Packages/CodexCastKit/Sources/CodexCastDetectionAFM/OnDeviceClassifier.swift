@@ -134,9 +134,20 @@ public struct OnDeviceClassifier: AdClassifier {
         offer, a URL, a promo code, "thanks to X for sponsoring") is a \
         sponsor_read.
 
+        The decisive test is WHO is being addressed. A sponsor read speaks \
+        to the listener in the second person with a call to action: "you \
+        should try", "go to", "use code", "sign up today". News or reviews \
+        describe a product in the third person — specs, pricing, launch \
+        dates, quotes — with no action asked of the listener. A tech show \
+        reporting on a product launch reads a lot like an ad; if nobody asks \
+        the listener to do anything, it is content.
+
         Precision matters more than recall. A false positive cuts real \
         content and is far more annoying than a missed ad. When uncertain, \
-        report the segment with low confidence rather than omitting it.
+        report the segment with low confidence rather than omitting it. \
+        Calibrate concretely: if the segment names no specific advertiser \
+        AND contains no offer, URL, or promo code, your confidence must be \
+        below 0.5.
 
         Report start and end times in whole seconds from the start of the \
         episode, using the line timestamps.
@@ -152,7 +163,7 @@ public struct OnDeviceClassifier: AdClassifier {
             text += "\n\nShow notes from the listener: \(notes)"
         }
         for exemplar in context.negativeExemplars {
-            text += "\n\nThis passage from this show was previously misclassified as an ad; it is content: \"\(exemplar)\""
+            text += "\n\nExample of a passage that looks like an ad but is CONTENT — do not flag passages like this: \"\(exemplar)\""
         }
         return text
     }

@@ -367,6 +367,14 @@ final class AppModel {
                 if !text.isEmpty { exemplars.append(String(text.prefix(400))) }
             }
         }
+        // Cold start: a show with no correction history gets built-in
+        // exemplars of the demonstrated failure mode — tech coverage that
+        // reads like sponsor copy. The first field test produced five
+        // confident false positives on exactly this, before any teaching
+        // signal existed to prevent it.
+        if exemplars.isEmpty {
+            exemplars = Self.coldStartNegativeExemplars
+        }
 
         let context = ClassificationContext(
             showName: showName,
@@ -376,31 +384,6 @@ final class AppModel {
         )
 
         let started = Date()
-        // §5.3.2: window size derives from the model's context and this
-        // transcript's measured density — never a hardcoded token budget.
-        let windowConfiguration = TranscriptWindower.Configuration.fitted(
-            to: transcript,
-            contextTokens: OnDeviceClassifier.contextWindowTokens,
-            reservedTokens: classifier.reservedTokens(for: context)
-        )
-        let windows = TranscriptWindower.windows(
-            for: transcript, configuration: windowConfiguration
-        )
-        scanState[episode.id] = .scanning(windowsDone: 0, windowsTotal: windows.count)
-        classifier.prewarm(context: context)
-
-        var findings: [WindowFinding] = []
-        for (index, window) in windows.enumerated() {
-            // Thermal courtesy (§5.3.6): back off rather than cook the phone.
-            if ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue {
-                break
-            }
-            if let result = try? await classifier.classify(window: window, context: context) {
-                findings.append(contentsOf: result)
-            }
-            scanState[episode.id] = .scanning(windowsDone: index + 1, windowsTotal: windows.count)
-        }
-
         var segments: [DetectedSegment] = []
 
         // Stage 0 (§5.1): position rules — free, and on regularly-heard shows
@@ -457,6 +440,44 @@ final class AppModel {
                     ))
                 }
             }
+        }
+
+        // Stage 2 dispatch honors what Stages 0/1 already resolved (§5.3.2):
+        // fully-resolved windows are never sent to the model at all, and
+        // partially-resolved ones carry "[already identified]" annotations —
+        // which both cuts inference time on well-learned shows (the Phase 3
+        // acceptance metric) and helps the model spot the next spot in a
+        // stacked ad break.
+        let resolved = segments.map {
+            TranscriptWindow.ResolvedRegion(
+                startMs: $0.startMs, endMs: $0.endMs,
+                label: $0.kind == .ad ? "AD" : $0.kind.rawValue.uppercased()
+            )
+        }
+
+        // §5.3.2: window size derives from the model's context and this
+        // transcript's measured density — never a hardcoded token budget.
+        let windowConfiguration = TranscriptWindower.Configuration.fitted(
+            to: transcript,
+            contextTokens: OnDeviceClassifier.contextWindowTokens,
+            reservedTokens: classifier.reservedTokens(for: context)
+        )
+        let windows = TranscriptWindower.windows(
+            for: transcript, resolved: resolved, configuration: windowConfiguration
+        )
+        scanState[episode.id] = .scanning(windowsDone: 0, windowsTotal: windows.count)
+        classifier.prewarm(context: context)
+
+        var findings: [WindowFinding] = []
+        for (index, window) in windows.enumerated() {
+            // Thermal courtesy (§5.3.6): back off rather than cook the phone.
+            if ProcessInfo.processInfo.thermalState.rawValue >= ProcessInfo.ThermalState.serious.rawValue {
+                break
+            }
+            if let result = try? await classifier.classify(window: window, context: context) {
+                findings.append(contentsOf: result)
+            }
+            scanState[episode.id] = .scanning(windowsDone: index + 1, windowsTotal: windows.count)
         }
 
         // §5.7: calibrate the model's self-reported scores against the
@@ -555,6 +576,10 @@ final class AppModel {
             }
         }
 
+        // §5.5: adjacent spots in one ad break share a chunk, so playback
+        // skips the whole break in one jump instead of skip-play-skip.
+        segments = DetectionPipeline.assignChunks(segments.sorted { $0.startMs < $1.startMs })
+
         try? await segmentRepository.replaceMachineSegments(segments, episodeID: episode.id)
 
         // Every stored proposal opens its calibration bin (§6.4's table).
@@ -570,6 +595,25 @@ final class AppModel {
         let elapsed = Int(Date().timeIntervalSince(started))
         scanState[episode.id] = .done(found: segments.count, seconds: elapsed)
     }
+
+    /// §6.6 cold-start exemplars: product NEWS that superficially resembles
+    /// sponsor copy — specs, pricing, availability — but addresses nobody
+    /// and asks nothing. Used only until a show has its own rejections.
+    private static let coldStartNegativeExemplars = [
+        """
+        The new flagship ships next month starting at seven ninety nine with \
+        the upgraded camera system and the faster chip they announced at the \
+        event. Reviewers who got early units say battery life is the real \
+        story — nearly two days in mixed use. Preorders open Friday and \
+        analysts expect it to outsell last year's model.
+        """,
+        """
+        The startup raised a forty million dollar series B to expand its \
+        developer platform. Their pitch is that you write the config once \
+        and it deploys anywhere. The CEO told us the free tier isn't going \
+        anywhere, though enterprise pricing is going up in January.
+        """,
+    ]
 
     /// The gate's verdict for an episode, driving both the UI and skipping.
     func gatedSegments(for episode: EpisodeRecord) async -> ValidationGate.Outcome? {
@@ -1095,7 +1139,7 @@ final class AppModel {
             }
             await MainActor.run { [weak self] in
                 guard let self, self.nowPlaying?.id == episodeID else { return }
-                self.player.setTrimSilence(gaps: map.gaps, enabled: true)
+                self.player.setTrimSilence(gaps: map.trimGaps, enabled: true)
             }
         }
     }
@@ -1109,9 +1153,7 @@ final class AppModel {
         var blocks: [SkipBlock] = []
         let effective = overrides(for: episode.podcastId).autoSkipAds ?? enabled
         if effective, let outcome = await gatedSegments(for: episode) {
-            blocks = outcome.autoSkippable.map {
-                SkipBlock(startMs: $0.startMs, endMs: $0.endMs, segmentIDs: [$0.id])
-            }
+            blocks = skipBlocks(from: outcome.autoSkippable)
         }
         player.updateTimeline(DisplayTimeline(
             mediaDurationMs: episode.durationMs ?? player.timeline.mediaDurationMs,
@@ -1423,11 +1465,34 @@ final class AppModel {
         var blocks: [SkipBlock] = []
         let skipEnabled = overrides(for: episode.podcastId).autoSkipAds ?? audioSettings.autoSkipAds
         if skipEnabled, let outcome = await gatedSegments(for: episode) {
-            blocks = outcome.autoSkippable.map { segment in
-                SkipBlock(startMs: segment.startMs, endMs: segment.endMs, segmentIDs: [segment.id])
-            }
+            blocks = skipBlocks(from: outcome.autoSkippable)
         }
         startPlayback(episode, startAtMs: startAtMs, blocks: blocks)
+    }
+
+    /// §5.5: segments sharing a chunk are one ad break — one block, one jump,
+    /// no skip-play-skip stutter through a stack of back-to-back spots.
+    private func skipBlocks(from segments: [DetectedSegment]) -> [SkipBlock] {
+        var byChunk: [UUID: [DetectedSegment]] = [:]
+        var singles: [DetectedSegment] = []
+        for segment in segments {
+            if let chunk = segment.chunkID {
+                byChunk[chunk, default: []].append(segment)
+            } else {
+                singles.append(segment)
+            }
+        }
+        var blocks = singles.map {
+            SkipBlock(startMs: $0.startMs, endMs: $0.endMs, segmentIDs: [$0.id])
+        }
+        for group in byChunk.values {
+            blocks.append(SkipBlock(
+                startMs: group.map(\.startMs).min() ?? 0,
+                endMs: group.map(\.endMs).max() ?? 0,
+                segmentIDs: group.map(\.id)
+            ))
+        }
+        return blocks.sorted { $0.startMs < $1.startMs }
     }
 
     /// Segments of the playing episode, for the seek-bar overlay.

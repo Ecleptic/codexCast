@@ -16,9 +16,19 @@ public struct SilenceMap: Codable, Sendable {
         self.mediaDurationMs = mediaDurationMs
     }
 
+    /// Everything down to a breath is stored — Stage 3 boundary snapping
+    /// (§5.4) needs the half-second pause before "this episode is brought to
+    /// you by", which trimming would never care about.
+    public static let minimumStoredGapMs = 180
+
     /// Gaps worth speeding through. Shorter pauses are natural speech rhythm;
     /// removing them is what makes aggressive trim settings sound breathless.
     public static let minimumTrimGapMs = 600
+
+    /// The subset of gaps Smart Speed glides through.
+    public var trimGaps: [SilenceDetector.Gap] {
+        gaps.filter { $0.durationMs >= Self.minimumTrimGapMs }
+    }
 
     /// Decodes the whole file in chunks, keeping only per-frame energies
     /// (about 180k doubles for an hour — the samples themselves never
@@ -67,7 +77,7 @@ public struct SilenceMap: Codable, Sendable {
         }
 
         let gaps = detector.gaps(
-            energies: energies, minimumDurationMs: Self.minimumTrimGapMs
+            energies: energies, minimumDurationMs: Self.minimumStoredGapMs
         )
         let durationMs = Int(Double(file.length) / sampleRate * 1000)
         return SilenceMap(gaps: gaps, mediaDurationMs: durationMs)

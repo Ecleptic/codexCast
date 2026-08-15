@@ -99,7 +99,10 @@ public struct SegmentRepository: Sendable {
     }
 
     /// The most recent rejections on this show — the source for §6.6 negative
-    /// exemplars: passages the model called ads and the listener overruled.
+    /// exemplars: passages the MODEL called ads and the listener overruled.
+    /// Scoped to model provenance on purpose: a rejected position-rule
+    /// pre-roll teaches the rule (via missCount), not the model, and must not
+    /// crowd a useful exemplar out of the two prompt slots.
     public func recentRejections(
         podcastID: Podcast.ID, limit: Int = 2
     ) async throws -> [RejectedSpan] {
@@ -112,6 +115,7 @@ public struct SegmentRepository: Sendable {
                 FROM detected_segments
                 JOIN episodes ON episodes.id = detected_segments.episodeId
                 WHERE episodes.podcastId = ? AND detected_segments.userState = 'rejected'
+                  AND detected_segments.provenance LIKE '%onDeviceModel%'
                 ORDER BY detected_segments.reviewedAt DESC
                 LIMIT ?
                 """,
