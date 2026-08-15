@@ -1441,10 +1441,18 @@ final class AppModel {
     /// Media playback, not a sound effect: without the .playback category,
     /// audio follows the ringer switch and dies when the screen locks — the
     /// exact behavior Cam hit on the first real listen.
+    ///
+    /// Category only. Activation lives in `activateAudioSession`, called from
+    /// the engine's onWillPlay hook: activating is what interrupts every
+    /// other app's audio, and doing it at launch (session restore loads the
+    /// last episode paused) silenced whatever Cam was listening to.
     private func configureAudioSession() {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .spokenAudio, policy: .longFormAudio)
-        try? session.setActive(true)
+    }
+
+    private func activateAudioSession() {
+        try? AVAudioSession.sharedInstance().setActive(true)
     }
 
     /// Wired once: engine callbacks for persistence, lock screen, and the
@@ -1455,6 +1463,10 @@ final class AppModel {
     private func installPlaybackCallbacks() {
         guard !callbacksInstalled else { return }
         callbacksInstalled = true
+
+        player.onWillPlay = { [weak self] in
+            self?.activateAudioSession()
+        }
 
         player.onPositionTick = { [weak self] positionMs in
             guard let self, let episode = self.nowPlaying else { return }

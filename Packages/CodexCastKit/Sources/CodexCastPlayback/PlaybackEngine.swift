@@ -90,6 +90,12 @@ public final class PlaybackEngine {
     /// Fires when the loaded item plays to its end — the hook queue
     /// advancement hangs off. Listening is a session, not one-off plays.
     public var onPlaybackEnded: (@MainActor () -> Void)?
+    /// Fires just before playback actually starts — where the app activates
+    /// the audio session. Activation interrupts every other app's audio, so
+    /// it must happen HERE and never merely on load: restoring the last
+    /// episode paused at launch must not silence whatever the user is
+    /// listening to.
+    public var onWillPlay: (@MainActor () -> Void)?
 
     private let player: AVPlayer
     /// Observer tokens live outside the actor so they can be removed from
@@ -183,6 +189,7 @@ public final class PlaybackEngine {
     // MARK: - Transport
 
     public func play() {
+        onWillPlay?()
         player.play()
         isPlaying = true
         applyTrimRate()
