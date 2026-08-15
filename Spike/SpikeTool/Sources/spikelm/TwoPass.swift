@@ -134,7 +134,7 @@ enum TwoPass {
     }
 
     static func verify(
-        _ candidate: ClosedRange<Int>, transcript: TimedTranscript
+        _ candidate: ClosedRange<Int>, transcript: TimedTranscript, primed: Bool = true
     ) async throws -> Verdict? {
         let contextStart = candidate.lowerBound - 60_000
         let contextEnd = candidate.upperBound + 60_000
@@ -147,9 +147,21 @@ enum TwoPass {
         guard !lines.isEmpty else { return nil }
         let flaggedFrom = candidate.lowerBound / 1000
         let flaggedTo = candidate.upperBound / 1000
+        // Priming matters: "a first pass flagged this" is appropriate for a
+        // genuinely suspicious candidate, but asked of EVERY chapter it is a
+        // leading question — the first chapters run said yes to 7 of 9.
+        let header = primed
+            ? """
+            A first pass flagged [\(flaggedFrom / 60):\(String(format: "%02d", flaggedFrom % 60))] to \
+            [\(flaggedTo / 60):\(String(format: "%02d", flaggedTo % 60))] as possible advertising.
+            """
+            : """
+            Below is one chapter of the episode ([\(flaggedFrom / 60):\(String(format: "%02d", flaggedFrom % 60))] to \
+            [\(flaggedTo / 60):\(String(format: "%02d", flaggedTo % 60))]), with a little surrounding \
+            context. Most chapters are ordinary content.
+            """
         let prompt = """
-        A first pass flagged [\(flaggedFrom / 60):\(String(format: "%02d", flaggedFrom % 60))] to \
-        [\(flaggedTo / 60):\(String(format: "%02d", flaggedTo % 60))] as possible advertising.
+        \(header)
 
         \(lines.joined(separator: "\n"))
         """

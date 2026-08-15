@@ -32,7 +32,11 @@ struct SpikeLM {
         }
 
         do {
-            if arguments.contains("--two-pass") {
+            if arguments.contains("--hybrid") {
+                try await Hybrid.run(limit: limit, only: only)
+            } else if arguments.contains("--chapters") {
+                try await ChaptersFirst.run(limit: limit, only: only)
+            } else if arguments.contains("--two-pass") {
                 try await TwoPass.run(limit: limit, only: only)
             } else {
                 try await Arm1.run(limit: limit, only: only)
