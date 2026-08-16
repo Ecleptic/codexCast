@@ -47,6 +47,12 @@ struct AdSegmentCandidate {
 // verifier demands evidence; boundaries come from quotes, not arithmetic.
 
 @Generable
+struct ChapterTitleOutput {
+    @Guide(description: "Three to six words naming the chapter's topic. No quotes or punctuation.")
+    var title: String
+}
+
+@Generable
 struct SweepOutput {
     @Guide(description: "Every stretch that might plausibly be advertising or promotion. Wide net; a later step rejects false alarms. Empty if none.")
     var candidates: [SweepCandidate]
@@ -206,6 +212,24 @@ public struct OnDeviceClassifier: AdClassifier {
             lastWords: output.lastWords.isEmpty ? nil : output.lastWords,
             confidence: min(max(output.confidence, 0), 1)
         )
+    }
+
+    // MARK: - Chapter titling (§5.8)
+
+    /// A short topic title for one generated chapter. Same windowing
+    /// discipline as classification: one session, bounded excerpt.
+    public func chapterTitle(excerpt: String) async throws -> String {
+        let session = LanguageModelSession(instructions: """
+        You title podcast chapters. Given an excerpt from one chapter of a \
+        podcast transcript, respond with a title of three to six words \
+        naming its topic. No quotes, no punctuation, no "Chapter".
+        """)
+        let response = try await session.respond(
+            to: String(excerpt.prefix(1_200)),
+            generating: ChapterTitleOutput.self
+        )
+        let title = response.content.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return title.isEmpty ? "Chapter" : String(title.prefix(60))
     }
 
     let sweepInstructions = """

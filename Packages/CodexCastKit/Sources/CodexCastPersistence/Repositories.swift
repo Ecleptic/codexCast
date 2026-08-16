@@ -580,6 +580,66 @@ public struct CorrectionRepository: Sendable {
         self.database = database
     }
 
+    /// §6.8 implicit signal: weak evidence from how the listener behaves —
+    /// never authoritative, may never create or disable a rule on its own.
+    public func recordSignal(
+        episodeID: Episode.ID,
+        kind: String,
+        positionMs: Int,
+        weight: Double = 1.0
+    ) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: """
+                INSERT INTO playback_signals (episodeId, kind, positionMs, weight, createdAt)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                arguments: [episodeID, kind, positionMs, weight, Date()]
+            )
+        }
+    }
+
+    /// The learned systematic bias of machine boundaries, from
+    /// adjust-boundaries corrections: mean signed (corrected − proposed)
+    /// per edge, per show. FINDINGS measured the model drawing boundaries
+    /// consistently EARLY — a bias this size is a free correction once a
+    /// few adjustments have taught it. Nil until ≥3 samples exist.
+    public func meanBoundaryOffsets(
+        podcastID: Podcast.ID
+    ) async throws -> (startMs: Int, endMs: Int)? {
+        try await database.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: """
+                SELECT corrections.previousValue, corrections.newValue
+                FROM corrections
+                JOIN episodes ON episodes.id = corrections.episodeId
+                WHERE corrections.type = 'adjustBoundaries'
+                  AND episodes.podcastId = ?
+                ORDER BY corrections.createdAt DESC LIMIT 40
+                """,
+                arguments: [podcastID]
+            )
+            struct Span: Decodable { var startMs: Int; var endMs: Int }
+            var startDeltas: [Int] = []
+            var endDeltas: [Int] = []
+            for row in rows {
+                guard let previousJSON: String = row["previousValue"],
+                      let newJSON: String = row["newValue"],
+                      let previous = try? JSONDecoder().decode(Span.self, from: Data(previousJSON.utf8)),
+                      let corrected = try? JSONDecoder().decode(Span.self, from: Data(newJSON.utf8))
+                else { continue }
+                startDeltas.append(corrected.startMs - previous.startMs)
+                endDeltas.append(corrected.endMs - previous.endMs)
+            }
+            guard startDeltas.count >= 3 else { return nil }
+            return (
+                startDeltas.reduce(0, +) / startDeltas.count,
+                endDeltas.reduce(0, +) / endDeltas.count
+            )
+        }
+    }
+
     public func append(
         episodeID: Episode.ID,
         segmentID: DetectedSegment.ID?,

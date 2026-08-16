@@ -217,3 +217,34 @@ Three-signal architecture measured on the corpus (Mac preview):
 
 Shipped to the device path same day. Next measurement should be run
 on-device (guided generation, no JSON failures) before further tuning.
+
+## §14.5 Go/No-Go decision (2026-08-15)
+
+**GO — transcript-first, with acoustics as boundary evidence only.**
+
+The bar was ≥0.05 F1 over the pattern baseline for any audio-involving arm
+to justify itself. What actually happened:
+
+- **Arm 1 (transcript-only) evolved past the question.** Single-pass scored
+  located F1 0.22–0.67 across runs; the two-pass rework hit 0.42 strict /
+  0.42 located; the hybrid (chapters + lexical markers + grounded verify)
+  reached **0.75 located / 0.82 recall** — far beyond the 0.05 bar, all
+  transcript-only.
+- **Arm 4 (music-bed) is settled**: F1 0.10 as a classifier — dead as a
+  verdict source, retained as A4 intends: evidence for boundaries and
+  priors. The loudness-delta half remains unbuilt and is subsumed by the
+  silence-map work, which already ships in Stage 3.
+- **Arms 2/3 (audio into the model) remain unrun** — they require sustained
+  device time, and their motivating question ("does the LLM need to hear
+  the audio?") has lost force: the transcript path's measured ceiling keeps
+  rising, and every audio-adjacent gain so far (silence snapping, planned
+  fingerprinting, music stingers) lands as cheap DSP evidence, not model
+  input. They stay open as curiosities, not blockers.
+
+Consequence for the architecture, per §14.5: acoustic signals enter Stage 3
+as `AcousticSignal` provenance only — silence gaps (shipped), audio
+fingerprints of confirmed ads (planned, ShazamKit custom catalogs), music
+stingers (candidate). The model never receives raw audio.
+
+Corpus remains at 6/10 episodes; labels now accrue in-app via the
+correction verbs, review card, and learning export.

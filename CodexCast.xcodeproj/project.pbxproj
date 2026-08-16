@@ -17,6 +17,7 @@
 		641650F77684086614099CAD /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */; };
 		6557D740D1BD19FE8578A8DB /* LearningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50975386D4925546C9385E4C /* LearningViews.swift */; };
 		6A3596860916D14D9C72CF87 /* CodexCastTranscription in Frameworks */ = {isa = PBXBuildFile; productRef = B9ACEAFEAEC5147C369FCFA8 /* CodexCastTranscription */; };
+		819AB2978978F5E616CDEBE5 /* SegmentAdjustSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF5B198DD5214FF271395709 /* SegmentAdjustSheet.swift */; };
 		831AB4FA8508AE4E4C7A8D8C /* AudioSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD1188313195CBCBA224CDCE /* AudioSettings.swift */; };
 		85F3890DF3D1F55CB7F87C5B /* ImportExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */; };
 		907EAC666890080D4149551C /* CodexCastDetectionAFM in Frameworks */ = {isa = PBXBuildFile; productRef = C0E5F6D64EBAF513E79B555E /* CodexCastDetectionAFM */; };
@@ -59,6 +60,7 @@
 		8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportExportView.swift; sourceTree = "<group>"; };
 		91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
 		A0BB3042EAA04FA1A6611534 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		AF5B198DD5214FF271395709 /* SegmentAdjustSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentAdjustSheet.swift; sourceTree = "<group>"; };
 		B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
 		BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeActions.swift; sourceTree = "<group>"; };
 		D5E13B731CAF8F1E0022A0CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -113,6 +115,7 @@
 				FF403B1AD1C1051907C4A47B /* PodcastsGridView.swift */,
 				7EE4DA50ACCB45BBD83080DF /* ReviewCardView.swift */,
 				E743A8466E4494BE1627D01B /* Router.swift */,
+				AF5B198DD5214FF271395709 /* SegmentAdjustSheet.swift */,
 				D9DB3D0F2A114836988051EA /* SettingsView.swift */,
 				3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */,
 				1C68376FFD04E8EE369D0ADF /* StorageView.swift */,
@@ -248,6 +251,7 @@
 				FADF9A3D882B5E1EFF78654F /* PodcastsGridView.swift in Sources */,
 				51A5859E90031F8B41F2A030 /* ReviewCardView.swift in Sources */,
 				D40228BA46A26A834E40AD20 /* Router.swift in Sources */,
+				819AB2978978F5E616CDEBE5 /* SegmentAdjustSheet.swift in Sources */,
 				B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */,
 				579DA001537CC7E7E5DA8619 /* ShowSettingsView.swift in Sources */,
 				BC5BD9A6EF9C364682E0E146 /* StorageView.swift in Sources */,

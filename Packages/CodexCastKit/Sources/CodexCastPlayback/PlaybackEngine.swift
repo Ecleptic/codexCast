@@ -90,6 +90,14 @@ public final class PlaybackEngine {
     /// Fires when the loaded item plays to its end — the hook queue
     /// advancement hangs off. Listening is a session, not one-off plays.
     public var onPlaybackEnded: (@MainActor () -> Void)?
+    /// Fires on USER seeks only (never the engine's own skip/undo/glide
+    /// seeks) with (fromMs, toMs) — the §6.8 implicit-signal tap: a long
+    /// manual fast-forward hints at a missed ad; a rewind right after a
+    /// skip hints the skip was wrong.
+    public var onUserSeek: (@MainActor (Int, Int) -> Void)?
+    /// Set while the engine itself is seeking, so those don't count.
+    private var isProgrammaticSeek = false
+
     /// Fires just before playback actually starts — where the app activates
     /// the audio session. Activation interrupts every other app's audio, so
     /// it must happen HERE and never merely on load: restoring the last
@@ -101,6 +109,11 @@ public final class PlaybackEngine {
     /// Observer tokens live outside the actor so they can be removed from
     /// `deinit`, which is nonisolated and cannot touch main-actor state.
     private let observers: ObserverBox
+
+    /// The wrapped player, for surfaces that must render it directly —
+    /// `AVPlayerViewController` for video (§8.3). Same player, same
+    /// timeline, same skips; renditions are the same content.
+    public var underlyingPlayer: AVPlayer { player }
 
     // MARK: DSP (§10.1/§10.4) — Voice Boost, mono, normalization via audio tap
 
@@ -216,6 +229,9 @@ public final class PlaybackEngine {
     /// content, and both are immediately noticeable (§11.1).
     public func seek(toMediaMs mediaMs: Int) {
         let clamped = max(0, min(mediaMs, timeline.mediaDurationMs))
+        if !isProgrammaticSeek {
+            onUserSeek?(mediaPositionMs, clamped)
+        }
         mediaPositionMs = clamped
         player.seek(
             to: CMTime(value: CMTimeValue(clamped), timescale: 1000),
@@ -248,7 +264,9 @@ public final class PlaybackEngine {
         guard let block = timeline.block(at: mediaPositionMs) else { return }
 
         let event = SkipEvent(block: block)
+        isProgrammaticSeek = true
         seek(toMediaMs: block.endMs)
+        isProgrammaticSeek = false
         lastSkip = event
         onSkip?(event)
     }
@@ -266,7 +284,9 @@ public final class PlaybackEngine {
         let remaining = timeline.blocks.filter { $0.id != event.block.id }
         updateTimeline(DisplayTimeline(mediaDurationMs: timeline.mediaDurationMs, blocks: remaining))
 
+        isProgrammaticSeek = true
         seek(toMediaMs: event.block.startMs)
+        isProgrammaticSeek = false
         lastSkip = nil
         onUndoSkip?(event)
     }

@@ -515,6 +515,9 @@ final class AppModel {
         // §5.7 calibration inputs.
         let calibrator = ConfidenceCalibrator(bins: (try? await calibration.bins()) ?? [])
         let recentRaw = (try? await calibration.recentModelRawConfidences()) ?? []
+        // Learned per-show boundary bias from adjust corrections, applied to
+        // edges the quote anchors couldn't ground.
+        let boundaryBias = try? await corrections.meanBoundaryOffsets(podcastID: episode.podcastId)
 
         // Pass 2: precision-tuned verification of each candidate. The
         // verdict must cite evidence, and boundaries come from the quoted
@@ -542,12 +545,14 @@ final class AppModel {
             // the ungrounded approvals were exactly the false positives and
             // the chapter-width boundary blowouts.
             guard startAnchor != nil || endAnchor != nil else { continue }
+            let fallbackStart = candidate.span.lowerBound + ((boundaryBias ?? nil)?.startMs ?? 0)
+            let fallbackEnd = candidate.span.upperBound + ((boundaryBias ?? nil)?.endMs ?? 0)
             let start = startAnchor?.startMs
-                ?? transcript.nearestBoundary(toMs: candidate.span.lowerBound)
-                ?? candidate.span.lowerBound
+                ?? transcript.nearestBoundary(toMs: fallbackStart)
+                ?? fallbackStart
             let end = endAnchor?.endMs
-                ?? transcript.nearestBoundary(toMs: candidate.span.upperBound)
-                ?? candidate.span.upperBound
+                ?? transcript.nearestBoundary(toMs: fallbackEnd)
+                ?? fallbackEnd
             // Sub-5s output is noise; the gate floor applies at storage too.
             guard end > start, end - start >= 5_000 else { continue }
             guard !segments.contains(where: { $0.overlaps(startMs: start, endMs: end) }) else { continue }
@@ -651,6 +656,24 @@ final class AppModel {
 
         let elapsed = Int(Date().timeIntervalSince(started))
         scanState[episode.id] = .done(found: segments.count, seconds: elapsed)
+
+        // §5.8: where the feed ships no chapters, the topic segmentation the
+        // scan already computed becomes user-facing chapters — titled by the
+        // model, marked as generated, never confused with authored ones.
+        if let chapters, episode.feedChaptersURL == nil,
+           ((try? await self.chapters.chapters(episodeID: episode.id)) ?? []).isEmpty {
+            var generated: [Chapter] = []
+            for chapter in chapters.prefix(40) {
+                let excerpt = transcript.text(fromMs: chapter.startMs, toMs: chapter.endMs)
+                let title = (try? await classifier.chapterTitle(excerpt: excerpt)) ?? "Chapter"
+                generated.append(Chapter(
+                    startMs: chapter.startMs, title: title, source: .generated
+                ))
+            }
+            if !generated.isEmpty {
+                try? await self.chapters.save(generated, episodeID: episode.id)
+            }
+        }
     }
 
     /// Overlapping sweep spans collapse into one candidate; the count of
@@ -964,6 +987,62 @@ final class AppModel {
         try? await positionRules.save(rule)
     }
 
+    /// Adjust boundaries (§6.4): as Confirm, but the pattern comes from the
+    /// CORRECTED span — the wrong span teaches the wrong text — and the
+    /// old→new delta feeds boundary-offset learning.
+    func adjustSegment(
+        _ segment: DetectedSegment,
+        newStartMs: Int,
+        newEndMs: Int,
+        episode: EpisodeRecord
+    ) async {
+        guard newEndMs > newStartMs + 1_000 else { return }
+        try? await database.write { db in
+            try db.execute(
+                sql: """
+                UPDATE detected_segments
+                SET startMs = ?, endMs = ?, userState = 'adjusted', reviewedAt = ?
+                WHERE id = ?
+                """,
+                arguments: [newStartMs, newEndMs, Date(), segment.id]
+            )
+        }
+        let encoder = JSONEncoder()
+        let previous = String(
+            data: (try? encoder.encode(["startMs": segment.startMs, "endMs": segment.endMs])) ?? Data(),
+            encoding: .utf8
+        )
+        let corrected = String(
+            data: (try? encoder.encode(["startMs": newStartMs, "endMs": newEndMs])) ?? Data(),
+            encoding: .utf8
+        )
+        try? await corrections.append(
+            episodeID: episode.id, segmentID: segment.id,
+            type: "adjustBoundaries", source: .explicit,
+            previousValue: previous, newValue: corrected
+        )
+
+        var adjusted = segment
+        adjusted.startMs = newStartMs
+        adjusted.endMs = newEndMs
+        if let transcript = try? await transcripts.transcript(episodeID: episode.id) {
+            let text = transcript.text(fromMs: newStartMs, toMs: newEndMs)
+            if text.split(separator: " ").count >= 8 {
+                try? await patternRepository.insert(AdPatternRecord(
+                    podcastId: episode.podcastId, text: text,
+                    confirmCount: 1, createdFrom: "adjustBoundaries"
+                ))
+            }
+        }
+        await learnPosition(from: adjusted, episode: episode)
+        await recordCalibrationOutcome(for: segment, confirmed: true)
+        await linkSponsor(for: adjusted, episode: episode)
+
+        if nowPlaying?.id == episode.id {
+            nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
+        }
+    }
+
     /// "Never skip this show's intro" (§6.4): protects the opening stretch of
     /// every episode of this show, and rejects the segment that prompted it.
     func neverSkipIntro(_ segment: DetectedSegment, episode: EpisodeRecord) async {
@@ -1128,6 +1207,37 @@ final class AppModel {
                     await transcribeOnDevice(episode)
                     return   // one per wake; the scheduler calls us again
                 }
+            }
+        }
+        await sweepStaleScans()
+    }
+
+    /// §6.9 background sweep: when new patterns have been learned since an
+    /// episode was scanned, unplayed transcribed episodes get a re-scan —
+    /// overnight, on power, one per wake. Corrections never re-run; a
+    /// re-scan cannot erase user-touched segments (repository invariant).
+    private func sweepStaleScans() async {
+        let newestPatternDate = try? await database.read { db in
+            try Date.fetchOne(db, sql: "SELECT MAX(createdAt) FROM ad_patterns")
+        }
+        guard let newestPattern = newestPatternDate ?? nil else { return }
+
+        for podcast in library {
+            guard let candidates = try? await episodes.episodes(podcastID: podcast.id, limit: 3)
+            else { continue }
+            for episode in candidates where !episode.isPlayed {
+                guard (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
+                else { continue }
+                let lastScan = try? await database.read { db in
+                    try Date.fetchOne(
+                        db,
+                        sql: "SELECT MAX(createdAt) FROM detected_segments WHERE episodeId = ?",
+                        arguments: [episode.id]
+                    )
+                }
+                guard let lastScan = lastScan ?? nil, lastScan < newestPattern else { continue }
+                await scanForAds(episode)
+                return   // one per wake, same battery courtesy as transcription
             }
         }
     }
@@ -1630,6 +1740,30 @@ final class AppModel {
             self?.activateAudioSession()
         }
 
+        // §6.8 implicit signals: weak evidence, logged but never acted on
+        // alone. A long manual fast-forward is a "maybe I just skipped an ad
+        // you missed" hint; a quick rewind right after an auto-skip is a
+        // "that skip felt wrong" hint.
+        player.onUserSeek = { [weak self] fromMs, toMs in
+            guard let self, let episode = self.nowPlaying else { return }
+            let episodeID = episode.id
+            if toMs - fromMs > 20_000 {
+                Task {
+                    try? await self.corrections.recordSignal(
+                        episodeID: episodeID, kind: "manualFastForward", positionMs: fromMs
+                    )
+                }
+            } else if fromMs - toMs > 5_000,
+                      let skip = self.player.lastSkip,
+                      Date().timeIntervalSince(skip.occurredAt) < 30 {
+                Task {
+                    try? await self.corrections.recordSignal(
+                        episodeID: episodeID, kind: "rewindAfterSkip", positionMs: toMs
+                    )
+                }
+            }
+        }
+
         player.onPositionTick = { [weak self] positionMs in
             guard let self, let episode = self.nowPlaying else { return }
             self.updateNowPlayingInfo()
@@ -1786,8 +1920,24 @@ final class AppModel {
         startPlayback(episode, startAtMs: episode.playbackPositionMs, blocks: [], autoplay: false)
     }
 
+    /// Plays the episode's video rendition through the shared engine — same
+    /// timeline, same skip blocks, same position persistence (§8.3).
+    func playVideo(_ episode: EpisodeRecord) async {
+        guard let url = videoURL(for: episode) else { return }
+        nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
+        var blocks: [SkipBlock] = []
+        let skipEnabled = overrides(for: episode.podcastId).autoSkipAds ?? audioSettings.autoSkipAds
+        if skipEnabled, let outcome = await gatedSegments(for: episode) {
+            blocks = skipBlocks(from: outcome.autoSkippable)
+        }
+        startPlayback(
+            episode, startAtMs: episode.playbackPositionMs, blocks: blocks, overrideURL: url
+        )
+    }
+
     private func startPlayback(
-        _ episode: EpisodeRecord, startAtMs: Int?, blocks: [SkipBlock], autoplay: Bool = true
+        _ episode: EpisodeRecord, startAtMs: Int?, blocks: [SkipBlock], autoplay: Bool = true,
+        overrideURL: URL? = nil
     ) {
         configureAudioSession()
         installPlaybackCallbacks()
@@ -1795,10 +1945,11 @@ final class AppModel {
         lastSavedPositionMs = startAtMs ?? episode.playbackPositionMs
         // A downloaded copy always beats streaming: instant start, works
         // offline, and it is the only source Smart Speed can pre-analyze.
-        let localURL = episode.localPath.flatMap { path in
+        // A video override (§8.3) beats both — the caller picked a rendition.
+        let localURL = overrideURL != nil ? nil : episode.localPath.flatMap { path in
             FileManager.default.fileExists(atPath: path) ? URL(fileURLWithPath: path) : nil
         }
-        guard let url = localURL ?? {
+        guard let url = overrideURL ?? localURL ?? {
             guard let renditionData = episode.renditions?.data(using: .utf8),
                   let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData)
             else { return nil }

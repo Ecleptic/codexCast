@@ -440,6 +440,7 @@ struct SegmentReviewRow: View {
     @Environment(AppModel.self) private var model
     let segment: DetectedSegment
     let episode: EpisodeRecord
+    @State private var showAdjust = false
 
     var body: some View {
         HStack {
@@ -491,6 +492,11 @@ struct SegmentReviewRow: View {
         }
         .contextMenu {
             Button {
+                showAdjust = true
+            } label: {
+                Label("Adjust Boundaries…", systemImage: "arrow.left.and.right")
+            }
+            Button {
                 Task { await model.alwaysSkipPosition(segment, episode: episode) }
             } label: {
                 Label("Always Skip This Position", systemImage: "pin.slash")
@@ -507,6 +513,9 @@ struct SegmentReviewRow: View {
             } label: {
                 Label("Delete Segment", systemImage: "trash")
             }
+        }
+        .sheet(isPresented: $showAdjust) {
+            SegmentAdjustSheet(segment: segment, episode: episode)
         }
     }
 

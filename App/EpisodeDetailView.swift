@@ -20,7 +20,7 @@ struct EpisodeDetailView: View {
         case info = "Info"
     }
     @State private var page: Page = .notes
-    @State private var videoToPlay: URL?
+    @State private var showVideo = false
     @State private var isLoadingTranscript = false
     @State private var transcriptError: String?
 
@@ -58,9 +58,12 @@ struct EpisodeDetailView: View {
                         }
                         .buttonStyle(.bordered)
 
-                        if let videoURL = model.videoURL(for: episode) {
+                        if model.videoURL(for: episode) != nil {
                             Button {
-                                videoToPlay = videoURL
+                                Task {
+                                    await model.playVideo(episode)
+                                    showVideo = true
+                                }
                             } label: {
                                 Label("Video", systemImage: "play.rectangle")
                             }
@@ -253,11 +256,8 @@ struct EpisodeDetailView: View {
                 }
             }
         }
-        .sheet(item: Binding(
-            get: { videoToPlay.map(VideoSheetItem.init) },
-            set: { videoToPlay = $0?.url }
-        )) { item in
-            VideoPlayerSheet(url: item.url)
+        .sheet(isPresented: $showVideo) {
+            VideoPlayerSheet()
         }
         .task {
             transcript = try? await model.transcripts.transcript(episodeID: episode.id)
@@ -327,32 +327,25 @@ struct EpisodeDetailView: View {
 }
 
 
-private struct VideoSheetItem: Identifiable {
-    let url: URL
-    var id: String { url.absoluteString }
-}
-
-/// Minimal video playback (§8.3): AVPlayerViewController with PiP. The audio
-/// player pauses first — two streams at once helps no one.
+/// Video playback through the SAME engine as audio (§8.3): same timeline,
+/// same boundary observers, so ad skipping, undo, and position persistence
+/// all work identically. The sheet merely renders the shared player.
 private struct VideoPlayerSheet: View {
     @Environment(AppModel.self) private var model
-    let url: URL
 
     var body: some View {
-        VideoPlayerRepresentable(url: url)
+        VideoPlayerRepresentable(player: model.player.underlyingPlayer)
             .ignoresSafeArea()
-            .onAppear { model.player.pause() }
     }
 }
 
 private struct VideoPlayerRepresentable: UIViewControllerRepresentable {
-    let url: URL
+    let player: AVPlayer
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let controller = AVPlayerViewController()
-        controller.player = AVPlayer(url: url)
+        controller.player = player
         controller.allowsPictureInPicturePlayback = true
-        controller.player?.play()
         return controller
     }
 
