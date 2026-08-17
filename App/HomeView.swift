@@ -45,7 +45,15 @@ struct HomeView: View {
                                             // menu inside a List row from
                                             // lifting the ENTIRE row — here,
                                             // the whole horizontal shelf.
-                                            ContinuePreview(episode: episode)
+                                            //
+                                            // Everything it needs is passed as
+                                            // plain values: see ContinuePreview.
+                                            ContinuePreview(
+                                                artworkURL: artworkURL(for: episode),
+                                                title: episode.title,
+                                                showTitle: model.library
+                                                    .first { $0.id == episode.podcastId }?.title
+                                            )
                                         }
                                 }
                             }
@@ -156,6 +164,12 @@ struct HomeView: View {
         }
     }
 
+    private func artworkURL(for episode: EpisodeRecord) -> URL? {
+        episode.imageURL.flatMap(URL.init(string:))
+            ?? model.library.first { $0.id == episode.podcastId }?
+                .imageURL.flatMap(URL.init(string:))
+    }
+
     private var queuePlaylist: Playlist? {
         model.playlists.first { $0.name == Playlist.upNextName }
     }
@@ -172,19 +186,33 @@ struct HomeView: View {
 }
 
 /// What a long press lifts: this episode, not the shelf it sits in.
+///
+/// Deliberately takes PLAIN VALUES and reads no environment. A context-menu
+/// preview is rendered in a detached SwiftUI host that does not inherit the
+/// app's environment, so an `@Environment(AppModel.self)` read inside one
+/// traps — it crashed on long press, the same failure that once killed the
+/// player sheet when it lost the router.
 private struct ContinuePreview: View {
-    @Environment(AppModel.self) private var model
-    let episode: EpisodeRecord
+    let artworkURL: URL?
+    let title: String
+    let showTitle: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            EpisodeArtwork(episode: episode, size: 220)
+            AsyncImage(url: artworkURL) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 10).fill(.quaternary)
+            }
+            .frame(width: 220, height: 220)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
             VStack(alignment: .leading, spacing: 3) {
-                Text(episode.title)
+                Text(title)
                     .font(.headline)
                     .lineLimit(3)
-                if let show = model.library.first(where: { $0.id == episode.podcastId })?.title {
-                    Text(show)
+                if let showTitle {
+                    Text(showTitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
