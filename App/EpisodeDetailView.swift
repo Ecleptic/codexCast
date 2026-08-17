@@ -47,7 +47,13 @@ struct EpisodeDetailView: View {
                         Button {
                             model.play(episode)
                         } label: {
-                            Label("Play", systemImage: "play.fill")
+                            // Explicit HStack: Label's icon was rendering
+                            // inconsistently inside prominent button styles.
+                            HStack(spacing: 6) {
+                                Image(systemName: "play.fill")
+                                Text("Play")
+                            }
+                            .fontWeight(.semibold)
                         }
                         .buttonStyle(.glassProminent)
 

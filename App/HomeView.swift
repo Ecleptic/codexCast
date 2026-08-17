@@ -53,8 +53,12 @@ struct HomeView: View {
                 if !upNext.isEmpty {
                     Section("Up Next") {
                         ForEach(upNext.prefix(3), id: \.id) { episode in
-                            HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
-                                .listRowInsets(EdgeInsets())
+                            HomeEpisodeRow(
+                                episode: episode,
+                                onOpen: { router.homePath.append(episode) },
+                                onGoToShow: { router.homePath.append($0) }
+                            )
+                            .listRowInsets(EdgeInsets())
                         }
                         if upNext.count > 3, let queue = queuePlaylist {
                             NavigationLink("See all \(upNext.count)") {
@@ -83,8 +87,12 @@ struct HomeView: View {
                         .listRowSeparator(.hidden)
                     } else {
                         ForEach(newReleases, id: \.id) { episode in
-                            HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
-                                .listRowInsets(EdgeInsets())
+                            HomeEpisodeRow(
+                                episode: episode,
+                                onOpen: { router.homePath.append(episode) },
+                                onGoToShow: { router.homePath.append($0) }
+                            )
+                            .listRowInsets(EdgeInsets())
                                 // Native two-edge idiom: swipe right to
                                 // queue, swipe left to dismiss. Full swipes
                                 // on both.
@@ -198,44 +206,50 @@ private struct ContinueCard: View {
 struct HomeEpisodeRow: View {
     @Environment(AppModel.self) private var model
     let episode: EpisodeRecord
+    /// Opens the episode's detail page — the row's own tap.
+    var onOpen: () -> Void = {}
     /// Pushes a show onto the owning stack — "Go to Show" from any row.
     var onGoToShow: ((Podcast.ID) -> Void)? = nil
 
     var body: some View {
-        NavigationLink {
-            EpisodeDetailView(episode: episode)
-        } label: {
-            HStack(spacing: 12) {
-                EpisodeArtwork(episode: episode, size: 52)
+        // A Button row, not a NavigationLink: links draw a disclosure
+        // chevron, and chevron + play control in one row reads as clutter.
+        HStack(spacing: 12) {
+            Button(action: onOpen) {
+                HStack(spacing: 12) {
+                    EpisodeArtwork(episode: episode, size: 52)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    if let published = episode.publishedAt {
-                        Text(published, format: .relative(presentation: .named))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        if let published = episode.publishedAt {
+                            Text(published, format: .relative(presentation: .named))
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text(episode.title)
+                            .font(.subheadline.weight(.medium))
+                            .lineLimit(2)
+                            .foregroundStyle(episode.isPlayed ? .secondary : .primary)
                     }
-                    Text(episode.title)
-                        .font(.subheadline.weight(.medium))
-                        .lineLimit(2)
-                        .foregroundStyle(episode.isPlayed ? .secondary : .primary)
-                }
 
-                Spacer()
-
-                Button {
-                    model.play(episode)
-                } label: {
-                    Image(systemName: "play.fill")
-                        .font(.footnote.weight(.bold))
-                        .frame(width: 34, height: 34)
+                    Spacer(minLength: 8)
                 }
-                .buttonStyle(.glass)
-                .clipShape(Circle())
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            .buttonStyle(.borderless)
+            .tint(.primary)
+
+            Button {
+                model.play(episode)
+            } label: {
+                Image(systemName: "play.fill")
+                    .font(.footnote.weight(.bold))
+                    .frame(width: 34, height: 34)
+            }
+            .buttonStyle(.glass)
+            .clipShape(Circle())
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
         .contextMenu {
             EpisodeContextMenu(
                 episode: episode,
