@@ -1620,6 +1620,11 @@ final class AppModel {
         }
     }
 
+    /// RMS loudness per bin with contrast stretching — NOT peak amplitude.
+    /// Measured on a real episode: max-amplitude over multi-second bins of
+    /// mastered speech is 0.73–1.0 everywhere, which renders as a solid
+    /// block ("it's still a bar"). RMS spreads 0.12–1.0 across the same
+    /// file and shows the episode's actual shape.
     nonisolated private static func computePeaks(url: URL, bins: Int) -> [Float] {
         guard let file = try? AVAudioFile(forReading: url) else { return [] }
         let frameCount = Int(file.length)
@@ -1630,25 +1635,34 @@ final class AppModel {
             pcmFormat: format, frameCapacity: AVAudioFrameCount(framesPerBin)
         ) else { return [] }
 
-        var peaks: [Float] = []
-        peaks.reserveCapacity(bins)
+        var values: [Float] = []
+        values.reserveCapacity(bins)
         for _ in 0..<bins {
             do { try file.read(into: buffer, frameCount: AVAudioFrameCount(framesPerBin)) }
             catch { break }
             guard let channel = buffer.floatChannelData?[0] else { break }
-            var peak: Float = 0
+            var sum = 0.0
+            var count = 0
             let length = Int(buffer.frameLength)
             // Stride: this is a picture, not a measurement.
             var index = 0
             while index < length {
-                let value = abs(channel[index])
-                if value > peak { peak = value }
-                index += 32
+                let value = Double(channel[index])
+                sum += value * value
+                count += 1
+                index += 16
             }
-            peaks.append(peak)
+            values.append(count > 0 ? Float((sum / Double(count)).squareRoot()) : 0)
         }
-        let maximum = peaks.max() ?? 1
-        return maximum > 0 ? peaks.map { $0 / maximum } : peaks
+
+        // Stretch min…max to the full bar height with a gentle curve and a
+        // floor, so quiet stretches read as valleys instead of vanishing.
+        guard let lowest = values.min(), let highest = values.max(), highest > lowest
+        else { return values }
+        return values.map { value in
+            let normalized = (value - lowest) / (highest - lowest)
+            return 0.12 + 0.88 * pow(normalized, 0.7)
+        }
     }
 
     // MARK: - Playlist management (user-facing)
