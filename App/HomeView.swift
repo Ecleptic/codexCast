@@ -20,43 +20,48 @@ struct HomeView: View {
             List {
                 if !inProgress.isEmpty {
                     Section("Continue Listening") {
-                        // Real list rows, not a horizontal shelf inside one
-                        // row: the LIFT of a context menu comes from the row
-                        // that hosts it, so a shelf could only ever lift the
-                        // whole strip. Rows also earn swipe actions for free.
-                        ForEach(inProgress, id: \.id) { episode in
-                            ContinueRow(
-                                episode: episode,
-                                onOpen: { router.homePath.append(episode) }
-                            )
-                            .listRowInsets(EdgeInsets())
-                            .contextMenu {
-                                EpisodeContextMenu(
-                                    episode: episode,
-                                    onChange: { Task { await reload() } },
-                                    onGoToEpisode: { router.homePath.append(episode) },
-                                    onGoToShow: { router.homePath.append(episode.podcastId) }
-                                )
-                                Button(role: .destructive) {
-                                    Task {
-                                        await model.removeFromContinueListening(episode)
-                                        await reload()
-                                    }
-                                } label: {
-                                    Label("Remove from Continue Listening", systemImage: "xmark.circle")
+                        ScrollView(.horizontal) {
+                            HStack(spacing: 12) {
+                                ForEach(inProgress, id: \.id) { episode in
+                                    ContinueCard(episode: episode)
+                                        .contextMenu {
+                                            EpisodeContextMenu(
+                                                episode: episode,
+                                                onChange: { Task { await reload() } },
+                                                onGoToEpisode: { router.homePath.append(episode) },
+                                                onGoToShow: { router.homePath.append(episode.podcastId) }
+                                            )
+                                            Button(role: .destructive) {
+                                                Task {
+                                                    await model.removeFromContinueListening(episode)
+                                                    await reload()
+                                                }
+                                            } label: {
+                                                Label("Remove from Continue Listening", systemImage: "xmark.circle")
+                                            }
+                                        } preview: {
+                                            // An explicit preview is the only
+                                            // reliable way to stop a context
+                                            // menu inside a List row from
+                                            // lifting the ENTIRE row — here,
+                                            // the whole horizontal shelf.
+                                            //
+                                            // Everything it needs is passed as
+                                            // plain values: see ContinuePreview.
+                                            ContinuePreview(
+                                                artworkURL: artworkURL(for: episode),
+                                                title: episode.title,
+                                                showTitle: model.library
+                                                    .first { $0.id == episode.podcastId }?.title
+                                            )
+                                        }
                                 }
                             }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    Task {
-                                        await model.removeFromContinueListening(episode)
-                                        await reload()
-                                    }
-                                } label: {
-                                    Label("Remove", systemImage: "xmark.circle")
-                                }
-                            }
+                            .padding(.horizontal)
                         }
+                        .scrollIndicators(.hidden)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
                     }
                 }
 
@@ -180,75 +185,88 @@ struct HomeView: View {
 
 }
 
-/// An in-progress episode: artwork, what's left, and how far in. A plain
-/// list row, so tap, long-press lift, and swipe all come from the system.
-private struct ContinueRow: View {
+/// What a long press lifts: this episode, not the shelf it sits in.
+///
+/// Deliberately takes PLAIN VALUES and reads no environment. A context-menu
+/// preview is rendered in a detached SwiftUI host that does not inherit the
+/// app's environment, so an `@Environment(AppModel.self)` read inside one
+/// traps — it crashed on long press, the same failure that once killed the
+/// player sheet when it lost the router.
+private struct ContinuePreview: View {
+    let artworkURL: URL?
+    let title: String
+    let showTitle: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            AsyncImage(url: artworkURL) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 10).fill(.quaternary)
+            }
+            .frame(width: 220, height: 220)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.headline)
+                    .lineLimit(3)
+                if let showTitle {
+                    Text(showTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(16)
+        .frame(width: 252)
+    }
+}
+
+/// Card with a progress bar — resuming is one tap.
+private struct ContinueCard: View {
     @Environment(AppModel.self) private var model
     let episode: EpisodeRecord
-    var onOpen: () -> Void
 
     private var fraction: Double {
         guard let duration = episode.durationMs, duration > 0 else { return 0 }
         return min(1, Double(episode.playbackPositionMs) / Double(duration))
     }
 
-    private var remaining: String? {
-        guard let duration = episode.durationMs else { return nil }
-        let minutes = max(0, duration - episode.playbackPositionMs) / 60_000
-        return "\(minutes) min left"
+    var body: some View {
+        Button {
+            model.play(episode)
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                EpisodeArtwork(episode: episode, size: 140)
+
+                Text(episode.title)
+                    .font(.caption.weight(.medium))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                ProgressView(value: fraction)
+                    .tint(.accentColor)
+
+                if let duration = episode.durationMs {
+                    Text(remaining(duration: duration))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 140)
+        }
+        .buttonStyle(.plain)
     }
 
-    var body: some View {
-        HStack(spacing: 12) {
-            Button(action: onOpen) {
-                HStack(spacing: 12) {
-                    EpisodeArtwork(episode: episode, size: 56)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(episode.title)
-                            .font(.subheadline.weight(.medium))
-                            .lineLimit(2)
-                            .foregroundStyle(.primary)
-                        if let show = model.library.first(where: { $0.id == episode.podcastId })?.title {
-                            Text(show)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                        HStack(spacing: 8) {
-                            ProgressView(value: fraction)
-                                .tint(.accentColor)
-                                .frame(maxWidth: 120)
-                            if let remaining {
-                                Text(remaining)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-
-                    Spacer(minLength: 8)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.borderless)
-            .tint(.primary)
-
-            Button {
-                model.play(episode)
-            } label: {
-                Image(systemName: "play.fill")
-                    .font(.footnote.weight(.bold))
-                    .frame(width: 34, height: 34)
-            }
-            .buttonStyle(.glass)
-            .clipShape(Circle())
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+    private func remaining(duration: Int) -> String {
+        let left = max(0, duration - episode.playbackPositionMs) / 60_000
+        return left <= 1 ? "Almost done" : "\(left) min left"
     }
 }
 
+/// Standard episode row for Home shelves: artwork, state, one-tap play.
 struct HomeEpisodeRow: View {
     @Environment(AppModel.self) private var model
     let episode: EpisodeRecord
