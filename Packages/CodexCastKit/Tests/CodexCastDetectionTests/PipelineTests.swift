@@ -204,19 +204,34 @@ struct ValidationGateTests {
         #expect(outcome.autoSkippable.isEmpty)
     }
 
-    /// The guard exists to catch a runaway classifier.
+    /// The guard exists to catch a runaway classifier: many individually
+    /// plausible segments that together swallow the episode.
     @Test("Flagging more than 40% of an episode trips the runaway guard")
     func runawayGuard() {
+        // Five spots, each 9% of the episode — under the single-segment
+        // ceiling — but 45% together.
         let outcome = ValidationGate().evaluate(
-            segments: [
-                segment(startMs: 0, endMs: 300_000),
-                segment(startMs: 310_000, endMs: 600_000),
-            ],
+            segments: (0..<5).map { index in
+                segment(startMs: index * 100_000, endMs: index * 100_000 + 90_000)
+            },
             episodeDurationMs: 1_000_000
         )
 
         #expect(outcome.flaggedForReview)
         #expect(outcome.autoSkippable.isEmpty)
+    }
+
+    /// The field failure this cap exists for: one "sponsor read" swallowing
+    /// a third of the daily show Cam listens to every morning.
+    @Test("A single segment covering a third of the episode never auto-skips")
+    func singleSegmentCeiling() {
+        let outcome = ValidationGate().evaluate(
+            segments: [segment(startMs: 60_000, endMs: 400_000)],
+            episodeDurationMs: 1_000_000
+        )
+
+        #expect(outcome.autoSkippable.isEmpty)
+        #expect(outcome.reviewOnly.count == 1)
     }
 
     /// …not to second-guess the user. "Always skip the first 90 seconds" must
@@ -226,11 +241,14 @@ struct ValidationGateTests {
         let outcome = ValidationGate().evaluate(
             segments: [
                 segment(startMs: 0, endMs: 500_000, provenance: .manual),
-                // 42% of the episode from the model — over the guard — in
-                // spots each under the 6-minute ceiling, so they are otherwise
-                // skippable. The user's own 50% is excluded from the count.
-                segment(startMs: 510_000, endMs: 720_000),
-                segment(startMs: 730_000, endMs: 940_000),
+                // 45% of the episode from the model — over the guard — in
+                // spots each under the single-segment ceiling, so they are
+                // otherwise skippable. The user's own 50% is excluded.
+                segment(startMs: 510_000, endMs: 600_000),
+                segment(startMs: 610_000, endMs: 700_000),
+                segment(startMs: 710_000, endMs: 800_000),
+                segment(startMs: 810_000, endMs: 900_000),
+                segment(startMs: 905_000, endMs: 995_000),
             ],
             episodeDurationMs: 1_000_000
         )

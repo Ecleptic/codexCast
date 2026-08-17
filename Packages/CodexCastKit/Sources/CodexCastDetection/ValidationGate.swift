@@ -15,17 +15,25 @@ public struct ValidationGate: Sendable {
         /// Total flagged fraction above which non-user segments stop
         /// auto-skipping and the episode is flagged for review.
         public var runawayFraction: Double
+        /// No SINGLE machine segment may cover more than this share of an
+        /// episode. Field: a detection swallowed a third of a 20-minute daily
+        /// show and still passed, because it sat under the old 6-minute cap
+        /// and the runaway guard only judged the total. One ad read is not a
+        /// third of an episode.
+        public var maximumSingleFraction: Double
 
         public init(
             minimumDurationMs: Int = 5_000,
-            maximumDurationMs: Int = 360_000,
+            maximumDurationMs: Int = 240_000,
             confidenceThreshold: Double = 0.75,
-            runawayFraction: Double = 0.4
+            runawayFraction: Double = 0.4,
+            maximumSingleFraction: Double = 0.15
         ) {
             self.minimumDurationMs = minimumDurationMs
             self.maximumDurationMs = maximumDurationMs
             self.confidenceThreshold = confidenceThreshold
             self.runawayFraction = runawayFraction
+            self.maximumSingleFraction = maximumSingleFraction
         }
 
         public static let conservative = Policy(confidenceThreshold: 0.85)
@@ -70,7 +78,12 @@ public struct ValidationGate: Sendable {
             }
 
             let duration = segment.durationMs
-            let inBounds = duration >= policy.minimumDurationMs && duration <= policy.maximumDurationMs
+            let fractionOfEpisode = episodeDurationMs > 0
+                ? Double(duration) / Double(episodeDurationMs)
+                : 0
+            let inBounds = duration >= policy.minimumDurationMs
+                && duration <= policy.maximumDurationMs
+                && fractionOfEpisode <= policy.maximumSingleFraction
             let confident = segment.confidence >= policy.confidenceThreshold
             let overlapsProtected = neverSkipRegions.contains { region in
                 segment.overlaps(startMs: region.lowerBound, endMs: region.upperBound)

@@ -115,3 +115,17 @@ enum SchemaV7 {
         }
     }
 }
+
+
+/// v8 — Continue Listening should be ordered by RECENCY OF LISTENING, not by
+/// publish date: an older episode from a browsing-library show was falling
+/// off the end while newly published ones crowded in.
+enum SchemaV8 {
+    static func register(in migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v8.lastPlayedAt") { db in
+            try db.alter(table: "episodes") { table in
+                table.add(column: "lastPlayedAt", .datetime)
+            }
+        }
+    }
+}

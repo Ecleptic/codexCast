@@ -27,10 +27,22 @@ public struct CorpusEpisode: Codable, Sendable {
             public var endMs: Int
             public var text: String
             public var speaker: String?
+
+            public init(startMs: Int, endMs: Int, text: String, speaker: String? = nil) {
+                self.startMs = startMs
+                self.endMs = endMs
+                self.text = text
+                self.speaker = speaker
+            }
         }
 
         public var source: String
         public var segments: [Cue]
+
+        public init(source: String, segments: [Cue]) {
+            self.source = source
+            self.segments = segments
+        }
     }
 
     public var show: String
@@ -38,6 +50,22 @@ public struct CorpusEpisode: Codable, Sendable {
     public var durationMs: Int
     public var segments: [LabeledSegment]
     public var transcript: Transcript?
+
+    /// Public so the app can EXPORT field-labeled episodes in this exact
+    /// format — the corpus grows from real listening, not just fixtures.
+    public init(
+        show: String,
+        episodeTitle: String,
+        durationMs: Int,
+        segments: [LabeledSegment],
+        transcript: Transcript? = nil
+    ) {
+        self.show = show
+        self.episodeTitle = episodeTitle
+        self.durationMs = durationMs
+        self.segments = segments
+        self.transcript = transcript
+    }
 
     public var timedTranscript: TimedTranscript? {
         guard let transcript, !transcript.segments.isEmpty else { return nil }

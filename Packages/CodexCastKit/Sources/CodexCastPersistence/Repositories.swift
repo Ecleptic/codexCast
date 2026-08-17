@@ -232,8 +232,12 @@ public struct EpisodeRepository: Sendable {
             // 95% through counts as played; outros vary too much to demand 100%.
             let played = durationMs.map { positionMs >= Int(Double($0) * 0.95) } ?? false
             try db.execute(
-                sql: "UPDATE episodes SET playbackPositionMs = ?, isPlayed = isPlayed OR ? WHERE id = ?",
-                arguments: [positionMs, played, episodeID]
+                sql: """
+                    UPDATE episodes
+                    SET playbackPositionMs = ?, isPlayed = isPlayed OR ?, lastPlayedAt = ?
+                    WHERE id = ?
+                    """,
+                arguments: [positionMs, played, Date(), episodeID]
             )
         }
     }
@@ -251,10 +255,13 @@ public struct EpisodeRepository: Sendable {
     /// Continue Listening shelf.
     public func inProgress(limit: Int = 20) async throws -> [EpisodeRecord] {
         try await database.read { db in
+            // Every show, followed or merely added — "what was I in the
+            // middle of?" has nothing to do with following. Most recently
+            // listened first, so nothing falls off behind fresh publishes.
             try EpisodeRecord
                 .filter(Column("playbackPositionMs") > 15_000)
                 .filter(Column("isPlayed") == false)
-                .order(Column("publishedAt").desc)
+                .order(Column("lastPlayedAt").desc, Column("publishedAt").desc)
                 .limit(limit)
                 .fetchAll(db)
         }

@@ -811,6 +811,12 @@ final class AppModel {
                 ?? fallbackEnd
             // Sub-5s output is noise; the gate floor applies at storage too.
             guard end > start, end - start >= 5_000 else { continue }
+            // And the ceiling: a "sponsor read" spanning a third of the
+            // episode is a mis-bounded detection, not an ad (field report).
+            if episodeDurationMs > 0,
+               Double(end - start) / Double(episodeDurationMs) > 0.2 {
+                continue
+            }
             guard !segments.contains(where: { $0.overlaps(startMs: start, endMs: end) }) else { continue }
             verified.append((candidate, verdict, start, end))
         }
@@ -1122,6 +1128,15 @@ final class AppModel {
         await recordCalibrationOutcome(for: segment, confirmed: true)
         await linkSponsor(for: segment, episode: episode)
         captureFingerprint(for: segment, episode: episode)
+        await refreshSegmentsIfPlaying(episode)
+    }
+
+    /// The player's segment list is the surface these verbs act on; without
+    /// this the row's buttons changed the database and nothing visible
+    /// happened (field report: "I hit the X and nothing happened").
+    private func refreshSegmentsIfPlaying(_ episode: EpisodeRecord) async {
+        guard nowPlaying?.id == episode.id else { return }
+        nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
     }
 
     /// Fingerprints the confirmed span's AUDIO (roadmap round 2 #1):
@@ -1211,6 +1226,56 @@ final class AppModel {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         guard let data = try? encoder.encode(archive) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    /// Every episode the listener has actually tagged, in the SAME format
+    /// as `Fixtures/corpus` — so a field-labeled episode drops straight into
+    /// the eval harness and raises the corpus from 6 episodes toward the
+    /// spec's 10+. This is the app feeding its own development.
+    func exportLabeledCorpusJSON() async -> String? {
+        var corpus: [CorpusEpisode] = []
+
+        for podcast in library {
+            let episodes = (try? await episodes.episodes(podcastID: podcast.id, limit: 200)) ?? []
+            for episode in episodes {
+                let segments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
+                // Only human verdicts are ground truth. An unreviewed guess
+                // labeled as truth would poison the very thing it feeds.
+                let labeled = segments.filter {
+                    $0.userState == .confirmed || $0.userState == .adjusted
+                        || $0.provenance.isUserOriginated
+                }
+                guard !labeled.isEmpty else { continue }
+
+                let transcript = try? await transcripts.transcript(episodeID: episode.id)
+                corpus.append(CorpusEpisode(
+                    show: podcast.title,
+                    episodeTitle: episode.title,
+                    durationMs: episode.durationMs ?? 0,
+                    segments: labeled.map {
+                        CorpusEpisode.LabeledSegment(
+                            startMs: $0.startMs, endMs: $0.endMs,
+                            kind: $0.kind.rawValue, sponsor: nil
+                        )
+                    },
+                    transcript: transcript.map { source in
+                        CorpusEpisode.Transcript(
+                            source: source.source == .podcasting20 ? "podcasting20" : "onDevice",
+                            segments: source.segments.map {
+                                .init(startMs: $0.startMs, endMs: $0.endMs,
+                                      text: $0.text, speaker: $0.speaker)
+                            }
+                        )
+                    }
+                ))
+            }
+        }
+
+        guard !corpus.isEmpty else { return nil }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(corpus) else { return nil }
         return String(data: data, encoding: .utf8)
     }
 
@@ -1368,6 +1433,7 @@ final class AppModel {
         )
         await recordPositionMiss(for: segment, podcastID: episode.podcastId)
         await recordCalibrationOutcome(for: segment, confirmed: false)
+        await refreshSegmentsIfPlaying(episode)
         // §6.4: a rejection protects this span from ever being re-flagged on
         // a future scan of the same episode.
         try? await neverSkip.addEpisodeRule(
@@ -1455,21 +1521,43 @@ final class AppModel {
         defer { isRefreshing = false }
 
         await reloadLibrary()
-        for podcast in library where podcast.isFollowed {
-            let newGuids = await refreshReturningNew(podcast)
-            if notifySetting(for: podcast.id) == .newEpisode, !newGuids.isEmpty {
-                postNotification(
-                    title: podcast.title,
-                    body: newGuids.count == 1 ? "New episode available" : "\(newGuids.count) new episodes",
-                    id: "new-\(podcast.id)"
-                )
-            }
-        }
+        await refreshConcurrently(library.filter(\.isFollowed))
         UserDefaults.standard.set(Date(), forKey: Self.lastRefreshKey)
         await reloadLibrary()
     }
 
     private(set) var isRefreshing = false
+
+    /// Refreshes feeds several at a time. Sequentially, ninety-seven feeds
+    /// took minutes — long enough that pull-to-refresh looked broken and Cam
+    /// had to refresh one show by hand. Network waits should overlap.
+    func refreshConcurrently(_ podcasts: [PodcastRecord], limit: Int = 8) async {
+        var remaining = podcasts[...]
+        await withTaskGroup(of: (Podcast.ID, [String]).self) { group in
+            func addNext() {
+                guard let podcast = remaining.first else { return }
+                remaining = remaining.dropFirst()
+                group.addTask { [weak self] in
+                    guard let self else { return (podcast.id, []) }
+                    return (podcast.id, await self.refreshReturningNew(podcast))
+                }
+            }
+            for _ in 0..<min(limit, podcasts.count) { addNext() }
+
+            for await (podcastID, newGuids) in group {
+                addNext()
+                guard !newGuids.isEmpty,
+                      notifySetting(for: podcastID) == .newEpisode,
+                      let podcast = library.first(where: { $0.id == podcastID })
+                else { continue }
+                postNotification(
+                    title: podcast.title,
+                    body: newGuids.count == 1 ? "New episode available" : "\(newGuids.count) new episodes",
+                    id: "new-\(podcastID)"
+                )
+            }
+        }
+    }
 
     /// Feed refresh + auto-download of the newest episode for opted-in shows.
     func performBackgroundRefresh(_ task: BGAppRefreshTask?) async {

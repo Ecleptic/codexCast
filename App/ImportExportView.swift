@@ -11,6 +11,7 @@ struct ImportExportView: View {
     @State private var isExporting = false
     @State private var isExportingLearning = false
     @State private var isImportingLearning = false
+    @State private var isExportingCorpus = false
     @State private var learningJSON = ""
     @State private var message: String?
 
@@ -43,16 +44,28 @@ struct ImportExportView: View {
                     }
                 }
                 Button("Import Learning Data") { isImportingLearning = true }
+                Button("Export Tagged Ads (corpus)") {
+                    Task {
+                        if let json = await model.exportLabeledCorpusJSON() {
+                            learningJSON = json
+                            isExportingCorpus = true
+                        } else {
+                            message = "No tagged ads yet — confirm or mark some first."
+                        }
+                    }
+                }
             } header: {
                 Text("Ad Detection Knowledge")
             } footer: {
                 Text(
                     """
-                    One file with everything learned about ads: patterns, \
-                    sponsors, ad positions, and your review history. Send it \
-                    out for distilling, and import the result — or a file \
-                    from another device — as starting knowledge. Importing \
-                    only adds; it never removes what this device learned.
+                    Learning data is everything the detector knows: patterns, \
+                    sponsors, ad positions, and your review history including \
+                    the words of every span you judged. Tagged Ads exports the \
+                    episodes you've labeled in the evaluation corpus format, \
+                    for measuring the detector against your own ears. \
+                    Importing only adds; it never removes what this device \
+                    learned.
                     """
                 )
             }
@@ -89,6 +102,16 @@ struct ImportExportView: View {
         ) { result in
             if case .success = result {
                 message = "Learning data exported."
+            }
+        }
+        .fileExporter(
+            isPresented: $isExportingCorpus,
+            document: OPMLDocument(text: learningJSON),
+            contentType: .json,
+            defaultFilename: "CodexCast Tagged Ads"
+        ) { result in
+            if case .success = result {
+                message = "Tagged ads exported in corpus format."
             }
         }
         .fileImporter(

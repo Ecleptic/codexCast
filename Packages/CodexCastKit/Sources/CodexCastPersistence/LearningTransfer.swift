@@ -133,7 +133,13 @@ public struct LearningTransfer: Sendable {
                 SELECT detected_segments.startMs, detected_segments.endMs,
                        detected_segments.kind, detected_segments.userState,
                        detected_segments.provenance,
-                       episodes.title AS episodeTitle, episodes.podcastId
+                       episodes.title AS episodeTitle, episodes.podcastId,
+                       (SELECT group_concat(transcript_segments.text, ' ')
+                        FROM transcript_segments
+                        WHERE transcript_segments.episodeId = detected_segments.episodeId
+                          AND transcript_segments.endMs > detected_segments.startMs
+                          AND transcript_segments.startMs < detected_segments.endMs
+                       ) AS spanText
                 FROM detected_segments
                 JOIN episodes ON episodes.id = detected_segments.episodeId
                 WHERE detected_segments.userState != 'unreviewed'
@@ -150,7 +156,9 @@ public struct LearningTransfer: Sendable {
                     kind: row["kind"],
                     verdict: row["userState"],
                     stage: stage,
-                    text: nil
+                    // The WORDS of the span, not just its clock times — the
+                    // whole point of feeding this back to a bigger model.
+                    text: (row["spanText"] as String?).map { String($0.prefix(2_000)) }
                 )
             }
 

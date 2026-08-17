@@ -145,6 +145,8 @@ public struct EpisodeRecord: Codable, Hashable, FetchableRecord, MutablePersista
     public var processingState: String
     public var notTranscribableReason: String?
     public var playbackPositionMs: Int
+    /// When this episode was last listened to — Continue Listening's order.
+    public var lastPlayedAt: Date?
     public var isPlayed: Bool
 
     public init(
@@ -168,6 +170,7 @@ public struct EpisodeRecord: Codable, Hashable, FetchableRecord, MutablePersista
         processingState: String = "pending",
         notTranscribableReason: String? = nil,
         playbackPositionMs: Int = 0,
+        lastPlayedAt: Date? = nil,
         isPlayed: Bool = false
     ) {
         self.id = id
@@ -190,6 +193,7 @@ public struct EpisodeRecord: Codable, Hashable, FetchableRecord, MutablePersista
         self.processingState = processingState
         self.notTranscribableReason = notTranscribableReason
         self.playbackPositionMs = playbackPositionMs
+        self.lastPlayedAt = lastPlayedAt
         self.isPlayed = isPlayed
     }
 }

@@ -142,9 +142,7 @@ struct HomeView: View {
                 // rest of the library follows.
                 await model.refreshFollowedNow()
                 await reload()
-                for podcast in model.library where !podcast.isFollowed {
-                    await model.refresh(podcast)
-                }
+                await model.refreshConcurrently(model.library.filter { !$0.isFollowed })
                 await reload()
             }
             .task { await reload() }

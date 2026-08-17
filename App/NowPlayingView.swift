@@ -555,23 +555,10 @@ struct SegmentReviewRow: View {
                 Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
             case .rejected:
                 Image(systemName: "xmark.seal").foregroundStyle(.secondary)
+            case .adjusted:
+                Image(systemName: "slider.horizontal.3").foregroundStyle(.secondary)
             default:
-                Button {
-                    Task { await model.confirmSegment(segment, episode: episode) }
-                } label: {
-                    Image(systemName: "checkmark.circle")
-                }
-                .buttonStyle(.borderless)
-                .tint(.green)
-                .accessibilityLabel("Confirm as ad")
-                Button {
-                    Task { await model.rejectSegment(segment, episode: episode) }
-                } label: {
-                    Image(systemName: "xmark.circle")
-                }
-                .buttonStyle(.borderless)
-                .tint(.red)
-                .accessibilityLabel("Not an ad")
+                EmptyView()
             }
         }
         .swipeActions(edge: .leading) {
@@ -580,8 +567,23 @@ struct SegmentReviewRow: View {
             } label: {
                 Label("Listen", systemImage: "play")
             }
+            .tint(.accentColor)
+            Button {
+                Task { await model.confirmSegment(segment, episode: episode) }
+            } label: {
+                Label("It's an ad", systemImage: "checkmark")
+            }
+            .tint(.green)
         }
-        .swipeActions(edge: .trailing) {
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            // Full swipe = "not an ad": the correction Cam reaches for most,
+            // and the one whose custom button silently did nothing.
+            Button {
+                Task { await model.rejectSegment(segment, episode: episode) }
+            } label: {
+                Label("Not an ad", systemImage: "xmark")
+            }
+            .tint(.orange)
             Button(role: .destructive) {
                 Task { await model.deleteSegment(segment) }
             } label: {
@@ -589,6 +591,16 @@ struct SegmentReviewRow: View {
             }
         }
         .contextMenu {
+            Button {
+                Task { await model.rejectSegment(segment, episode: episode) }
+            } label: {
+                Label("Not an Ad", systemImage: "xmark.circle")
+            }
+            Button {
+                Task { await model.confirmSegment(segment, episode: episode) }
+            } label: {
+                Label("Confirm as Ad", systemImage: "checkmark.circle")
+            }
             Button {
                 showAdjust = true
             } label: {

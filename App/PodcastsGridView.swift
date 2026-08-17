@@ -16,11 +16,23 @@ struct PodcastsGridView: View {
 
     @State private var filter: Filter = .following
     @State private var showCuration = false
+    @State private var searchText = ""
+    @AppStorage("podcastsUseListLayout") private var useList = false
 
     private let columns = [GridItem(.adaptive(minimum: 105), spacing: 14)]
 
     private var visible: [PodcastRecord] {
-        filter == .following ? model.library.filter(\.isFollowed) : model.library
+        let byFilter = filter == .following ? model.library.filter(\.isFollowed) : model.library
+        guard !searchText.isEmpty else { return byFilter }
+        return byFilter.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText)
+                || ($0.author?.localizedCaseInsensitiveContains(searchText) ?? false)
+        }
+    }
+
+    /// Alphabetical for the list; the grid keeps pinned-first from the query.
+    private var alphabetical: [PodcastRecord] {
+        visible.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
     }
 
     var body: some View {
@@ -47,6 +59,50 @@ struct PodcastsGridView: View {
                         description: Text("Follow the shows you listen to regularly — only they appear on Home and in New Releases. Tap Curate to pick them quickly.")
                     )
                     .padding(.top, 60)
+                } else if useList {
+                    LazyVStack(spacing: 0) {
+                        ForEach(alphabetical, id: \.id) { podcast in
+                            NavigationLink(value: podcast.id) {
+                                HStack(spacing: 12) {
+                                    AsyncImage(url: podcast.imageURL.flatMap(URL.init(string:))) { image in
+                                        image.resizable().aspectRatio(contentMode: .fill)
+                                    } placeholder: {
+                                        RoundedRectangle(cornerRadius: 8).fill(.quaternary)
+                                    }
+                                    .frame(width: 48, height: 48)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(podcast.title)
+                                            .font(.subheadline.weight(.medium))
+                                            .lineLimit(1)
+                                            .foregroundStyle(.primary)
+                                        if let author = podcast.author {
+                                            Text(author)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                                .lineLimit(1)
+                                        }
+                                    }
+                                    Spacer()
+                                    if podcast.isPinned {
+                                        Image(systemName: "pin.fill")
+                                            .font(.caption2).foregroundStyle(.secondary)
+                                    }
+                                    if filter == .everything, podcast.isFollowed {
+                                        Image(systemName: "heart.fill")
+                                            .font(.caption2).foregroundStyle(.tint)
+                                    }
+                                }
+                                .padding(.horizontal)
+                                .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu { PodcastContextMenu(podcast: podcast) }
+                            Divider().padding(.leading, 76)
+                        }
+                    }
+                    .padding(.top, 4)
                 } else {
                     LazyVGrid(columns: columns, spacing: 18) {
                         ForEach(visible, id: \.id) { podcast in
@@ -103,7 +159,14 @@ struct PodcastsGridView: View {
                 }
             }
             .navigationTitle("Podcasts")
+            .searchable(text: $searchText, prompt: "Search your podcasts")
             .toolbar {
+                Button(
+                    useList ? "Grid" : "List",
+                    systemImage: useList ? "square.grid.3x3" : "list.bullet"
+                ) {
+                    useList.toggle()
+                }
                 Button("Curate", systemImage: "heart.text.square") {
                     showCuration = true
                 }
