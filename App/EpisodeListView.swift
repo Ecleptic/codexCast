@@ -82,6 +82,18 @@ struct EpisodeListView: View {
             // specific episodes with Edit and act on just those.
             Menu {
                 if isSelecting {
+                    Button {
+                        if selection.count == visibleEpisodes.count {
+                            selection.removeAll()
+                        } else {
+                            selection = Set(visibleEpisodes.map(\.id))
+                        }
+                    } label: {
+                        Label(
+                            selection.count == visibleEpisodes.count ? "Deselect All" : "Select All",
+                            systemImage: "checklist"
+                        )
+                    }
                     bulkActions(on: selectedEpisodes, label: "\(selection.count) Selected")
                 } else {
                     bulkActions(on: episodes, label: "All Episodes")

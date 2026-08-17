@@ -224,11 +224,12 @@ struct HomeEpisodeRow: View {
                 Button {
                     model.play(episode)
                 } label: {
-                    Image(systemName: "play.circle.fill")
-                        .font(.title)
-                        .foregroundStyle(.tint)
+                    Image(systemName: "play.fill")
+                        .font(.footnote.weight(.bold))
+                        .frame(width: 34, height: 34)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.glass)
+                .clipShape(Circle())
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -239,13 +240,6 @@ struct HomeEpisodeRow: View {
                 episode: episode,
                 onGoToShow: onGoToShow.map { handler in { handler(episode.podcastId) } }
             )
-        }
-        .swipeActions(edge: .trailing) {
-            Button {
-                Task { await model.addToUpNext(episode) }
-            } label: {
-                Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
-            }
         }
     }
 }

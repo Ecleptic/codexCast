@@ -12,7 +12,6 @@ struct DiscoverView: View {
     @State private var statusMessage: String?
     @State private var showAddByURL = false
     @State private var chart: [TopChartsClient.ChartEntry] = []
-    @State private var suggestions: [PodcastSearchResult] = []
     @State private var selectedGenre: Int? = nil
     @State private var preview: PreviewTarget?
 
@@ -35,14 +34,6 @@ struct DiscoverView: View {
                 }
                 if query.isEmpty && results.isEmpty {
                     genreChips
-
-                    if !suggestions.isEmpty {
-                        Section("Suggested for You") {
-                            ForEach(visibleSuggestions) { result in
-                                row(for: result)
-                            }
-                        }
-                    }
 
                     Section(selectedGenre == nil
                         ? "Top Podcasts"
@@ -88,9 +79,6 @@ struct DiscoverView: View {
                 if chart.isEmpty {
                     chart = (try? await model.charts.topPodcasts()) ?? []
                 }
-                if suggestions.isEmpty {
-                    await loadSuggestions()
-                }
             }
         }
     }
@@ -103,10 +91,6 @@ struct DiscoverView: View {
 
     private var visibleResults: [PodcastSearchResult] {
         results.filter { !model.isBlocked(collectionID: $0.collectionID, artist: $0.author) }
-    }
-
-    private var visibleSuggestions: [PodcastSearchResult] {
-        suggestions.filter { !model.isBlocked(collectionID: $0.collectionID, artist: $0.author) }
     }
 
     @ViewBuilder
@@ -143,8 +127,11 @@ struct DiscoverView: View {
                 .padding(.vertical, 7)
                 .background(selected ? AnyShapeStyle(.tint.opacity(0.18)) : AnyShapeStyle(.quaternary), in: Capsule())
                 .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
+                .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        // Borderless, NOT plain: a plain button inside a List row loses the
+        // tap to the row's own hit-testing — the chips read as decoration.
+        .buttonStyle(.borderless)
     }
 
     private func row(for result: PodcastSearchResult) -> some View {
@@ -171,30 +158,6 @@ struct DiscoverView: View {
                 }
             }
         )
-    }
-
-    /// "Because you follow X": the directory has no recommendations API, so
-    /// suggestions are searches seeded by the producers of followed shows,
-    /// minus what's already in the library and anything blocked.
-    private func loadSuggestions() async {
-        let seeds = model.library
-            .filter(\.isFollowed)
-            .sorted { ($0.isPinned ? 0 : 1) < ($1.isPinned ? 0 : 1) }
-            .prefix(3)
-        var collected: [PodcastSearchResult] = []
-        let subscribedFeeds = Set(model.library.map(\.feedURL))
-        for seed in seeds {
-            guard let author = seed.author, !author.isEmpty else { continue }
-            let found = (try? await model.search.search(term: author)) ?? []
-            for candidate in found.prefix(4) {
-                guard let feed = candidate.feedURL?.absoluteString,
-                      !subscribedFeeds.contains(feed),
-                      !collected.contains(where: { $0.collectionID == candidate.collectionID })
-                else { continue }
-                collected.append(candidate)
-            }
-        }
-        suggestions = Array(collected.prefix(9))
     }
 
     /// Debounced search: the directory rate-limits aggressively, and a
@@ -264,7 +227,8 @@ private struct SearchResultRow: View {
                         .foregroundStyle(.tint)
                 } else if result.feedURL != nil {
                     Button("Follow", action: onSubscribe)
-                        .buttonStyle(.borderedProminent)
+                        .font(.subheadline.weight(.semibold))
+                        .buttonStyle(.glassProminent)
                         .controlSize(.small)
                 }
             }
@@ -331,7 +295,8 @@ private struct ChartRow: View {
                             isWorking = false
                         }
                     }
-                    .buttonStyle(.borderedProminent)
+                    .font(.subheadline.weight(.semibold))
+                    .buttonStyle(.glassProminent)
                     .controlSize(.small)
                 }
             }
@@ -413,7 +378,7 @@ private struct PodcastPreviewSheet: View {
                             Label("Follow", systemImage: "heart.fill")
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
 
                         Button {
                             subscribe(following: false)
@@ -421,7 +386,7 @@ private struct PodcastPreviewSheet: View {
                             Label("Add", systemImage: "plus")
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
                     }
                     .disabled(feedURL == nil || isSubscribing)
                 } footer: {
