@@ -2397,6 +2397,8 @@ final class AppModel {
     /// queue session. Idempotent.
     private var callbacksInstalled = false
     private var lastSavedPositionMs = 0
+    /// True between "this episode ended" and "the next one started".
+    private var currentEpisodeFinished = false
 
     private func installPlaybackCallbacks() {
         guard !callbacksInstalled else { return }
@@ -2433,6 +2435,11 @@ final class AppModel {
         player.onPositionTick = { [weak self] positionMs in
             guard let self, let episode = self.nowPlaying else { return }
             self.updateNowPlayingInfo()
+            // An episode that just ended takes no more position writes.
+            guard !self.currentEpisodeFinished else { return }
+            // Nor does a position beyond the episode itself — that is a
+            // stale reading, not progress.
+            if let duration = episode.durationMs, positionMs > duration + 5_000 { return }
             // Persist every ~5 seconds, not every tick.
             guard abs(positionMs - self.lastSavedPositionMs) >= 5_000 else { return }
             self.lastSavedPositionMs = positionMs
@@ -2467,12 +2474,14 @@ final class AppModel {
     /// Episode finished: mark it played, drop it from Up Next, start the next
     /// queued episode. Listening is a session (ux-architecture invariant 2).
     private func advanceQueue() async {
-        if case .endOfEpisode = sleepTimer {
-            sleepTimer = .off
-            player.pause()
-            return
-        }
+        // Finish the episode FIRST, whatever happens next. Marking it played
+        // used to sit after the sleep-timer early return, so an episode that
+        // ended on a sleep timer stayed "in progress" forever and reappeared
+        // under Continue Listening.
         if let finished = nowPlaying {
+            // No more position writes for an episode that just ended: a
+            // trailing tick would re-save it as partly listened.
+            currentEpisodeFinished = true
             try? await episodes.setPlayed(true, episodeID: finished.id)
             if let queue = playlists.first(where: { $0.name == Playlist.upNextName }) {
                 try? await playlistRepository.remove(episodeID: finished.id, from: queue.id)
@@ -2482,6 +2491,12 @@ final class AppModel {
             if !unreviewed.isEmpty {
                 pendingReview = EpisodeReview(episode: finished, segments: unreviewed)
             }
+        }
+
+        if case .endOfEpisode = sleepTimer {
+            sleepTimer = .off
+            player.pause()
+            return
         }
         guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }),
               let next = (try? await playlistRepository.episodes(in: queue))?.first
@@ -2599,6 +2614,7 @@ final class AppModel {
     ) {
         configureAudioSession()
         installPlaybackCallbacks()
+        currentEpisodeFinished = false
         UserDefaults.standard.set(episode.id.rawValue.uuidString, forKey: "lastEpisodeID")
         lastSavedPositionMs = startAtMs ?? episode.playbackPositionMs
         // A downloaded copy always beats streaming: instant start, works

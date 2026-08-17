@@ -122,6 +122,13 @@ public final class PlaybackEngine {
     /// Guards against a slow track query landing after the next episode.
     private var videoProbeToken = UUID()
 
+    /// Bumped on every `load`. Observer callbacks capture the value current
+    /// when they were installed: a block already queued for the PREVIOUS
+    /// item runs after the next episode is loaded, and without this it
+    /// reports the old item's position as the new episode's — which wrote a
+    /// finished episode's end-position onto its successor.
+    private var loadGeneration = 0
+
     // MARK: DSP (§10.1/§10.4) — Voice Boost, mono, normalization via audio tap
 
     private let tapController = AudioTapController()
@@ -184,6 +191,7 @@ public final class PlaybackEngine {
 
     public func load(url: URL, timeline: DisplayTimeline, startAtMs: Int = 0) {
         let item = AVPlayerItem(url: url)
+        loadGeneration += 1
         player.replaceCurrentItem(with: item)
         hasVideo = false
         let token = UUID()
@@ -203,13 +211,19 @@ public final class PlaybackEngine {
         seek(toMediaMs: startAtMs)
         configureObservers()
 
+        // Replace, never accumulate: reassigning without removing left one
+        // live observer per episode played.
+        if let endObserver {
+            NotificationCenter.default.removeObserver(endObserver)
+        }
+        let generation = loadGeneration
         endObserver = NotificationCenter.default.addObserver(
             forName: AVPlayerItem.didPlayToEndTimeNotification,
             object: item,
             queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated {
-                guard let self else { return }
+                guard let self, self.loadGeneration == generation else { return }
                 self.isPlaying = false
                 self.onPlaybackEnded?()
             }
@@ -320,13 +334,14 @@ public final class PlaybackEngine {
     private func configureObservers() {
         observers.removeAll()
         defer { configureTrimObservers() }
+        let generation = loadGeneration
 
         observers.periodic = player.addPeriodicTimeObserver(
             forInterval: CMTime(value: 500, timescale: 1000),
             queue: .main
         ) { [weak self] time in
             MainActor.assumeIsolated {
-                guard let self else { return }
+                guard let self, self.loadGeneration == generation else { return }
                 self.mediaPositionMs = Int(time.seconds * 1000)
                 self.onPositionTick?(self.mediaPositionMs)
                 if Date().timeIntervalSince(self.lastSkip?.occurredAt ?? .distantPast) > SkipEvent.undoWindow {
@@ -343,7 +358,7 @@ public final class PlaybackEngine {
             queue: .main
         ) { [weak self] in
             MainActor.assumeIsolated {
-                guard let self else { return }
+                guard let self, self.loadGeneration == generation else { return }
                 self.mediaPositionMs = Int(self.player.currentTime().seconds * 1000)
                 self.skipIfNeeded()
             }

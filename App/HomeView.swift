@@ -181,6 +181,11 @@ struct HomeView: View {
                 await reload()
             }
             .task { await reload() }
+            // An episode finishing changes Continue Listening and Up Next;
+            // without this the shelf kept showing what just ended.
+            .onChange(of: model.nowPlaying?.id) {
+                Task { await reload() }
+            }
         }
     }
 
