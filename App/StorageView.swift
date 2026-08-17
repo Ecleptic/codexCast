@@ -59,10 +59,10 @@ struct StorageView: View {
         let episodes = (try? await model.episodes.episodes(podcastID: podcast.id, limit: 500)) ?? []
         var evicted: [Episode.ID] = []
         for episode in episodes {
-            guard let path = episode.localPath,
+            guard let url = model.localFileURL(for: episode),
                   episode.id != model.nowPlaying?.id
             else { continue }
-            try? FileManager.default.removeItem(atPath: path)
+            try? FileManager.default.removeItem(at: url)
             evicted.append(episode.id)
         }
         try? await model.retention.markEvicted(evicted)

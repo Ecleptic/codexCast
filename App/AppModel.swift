@@ -149,10 +149,10 @@ final class AppModel {
             ) else { continue }
 
             for eviction in evictions {
-                try? FileManager.default.removeItem(atPath: eviction.localPath)
-                try? FileManager.default.removeItem(
-                    at: SilenceMap.sidecarURL(for: URL(fileURLWithPath: eviction.localPath))
-                )
+                let fileName = (eviction.localPath as NSString).lastPathComponent
+                let url = mediaDirectory.appendingPathComponent(fileName)
+                try? FileManager.default.removeItem(at: url)
+                try? FileManager.default.removeItem(at: SilenceMap.sidecarURL(for: url))
             }
             try? await retention.markEvicted(evictions.map(\.episodeID))
         }
@@ -234,6 +234,28 @@ final class AppModel {
         }
     }
 
+    /// The episode's media file as it exists RIGHT NOW, or nil.
+    ///
+    /// Stored `localPath` values are absolute and embed the app's
+    /// data-container UUID — which iOS changes across app updates. Field
+    /// bug: the file survived a reinstall but its stored address didn't, so
+    /// every "does the file exist" check silently failed (no waveform, no
+    /// local playback, re-downloads). Resolution goes by FILENAME against
+    /// wherever the media directory lives today; the stored path is only a
+    /// legacy fallback.
+    func localFileURL(for episode: EpisodeRecord) -> URL? {
+        guard let stored = episode.localPath else { return nil }
+        let fileName = (stored as NSString).lastPathComponent
+        let resolved = mediaDirectory.appendingPathComponent(fileName)
+        if FileManager.default.fileExists(atPath: resolved.path) {
+            return resolved
+        }
+        if FileManager.default.fileExists(atPath: stored) {
+            return URL(fileURLWithPath: stored)
+        }
+        return nil
+    }
+
     private var mediaDirectory: URL {
         let support = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
@@ -245,8 +267,8 @@ final class AppModel {
     /// Downloads the analysis rendition — always audio, and the cheapest one,
     /// since detection and transcription are all it exists for (§8.3).
     func downloadAudio(for episode: EpisodeRecord) async throws -> URL {
-        if let path = episode.localPath, FileManager.default.fileExists(atPath: path) {
-            return URL(fileURLWithPath: path)
+        if let existing = localFileURL(for: episode) {
+            return existing
         }
 
         guard let json = episode.renditions?.data(using: .utf8),
@@ -348,9 +370,7 @@ final class AppModel {
         // already requires the file), transcribe, then scan. One tap should
         // never dead-end into "do the other thing first".
         if !((try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false) {
-            let needsDownload = episode.localPath.map {
-                !FileManager.default.fileExists(atPath: $0)
-            } ?? true
+            let needsDownload = localFileURL(for: episode) == nil
             scanState[episode.id] = .preparing(
                 needsDownload ? "Downloading the episode…" : "Transcribing on this iPhone…"
             )
@@ -369,11 +389,10 @@ final class AppModel {
         // dynamic insertion, and it is silent about exactly the ads we're
         // looking for. Three 20s samples, once per episode.
         if transcript.source == .podcasting20,
-           let path = episode.localPath, FileManager.default.fileExists(atPath: path),
+           let audioURL = localFileURL(for: episode),
            !((try? await transcripts.isDriftChecked(episodeID: episode.id)) ?? true) {
             scanState[episode.id] = .preparing("Verifying the feed transcript against the audio…")
             let engine = TranscriptionEngine()
-            let audioURL = URL(fileURLWithPath: path)
             if let samples = try? await engine.sampleTranscripts(fileAt: audioURL) {
                 let verdict = TranscriptDriftDetector.verdict(feed: transcript, samples: samples)
                 if verdict.isDesynced,
@@ -466,10 +485,9 @@ final class AppModel {
         // Stage 1b: audio fingerprints of confirmed ads. Byte-identical
         // repeats match with near-zero false positives, across shows —
         // Shazam's matcher pointed at our own catalog, on device.
-        if let path = episode.localPath, FileManager.default.fileExists(atPath: path),
+        if let audioURL = localFileURL(for: episode),
            let stored = try? await fingerprints.all(), !stored.isEmpty {
             scanState[episode.id] = .preparing("Listening for ads you've confirmed before…")
-            let audioURL = URL(fileURLWithPath: path)
             let references = stored.map {
                 AdFingerprinter.Reference(id: $0.id, signature: $0.signature, durationMs: $0.durationMs)
             }
@@ -694,8 +712,7 @@ final class AppModel {
         // audio. Transcript boundaries wobble by a sentence; a skip that cuts
         // mid-word is instantly noticeable. Uses the same silence map Smart
         // Speed keeps, computing it here if playback hasn't yet.
-        if let path = episode.localPath, FileManager.default.fileExists(atPath: path) {
-            let audioURL = URL(fileURLWithPath: path)
+        if let audioURL = localFileURL(for: episode) {
             var map = SilenceMap.load(for: audioURL)
             if map == nil {
                 map = await Task.detached(priority: .utility) {
@@ -954,9 +971,7 @@ final class AppModel {
     /// becomes an acoustic detector across the whole library. Background —
     /// the user never waits on learning (§6.4).
     private func captureFingerprint(for segment: DetectedSegment, episode: EpisodeRecord) {
-        guard let path = episode.localPath,
-              FileManager.default.fileExists(atPath: path) else { return }
-        let url = URL(fileURLWithPath: path)
+        guard let url = localFileURL(for: episode) else { return }
         let startMs = segment.startMs
         let endMs = segment.endMs
         let podcastID = episode.podcastId
@@ -1270,7 +1285,7 @@ final class AppModel {
 
             guard podcast.autoDownloadEnabled,
                   let newest = (try? await episodes.episodes(podcastID: podcast.id, limit: 1))?.first,
-                  newest.localPath == nil,
+                  localFileURL(for: newest) == nil,
                   (try? await downloadAudio(for: newest)) != nil
             else { continue }
 
@@ -1307,7 +1322,7 @@ final class AppModel {
         for podcast in library {
             guard let candidates = try? await episodes.episodes(podcastID: podcast.id, limit: 3)
             else { continue }
-            for episode in candidates where episode.localPath != nil {
+            for episode in candidates where localFileURL(for: episode) != nil {
                 let has = (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
                 if !has {
                     await transcribeOnDevice(episode)
@@ -1425,10 +1440,7 @@ final class AppModel {
         player.setRate(override?.speed ?? audioSettings.speed)
         player.setProcessing(audioSettings.resolvedDefaults)
         if let episode = nowPlaying {
-            let localURL = episode.localPath.flatMap { path in
-                FileManager.default.fileExists(atPath: path) ? URL(fileURLWithPath: path) : nil
-            }
-            prepareTrimSilence(for: episode, localURL: localURL)
+            prepareTrimSilence(for: episode, localURL: localFileURL(for: episode))
         }
     }
 
@@ -1574,11 +1586,9 @@ final class AppModel {
     // MARK: - Deletion (Cam: "no way to delete them")
 
     func deleteDownload(_ episode: EpisodeRecord) async {
-        guard let path = episode.localPath, episode.id != nowPlaying?.id else { return }
-        try? FileManager.default.removeItem(atPath: path)
-        try? FileManager.default.removeItem(
-            at: SilenceMap.sidecarURL(for: URL(fileURLWithPath: path))
-        )
+        guard episode.id != nowPlaying?.id, let url = localFileURL(for: episode) else { return }
+        try? FileManager.default.removeItem(at: url)
+        try? FileManager.default.removeItem(at: SilenceMap.sidecarURL(for: url))
         try? await retention.markEvicted([episode.id])
     }
 
@@ -1606,12 +1616,11 @@ final class AppModel {
         // The caller's record may be a snapshot from before a download
         // finished (the scan chain downloads mid-playback) — check the
         // database for the current file, not the stale copy.
-        var path = episode.localPath
-        if path == nil || !FileManager.default.fileExists(atPath: path!) {
-            path = (try? await episodes.find(id: episode.id))?.localPath
+        var resolved = localFileURL(for: episode)
+        if resolved == nil, let fresh = try? await episodes.find(id: episode.id) {
+            resolved = localFileURL(for: fresh)
         }
-        guard let path, FileManager.default.fileExists(atPath: path) else { return }
-        let url = URL(fileURLWithPath: path)
+        guard let url = resolved else { return }
         let peaks = await Task.detached(priority: .userInitiated) {
             Self.computePeaks(url: url, bins: 160)
         }.value
@@ -2079,9 +2088,7 @@ final class AppModel {
         // A downloaded copy always beats streaming: instant start, works
         // offline, and it is the only source Smart Speed can pre-analyze.
         // A video override (§8.3) beats both — the caller picked a rendition.
-        let localURL = overrideURL != nil ? nil : episode.localPath.flatMap { path in
-            FileManager.default.fileExists(atPath: path) ? URL(fileURLWithPath: path) : nil
-        }
+        let localURL = overrideURL != nil ? nil : localFileURL(for: episode)
         guard let url = overrideURL ?? localURL ?? {
             guard let renditionData = episode.renditions?.data(using: .utf8),
                   let renditions = try? JSONDecoder().decode([Rendition].self, from: renditionData)
