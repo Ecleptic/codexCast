@@ -74,6 +74,14 @@ struct HomeView: View {
                                 onGoToShow: { router.homePath.append($0) }
                             )
                             .listRowInsets(EdgeInsets())
+                            .modifier(EpisodeRowMenu(
+                                episode: episode,
+                                artworkURL: artworkURL(for: episode),
+                                showTitle: showTitle(for: episode),
+                                onChange: { Task { await reload() } },
+                                onGoToEpisode: { router.homePath.append(episode) },
+                                onGoToShow: { router.homePath.append(episode.podcastId) }
+                            ))
                         }
                         if upNext.count > 3, let queue = queuePlaylist {
                             NavigationLink("See all \(upNext.count)") {
@@ -108,6 +116,14 @@ struct HomeView: View {
                                 onGoToShow: { router.homePath.append($0) }
                             )
                             .listRowInsets(EdgeInsets())
+                            .modifier(EpisodeRowMenu(
+                                episode: episode,
+                                artworkURL: artworkURL(for: episode),
+                                showTitle: showTitle(for: episode),
+                                onChange: { Task { await reload() } },
+                                onGoToEpisode: { router.homePath.append(episode) },
+                                onGoToShow: { router.homePath.append(episode.podcastId) }
+                            ))
                                 // Native two-edge idiom: swipe right to
                                 // queue, swipe left to dismiss. Full swipes
                                 // on both.
@@ -170,6 +186,10 @@ struct HomeView: View {
                 .imageURL.flatMap(URL.init(string:))
     }
 
+    private func showTitle(for episode: EpisodeRecord) -> String? {
+        model.library.first { $0.id == episode.podcastId }?.title
+    }
+
     private var queuePlaylist: Playlist? {
         model.playlists.first { $0.name == Playlist.upNextName }
     }
@@ -183,6 +203,34 @@ struct HomeView: View {
         }
     }
 
+}
+
+/// The row-level context menu, with an explicit preview so the lift shows
+/// the episode rather than whichever control the system picked.
+private struct EpisodeRowMenu: ViewModifier {
+    let episode: EpisodeRecord
+    let artworkURL: URL?
+    let showTitle: String?
+    var onChange: () -> Void
+    var onGoToEpisode: () -> Void
+    var onGoToShow: () -> Void
+
+    func body(content: Content) -> some View {
+        content.contextMenu {
+            EpisodeContextMenu(
+                episode: episode,
+                onChange: onChange,
+                onGoToEpisode: onGoToEpisode,
+                onGoToShow: onGoToShow
+            )
+        } preview: {
+            ContinuePreview(
+                artworkURL: artworkURL,
+                title: episode.title,
+                showTitle: showTitle
+            )
+        }
+    }
 }
 
 /// What a long press lifts: this episode, not the shelf it sits in.
@@ -314,12 +362,10 @@ struct HomeEpisodeRow: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .contextMenu {
-            EpisodeContextMenu(
-                episode: episode,
-                onGoToShow: onGoToShow.map { handler in { handler(episode.podcastId) } }
-            )
-        }
+        // No .contextMenu here on purpose: attached inside the row, the
+        // system picks one of these buttons as the lift source — which is
+        // why long-press magnified only the play circle. The owning List
+        // attaches it to the whole row instead.
     }
 }
 
