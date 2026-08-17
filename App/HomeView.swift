@@ -24,36 +24,40 @@ struct HomeView: View {
                             HStack(spacing: 12) {
                                 ForEach(inProgress, id: \.id) { episode in
                                     ContinueCard(episode: episode)
-                                        .contextMenu {
-                                            EpisodeContextMenu(
-                                                episode: episode,
-                                                onChange: { Task { await reload() } },
-                                                onGoToEpisode: { router.homePath.append(episode) },
-                                                onGoToShow: { router.homePath.append(episode.podcastId) }
-                                            )
-                                            Button(role: .destructive) {
-                                                Task {
-                                                    await model.removeFromContinueListening(episode)
-                                                    await reload()
+                                        // A Menu button, not a context menu.
+                                        // Every card in this shelf lives in
+                                        // ONE List row, and a row can host
+                                        // exactly one context menu — so the
+                                        // first card's menu was answering for
+                                        // all of them (long-pressing card two
+                                        // acted on card one). A Menu anchors
+                                        // to its own button, so each card gets
+                                        // its own, correctly.
+                                        .overlay(alignment: .topTrailing) {
+                                            Menu {
+                                                EpisodeContextMenu(
+                                                    episode: episode,
+                                                    onChange: { Task { await reload() } },
+                                                    onGoToEpisode: { router.homePath.append(episode) },
+                                                    onGoToShow: { router.homePath.append(episode.podcastId) }
+                                                )
+                                                Button(role: .destructive) {
+                                                    Task {
+                                                        await model.removeFromContinueListening(episode)
+                                                        await reload()
+                                                    }
+                                                } label: {
+                                                    Label("Remove from Continue Listening", systemImage: "xmark.circle")
                                                 }
                                             } label: {
-                                                Label("Remove from Continue Listening", systemImage: "xmark.circle")
+                                                Image(systemName: "ellipsis")
+                                                    .font(.caption.weight(.bold))
+                                                    .frame(width: 28, height: 28)
                                             }
-                                        } preview: {
-                                            // An explicit preview is the only
-                                            // reliable way to stop a context
-                                            // menu inside a List row from
-                                            // lifting the ENTIRE row — here,
-                                            // the whole horizontal shelf.
-                                            //
-                                            // Everything it needs is passed as
-                                            // plain values: see ContinuePreview.
-                                            ContinuePreview(
-                                                artworkURL: artworkURL(for: episode),
-                                                title: episode.title,
-                                                showTitle: model.library
-                                                    .first { $0.id == episode.podcastId }?.title
-                                            )
+                                            .buttonStyle(.glass)
+                                            .clipShape(Circle())
+                                            .padding(6)
+                                            .accessibilityLabel("Actions for \(episode.title)")
                                         }
                                 }
                             }

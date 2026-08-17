@@ -269,7 +269,7 @@ struct ShowSettingsView: View {
             notifyOn = model.notifySetting(for: podcast.id)
             classifierNotes = model.classifierNotes(for: podcast.id) ?? ""
             await reloadRules()
-            storageBytes = try? await model.retention.downloadedByteCount(podcastID: podcast.id)
+            storageBytes = await model.downloadedBytes(for: podcast.id)
         }
     }
 

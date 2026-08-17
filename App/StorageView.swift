@@ -49,7 +49,7 @@ struct StorageView: View {
     private func reload() async {
         var rows: [(PodcastRecord, Int64)] = []
         for podcast in model.library {
-            let bytes = (try? await model.retention.downloadedByteCount(podcastID: podcast.id)) ?? 0
+            let bytes = await model.downloadedBytes(for: podcast.id)
             if bytes > 0 { rows.append((podcast, bytes)) }
         }
         usage = rows.sorted { $0.1 > $1.1 }

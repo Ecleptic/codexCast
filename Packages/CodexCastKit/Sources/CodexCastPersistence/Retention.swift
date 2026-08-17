@@ -95,7 +95,16 @@ public struct RetentionPolicy: Sendable {
 
     /// Bytes currently occupied by downloaded media for one show, for the
     /// storage screen (§8.4).
-    public func downloadedByteCount(podcastID: Podcast.ID) async throws -> Int64 {
+    /// Bytes on disk for one show.
+    ///
+    /// `mediaDirectory` is required because stored paths are absolute and
+    /// embed the app container UUID, which iOS changes on every install —
+    /// statting the stored path silently returned 0 for every episode, so
+    /// Storage read "0 KB" on a phone full of downloads. Files resolve by
+    /// NAME against wherever media lives now; the stored path is a fallback.
+    public func downloadedByteCount(
+        podcastID: Podcast.ID, mediaDirectory: URL
+    ) async throws -> Int64 {
         let paths = try await database.read { db in
             try String.fetchAll(
                 db,
@@ -104,7 +113,11 @@ public struct RetentionPolicy: Sendable {
             )
         }
         return paths.reduce(into: Int64(0)) { total, path in
-            let attributes = try? FileManager.default.attributesOfItem(atPath: path)
+            let resolved = mediaDirectory.appendingPathComponent((path as NSString).lastPathComponent)
+            let candidate = FileManager.default.fileExists(atPath: resolved.path)
+                ? resolved.path
+                : path
+            let attributes = try? FileManager.default.attributesOfItem(atPath: candidate)
             total += (attributes?[.size] as? Int64) ?? 0
         }
     }

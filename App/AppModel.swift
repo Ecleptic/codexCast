@@ -374,6 +374,13 @@ final class AppModel {
         }
     }
 
+    /// Bytes on disk for one show, resolved against the CURRENT container.
+    func downloadedBytes(for podcastID: Podcast.ID) async -> Int64 {
+        (try? await retention.downloadedByteCount(
+            podcastID: podcastID, mediaDirectory: mediaDirectory
+        )) ?? 0
+    }
+
     /// The episode's media file as it exists RIGHT NOW, or nil.
     ///
     /// Stored `localPath` values are absolute and embed the app's
@@ -396,7 +403,7 @@ final class AppModel {
         return nil
     }
 
-    private var mediaDirectory: URL {
+    var mediaDirectory: URL {
         let support = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
         )[0].appendingPathComponent("CodexCast/media")
