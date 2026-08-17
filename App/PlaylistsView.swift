@@ -123,12 +123,30 @@ struct PlaylistDetailView: View {
                 Button {
                     model.play(episode)
                 } label: {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(episode.title).font(.headline).lineLimit(2)
-                        if let published = episode.publishedAt {
-                            Text(published, style: .date)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        // The show's artwork — a playlist mixes shows, and
+                        // titles alone don't say which is which.
+                        AsyncImage(url: artworkURL(for: episode)) { image in
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            RoundedRectangle(cornerRadius: 8).fill(.quaternary)
+                        }
+                        .frame(width: 48, height: 48)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(episode.title).font(.headline).lineLimit(2)
+                            HStack(spacing: 4) {
+                                if let show = showTitle(for: episode) {
+                                    Text(show).lineLimit(1)
+                                }
+                                if let published = episode.publishedAt {
+                                    Text("· ").foregroundStyle(.tertiary)
+                                        + Text(published, style: .date)
+                                }
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -190,6 +208,15 @@ struct PlaylistDetailView: View {
             episodes = await model.episodes(in: playlist)
         }
     }
+
+    private func artworkURL(for episode: EpisodeRecord) -> URL? {
+        model.library.first { $0.id == episode.podcastId }?
+            .imageURL.flatMap(URL.init(string:))
+    }
+
+    private func showTitle(for episode: EpisodeRecord) -> String? {
+        model.library.first { $0.id == episode.podcastId }?.title
+    }
 }
 
 /// Picker for adding episodes to a hand-curated playlist: recent episodes
@@ -218,7 +245,16 @@ private struct AddEpisodesSheet: View {
                         added.insert(episode.id)
                     }
                 } label: {
-                    HStack {
+                    HStack(spacing: 10) {
+                        AsyncImage(url: model.library.first(where: { $0.id == episode.podcastId })?
+                            .imageURL.flatMap(URL.init(string:))) { image in
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            RoundedRectangle(cornerRadius: 6).fill(.quaternary)
+                        }
+                        .frame(width: 36, height: 36)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+
                         VStack(alignment: .leading, spacing: 2) {
                             Text(episode.title).font(.subheadline).lineLimit(2)
                             if let show = model.library.first(where: { $0.id == episode.podcastId })?.title {

@@ -40,6 +40,7 @@ final class AppModel {
     let calibration: CalibrationRepository
     let sponsors: SponsorRepository
     let neverSkip: NeverSkipRepository
+    let fingerprints: FingerprintRepository
     let charts = TopChartsClient()
 
     private(set) var library: [PodcastRecord] = []
@@ -88,6 +89,7 @@ final class AppModel {
         calibration = CalibrationRepository(database: database)
         sponsors = SponsorRepository(database: database)
         neverSkip = NeverSkipRepository(database: database)
+        fingerprints = FingerprintRepository(database: database)
     }
 
     // MARK: - Library
@@ -311,8 +313,16 @@ final class AppModel {
     /// results. Sponsor hints from the show notes feed the model's context
     /// (A6) — who to look for, known before any learning has happened.
     func scanForAds(_ episode: EpisodeRecord) async {
+        // No transcript yet? Do the whole chain — download (transcription
+        // already requires the file), transcribe, then scan. One tap should
+        // never dead-end into "do the other thing first".
+        if !((try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false) {
+            await transcribeOnDevice(episode)
+        }
         guard var transcript = try? await transcripts.transcript(episodeID: episode.id) else {
-            scanState[episode.id] = .unavailable("Transcribe the episode first.")
+            scanState[episode.id] = .unavailable(
+                episodeWorkErrors[episode.id] ?? "Couldn't transcribe this episode."
+            )
             return
         }
 
@@ -411,6 +421,34 @@ final class AppModel {
                     rationale: rule.userCreated
                         ? "You always skip this part of the show"
                         : "This show usually has an ad here (\(rule.anchor.label.lowercased()))"
+                ))
+            }
+        }
+
+        // Stage 1b: audio fingerprints of confirmed ads. Byte-identical
+        // repeats match with near-zero false positives, across shows —
+        // Shazam's matcher pointed at our own catalog, on device.
+        if let path = episode.localPath, FileManager.default.fileExists(atPath: path),
+           let stored = try? await fingerprints.all(), !stored.isEmpty {
+            let audioURL = URL(fileURLWithPath: path)
+            let references = stored.map {
+                AdFingerprinter.Reference(id: $0.id, signature: $0.signature, durationMs: $0.durationMs)
+            }
+            let hits = await Task.detached(priority: .userInitiated) {
+                await AdFingerprinter.matches(fileURL: audioURL, references: references)
+            }.value
+            for hit in hits {
+                guard !segments.contains(where: {
+                    $0.overlaps(startMs: hit.startMs, endMs: hit.endMs)
+                }) else { continue }
+                segments.append(DetectedSegment(
+                    episodeID: episode.id,
+                    startMs: hit.startMs, endMs: hit.endMs,
+                    kind: .ad,
+                    confidence: 0.96,
+                    provenance: .acoustic(signal: "fingerprint"),
+                    rationale: "Same audio as an ad you've confirmed",
+                    sponsorID: stored.first { $0.id == hit.referenceID }?.sponsorID
                 ))
             }
         }
@@ -866,6 +904,31 @@ final class AppModel {
         await learnPosition(from: segment, episode: episode)
         await recordCalibrationOutcome(for: segment, confirmed: true)
         await linkSponsor(for: segment, episode: episode)
+        captureFingerprint(for: segment, episode: episode)
+    }
+
+    /// Fingerprints the confirmed span's AUDIO (roadmap round 2 #1):
+    /// dynamically inserted ads repeat byte-identically, so one confirmation
+    /// becomes an acoustic detector across the whole library. Background —
+    /// the user never waits on learning (§6.4).
+    private func captureFingerprint(for segment: DetectedSegment, episode: EpisodeRecord) {
+        guard let path = episode.localPath,
+              FileManager.default.fileExists(atPath: path) else { return }
+        let url = URL(fileURLWithPath: path)
+        let startMs = segment.startMs
+        let endMs = segment.endMs
+        let podcastID = episode.podcastId
+        let sponsorID = segment.sponsorID
+        let label = segment.rationale
+        Task.detached(priority: .utility) { [fingerprints] in
+            guard let data = try? AdFingerprinter.signature(
+                fileURL: url, startMs: startMs, endMs: endMs
+            ) else { return }
+            try? await fingerprints.save(
+                signature: data, durationMs: endMs - startMs,
+                podcastID: podcastID, sponsorID: sponsorID, label: label
+            )
+        }
     }
 
     /// §6.2: a confirmation is when a sponsor becomes real. Prefer the
@@ -1037,6 +1100,7 @@ final class AppModel {
         await learnPosition(from: adjusted, episode: episode)
         await recordCalibrationOutcome(for: segment, confirmed: true)
         await linkSponsor(for: adjusted, episode: episode)
+        captureFingerprint(for: adjusted, episode: episode)
 
         if nowPlaying?.id == episode.id {
             nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
@@ -1301,6 +1365,7 @@ final class AppModel {
             }
         }
         await learnPosition(from: segment, episode: episode)
+        captureFingerprint(for: segment, episode: episode)
     }
 
     /// Rejects a detected segment on the playing episode — "this is not an

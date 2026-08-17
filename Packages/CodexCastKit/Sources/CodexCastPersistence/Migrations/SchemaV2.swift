@@ -96,3 +96,22 @@ enum SchemaV6 {
         }
     }
 }
+
+/// v7 — audio fingerprints of confirmed ads. Dynamically inserted ads repeat
+/// byte-identically across episodes and shows; one confirmation becomes an
+/// acoustic detector everywhere (Stage 1b, roadmap round 2).
+enum SchemaV7 {
+    static func register(in migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v7.adFingerprints") { db in
+            try db.create(table: "ad_fingerprints") { table in
+                table.primaryKey("id", .text)
+                table.column("podcastId", .text).references("podcasts", onDelete: .setNull)
+                table.column("sponsorId", .text).references("sponsors", onDelete: .setNull)
+                table.column("label", .text)
+                table.column("signature", .blob).notNull()
+                table.column("durationMs", .integer).notNull()
+                table.column("createdAt", .datetime).notNull()
+            }
+        }
+    }
+}

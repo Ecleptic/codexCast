@@ -125,14 +125,20 @@ struct EpisodeDetailView: View {
                     .buttonStyle(.plain)
                 }
 
-                if transcript != nil, model.scanState[episode.id] == nil || segments.isEmpty {
+                // Always offered: the scan chains download → transcribe →
+                // scan itself when steps are missing (Cam: one tap, no
+                // "do the other thing first").
+                if model.scanState[episode.id] == nil || segments.isEmpty {
                     Button {
                         Task {
                             await model.scanForAds(episode)
                             segments = (try? await model.segmentRepository.segments(episodeID: episode.id)) ?? []
                         }
                     } label: {
-                        Label("Scan for Ads", systemImage: "sparkle.magnifyingglass")
+                        Label(
+                            transcript == nil ? "Transcribe & Scan for Ads" : "Scan for Ads",
+                            systemImage: "sparkle.magnifyingglass"
+                        )
                     }
                 }
             }
