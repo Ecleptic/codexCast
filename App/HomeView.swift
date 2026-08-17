@@ -15,97 +15,106 @@ struct HomeView: View {
     var body: some View {
         @Bindable var router = router
         return NavigationStack(path: $router.homePath) {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 26) {
-                    if !inProgress.isEmpty {
-                        shelf("Continue Listening") {
-                            ScrollView(.horizontal) {
-                                HStack(spacing: 12) {
-                                    ForEach(inProgress, id: \.id) { episode in
-                                        ContinueCard(episode: episode)
-                                            .contextMenu {
-                                                EpisodeContextMenu(
-                                                    episode: episode,
-                                                    onChange: { Task { await reload() } },
-                                                    onGoToEpisode: { router.homePath.append(episode) },
-                                                    onGoToShow: { router.homePath.append(episode.podcastId) }
-                                                )
-                                                Button(role: .destructive) {
-                                                    Task {
-                                                        await model.removeFromContinueListening(episode)
-                                                        await reload()
-                                                    }
-                                                } label: {
-                                                    Label("Remove from Continue Listening", systemImage: "xmark.circle")
-                                                }
-                                            }
-                                    }
-                                }
-                                .padding(.horizontal)
-                            }
-                            .scrollIndicators(.hidden)
-                        }
-                    }
-
-                    if !upNext.isEmpty {
-                        shelf("Up Next") {
-                            VStack(spacing: 0) {
-                                ForEach(upNext.prefix(3), id: \.id) { episode in
-                                    HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
-                                    Divider().padding(.leading, 74)
-                                }
-                                if upNext.count > 3, let queue = queuePlaylist {
-                                    NavigationLink("See all \(upNext.count)") {
-                                        PlaylistDetailView(playlist: queue)
-                                    }
-                                    .font(.callout)
-                                    .padding(.horizontal)
-                                    .padding(.top, 8)
-                                }
-                            }
-                        }
-                    }
-
-                    if !model.playlists.isEmpty {
-                        PlaylistStrip()
-                    }
-
-                    shelf("New Releases") {
-                        if newReleases.isEmpty {
-                            ContentUnavailableView(
-                                "Nothing New",
-                                systemImage: "sparkles",
-                                description: Text("New episodes from your shows appear here.")
-                            )
-                        } else {
-                            VStack(spacing: 0) {
-                                ForEach(newReleases, id: \.id) { episode in
-                                    HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
-                                        // One gesture, two stages: a short
-                                        // pull queues, keep pulling and it
-                                        // turns red to dismiss (mark played).
-                                        .modifier(TwoStageSwipe(
-                                            queueAction: {
+            // A native List, not a custom ScrollView of shelves: rows get
+            // the system's own swipe actions, separators, and hit-testing.
+            List {
+                if !inProgress.isEmpty {
+                    Section("Continue Listening") {
+                        ScrollView(.horizontal) {
+                            HStack(spacing: 12) {
+                                ForEach(inProgress, id: \.id) { episode in
+                                    ContinueCard(episode: episode)
+                                        .contextMenu {
+                                            EpisodeContextMenu(
+                                                episode: episode,
+                                                onChange: { Task { await reload() } },
+                                                onGoToEpisode: { router.homePath.append(episode) },
+                                                onGoToShow: { router.homePath.append(episode.podcastId) }
+                                            )
+                                            Button(role: .destructive) {
                                                 Task {
-                                                    await model.addToUpNext(episode)
+                                                    await model.removeFromContinueListening(episode)
                                                     await reload()
                                                 }
-                                            },
-                                            removeAction: {
-                                                Task {
-                                                    await model.togglePlayed(episode)
-                                                    await reload()
-                                                }
+                                            } label: {
+                                                Label("Remove from Continue Listening", systemImage: "xmark.circle")
                                             }
-                                        ))
-                                    Divider().padding(.leading, 74)
+                                        }
                                 }
                             }
+                            .padding(.horizontal)
+                        }
+                        .scrollIndicators(.hidden)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                    }
+                }
+
+                if !upNext.isEmpty {
+                    Section("Up Next") {
+                        ForEach(upNext.prefix(3), id: \.id) { episode in
+                            HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
+                                .listRowInsets(EdgeInsets())
+                        }
+                        if upNext.count > 3, let queue = queuePlaylist {
+                            NavigationLink("See all \(upNext.count)") {
+                                PlaylistDetailView(playlist: queue)
+                            }
+                            .font(.callout)
                         }
                     }
                 }
-                .padding(.vertical)
+
+                if !model.playlists.isEmpty {
+                    Section {
+                        PlaylistStrip()
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                            .listRowSeparator(.hidden)
+                    }
+                }
+
+                Section("New Releases") {
+                    if newReleases.isEmpty {
+                        ContentUnavailableView(
+                            "Nothing New",
+                            systemImage: "sparkles",
+                            description: Text("New episodes from your shows appear here.")
+                        )
+                        .listRowSeparator(.hidden)
+                    } else {
+                        ForEach(newReleases, id: \.id) { episode in
+                            HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
+                                .listRowInsets(EdgeInsets())
+                                // Native two-edge idiom: swipe right to
+                                // queue, swipe left to dismiss. Full swipes
+                                // on both.
+                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                    Button {
+                                        Task {
+                                            await model.addToUpNext(episode)
+                                            await reload()
+                                        }
+                                    } label: {
+                                        Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                                    }
+                                    .tint(.indigo)
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        Task {
+                                            await model.togglePlayed(episode)
+                                            await reload()
+                                        }
+                                    } label: {
+                                        Label("Dismiss", systemImage: "xmark.bin")
+                                    }
+                                }
+                        }
+                    }
+                }
             }
+            .listStyle(.plain)
+            .headerProminence(.increased)
             .navigationTitle("Home")
             .navigationDestination(for: Playlist.ID.self) { id in
                 if let playlist = model.playlists.first(where: { $0.id == id }) {
@@ -141,14 +150,6 @@ struct HomeView: View {
         }
     }
 
-    private func shelf(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.title3.bold())
-                .padding(.horizontal)
-            content()
-        }
-    }
 }
 
 /// Card with a progress bar — resuming is one tap.
@@ -264,64 +265,5 @@ struct EpisodeArtwork: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size > 100 ? 10 : 8))
-    }
-}
-
-/// Mail-style two-stage trailing swipe for rows living in a ScrollView
-/// (where List swipe actions don't exist): a short pull reveals the queue
-/// action in blue; pulling past the second threshold turns it red and
-/// releasing dismisses instead.
-struct TwoStageSwipe: ViewModifier {
-    var queueAction: () -> Void
-    var removeAction: () -> Void
-
-    @GestureState private var drag: CGFloat = 0
-
-    private let queueThreshold: CGFloat = 60
-    private let removeThreshold: CGFloat = 170
-
-    func body(content: Content) -> some View {
-        let engaged = max(0, -drag)
-        content
-            .offset(x: min(0, drag))
-            .background(alignment: .trailing) {
-                ZStack(alignment: .trailing) {
-                    Rectangle()
-                        .fill(engaged >= removeThreshold ? Color.red : Color.blue)
-                    Label(
-                        engaged >= removeThreshold ? "Dismiss" : "Up Next",
-                        systemImage: engaged >= removeThreshold
-                            ? "xmark.bin.fill"
-                            : "text.line.first.and.arrowtriangle.forward"
-                    )
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.white)
-                    .padding(.trailing, 20)
-                }
-                .opacity(engaged > 8 ? 1 : 0)
-            }
-            .clipped()
-            // simultaneousGesture, not .gesture: a plain gesture on a row
-            // inside a ScrollView loses the touch to the scroll pan and
-            // never fires — the swipe read as dead.
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 12)
-                    .updating($drag) { value, state, _ in
-                        // Horizontal intent only; the shelf scrolls vertically.
-                        if abs(value.translation.width) > abs(value.translation.height) * 1.5 {
-                            state = value.translation.width
-                        }
-                    }
-                    .onEnded { value in
-                        let final = max(0, -value.translation.width)
-                        if final >= removeThreshold {
-                            removeAction()
-                        } else if final >= queueThreshold {
-                            queueAction()
-                        }
-                    }
-            )
-            .animation(.snappy(duration: 0.25), value: drag == 0)
-            .sensoryFeedback(.impact(weight: .medium), trigger: engaged >= removeThreshold)
     }
 }
