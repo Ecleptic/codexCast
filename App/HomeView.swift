@@ -24,6 +24,14 @@ struct HomeView: View {
                             HStack(spacing: 12) {
                                 ForEach(inProgress, id: \.id) { episode in
                                     ContinueCard(episode: episode)
+                                        // Without an explicit preview shape,
+                                        // a context menu inside a List row
+                                        // highlights the ENTIRE row — here,
+                                        // the whole horizontal shelf.
+                                        .contentShape(
+                                            .contextMenuPreview,
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        )
                                         .contextMenu {
                                             EpisodeContextMenu(
                                                 episode: episode,
