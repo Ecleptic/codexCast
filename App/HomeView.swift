@@ -24,14 +24,6 @@ struct HomeView: View {
                             HStack(spacing: 12) {
                                 ForEach(inProgress, id: \.id) { episode in
                                     ContinueCard(episode: episode)
-                                        // Without an explicit preview shape,
-                                        // a context menu inside a List row
-                                        // highlights the ENTIRE row — here,
-                                        // the whole horizontal shelf.
-                                        .contentShape(
-                                            .contextMenuPreview,
-                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        )
                                         .contextMenu {
                                             EpisodeContextMenu(
                                                 episode: episode,
@@ -47,6 +39,13 @@ struct HomeView: View {
                                             } label: {
                                                 Label("Remove from Continue Listening", systemImage: "xmark.circle")
                                             }
+                                        } preview: {
+                                            // An explicit preview is the only
+                                            // reliable way to stop a context
+                                            // menu inside a List row from
+                                            // lifting the ENTIRE row — here,
+                                            // the whole horizontal shelf.
+                                            ContinuePreview(episode: episode)
                                         }
                                 }
                             }
@@ -170,6 +169,31 @@ struct HomeView: View {
         }
     }
 
+}
+
+/// What a long press lifts: this episode, not the shelf it sits in.
+private struct ContinuePreview: View {
+    @Environment(AppModel.self) private var model
+    let episode: EpisodeRecord
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            EpisodeArtwork(episode: episode, size: 220)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(episode.title)
+                    .font(.headline)
+                    .lineLimit(3)
+                if let show = model.library.first(where: { $0.id == episode.podcastId })?.title {
+                    Text(show)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .padding(16)
+        .frame(width: 252)
+    }
 }
 
 /// Card with a progress bar — resuming is one tap.
