@@ -1459,21 +1459,59 @@ final class AppModel {
     nonisolated static let refreshTaskID = "app.ckg.codexcast.refresh"
     nonisolated static let processingTaskID = "app.ckg.codexcast.processing"
 
+    /// Completing a BGTask twice is a crash; completing it never is worse —
+    /// iOS records the run as a failure and starves the app of background
+    /// time. This makes "complete exactly once" structural.
+    private final class TaskCompletion: @unchecked Sendable {
+        private let lock = NSLock()
+        private var done = false
+        func complete(_ task: BGTask, success: Bool) {
+            lock.lock()
+            let alreadyDone = done
+            done = true
+            lock.unlock()
+            guard !alreadyDone else { return }
+            task.setTaskCompleted(success: success)
+        }
+    }
+
     nonisolated static func registerBackgroundTasks(model: AppModel) {
         // BGTask is not Sendable but setTaskCompleted is documented
         // thread-safe; the unsafe capture is confined to completing the task.
         BGTaskScheduler.shared.register(forTaskWithIdentifier: refreshTaskID, using: nil) { task in
             nonisolated(unsafe) let bgTask = task
-            Task { @MainActor in
-                await model.performBackgroundRefresh(nil)
-                bgTask.setTaskCompleted(success: true)
+            let completion = TaskCompletion()
+            // A refresh task gets roughly 30 seconds. Leave margin so the
+            // work finishes on OUR terms rather than being killed on Apple's.
+            let deadline = Date(timeIntervalSinceNow: 22)
+
+            let work = Task { @MainActor in
+                // Reschedule BEFORE working. Previously this lived in a defer
+                // that never ran when the over-budget task was killed, so the
+                // chain died and background refresh only resumed when the app
+                // was next opened by hand — "once or twice a day".
+                model.scheduleBackgroundWork()
+                await model.performBackgroundRefresh(deadline: deadline)
+                completion.complete(bgTask, success: true)
+            }
+
+            bgTask.expirationHandler = {
+                work.cancel()
+                completion.complete(bgTask, success: false)
             }
         }
+
         BGTaskScheduler.shared.register(forTaskWithIdentifier: processingTaskID, using: nil) { task in
             nonisolated(unsafe) let bgTask = task
-            Task { @MainActor in
+            let completion = TaskCompletion()
+            let work = Task { @MainActor in
+                model.scheduleBackgroundWork()
                 await model.performOvernightProcessing(nil)
-                bgTask.setTaskCompleted(success: true)
+                completion.complete(bgTask, success: true)
+            }
+            bgTask.expirationHandler = {
+                work.cancel()
+                completion.complete(bgTask, success: false)
             }
         }
     }
@@ -1483,7 +1521,10 @@ final class AppModel {
         // Ask early and often. iOS still decides when — background refresh
         // ran hours late in the field — which is exactly why the foreground
         // check below exists rather than trusting this alone.
-        refresh.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+        // The floor iOS honours in practice. It still decides the real
+        // cadence — earning that cadence is about finishing cleanly, which is
+        // what the expiration handler and the trimmed workload are for.
+        refresh.earliestBeginDate = Date(timeIntervalSinceNow: 10 * 60)
         try? BGTaskScheduler.shared.submit(refresh)
 
         // Overnight: charging + network, per §9.7.
@@ -1531,11 +1572,14 @@ final class AppModel {
     /// Refreshes feeds several at a time. Sequentially, ninety-seven feeds
     /// took minutes — long enough that pull-to-refresh looked broken and Cam
     /// had to refresh one show by hand. Network waits should overlap.
-    func refreshConcurrently(_ podcasts: [PodcastRecord], limit: Int = 8) async {
+    func refreshConcurrently(
+        _ podcasts: [PodcastRecord], limit: Int = 8, deadline: Date? = nil
+    ) async {
         var remaining = podcasts[...]
         await withTaskGroup(of: (Podcast.ID, [String]).self) { group in
             func addNext() {
-                guard let podcast = remaining.first else { return }
+                if let deadline, Date() >= deadline { return }
+                guard !Task.isCancelled, let podcast = remaining.first else { return }
                 remaining = remaining.dropFirst()
                 group.addTask { [weak self] in
                     guard let self else { return (podcast.id, []) }
@@ -1560,36 +1604,53 @@ final class AppModel {
     }
 
     /// Feed refresh + auto-download of the newest episode for opted-in shows.
-    func performBackgroundRefresh(_ task: BGAppRefreshTask?) async {
-        defer {
-            UserDefaults.standard.set(Date(), forKey: Self.lastRefreshKey)
-            scheduleBackgroundWork()
-        }
+    /// The latency-critical slice, and NOTHING else: refresh followed feeds
+    /// and tell the listener what's new.
+    ///
+    /// This used to refresh all 97 feeds sequentially and then download,
+    /// transcribe, and ad-scan inside a ~30-second budget — work measured in
+    /// minutes. Every run was killed mid-flight, which iOS counts against the
+    /// app's future background time. Heavy work now belongs to the processing
+    /// task and the foreground.
+    func performBackgroundRefresh(deadline: Date) async {
         await reloadLibrary()
-        for podcast in library {
-            let newGuids = await refreshReturningNew(podcast)
-            let notify = notifySetting(for: podcast.id)
+        await refreshConcurrently(library.filter(\.isFollowed), deadline: deadline)
+        UserDefaults.standard.set(Date(), forKey: Self.lastRefreshKey)
+        UserDefaults.standard.set(Date(), forKey: Self.lastBackgroundRunKey)
+        await reloadLibrary()
+    }
 
-            if notify == .newEpisode, !newGuids.isEmpty {
-                postNotification(
-                    title: podcast.title,
-                    body: newGuids.count == 1 ? "New episode available" : "\(newGuids.count) new episodes",
-                    id: "new-\(podcast.id)"
-                )
-            }
+    private static let lastBackgroundRunKey = "lastBackgroundRunAt"
 
-            guard podcast.autoDownloadEnabled,
-                  let newest = (try? await episodes.episodes(podcastID: podcast.id, limit: 1))?.first,
+    /// Surfaced in Settings so "is background refresh actually running?" is
+    /// answerable instead of guessed at.
+    var lastBackgroundRunAt: Date? {
+        UserDefaults.standard.object(forKey: Self.lastBackgroundRunKey) as? Date
+    }
+
+    /// The heavy half (§9.7): downloads, transcription, ad scanning, and the
+    /// stale-scan sweep. Runs on power with minutes of budget — never inside
+    /// the ~30-second refresh task, whose only job is telling the listener
+    /// something new exists.
+    func performOvernightProcessing(_ task: BGProcessingTask?) async {
+        await reloadLibrary()
+
+        for podcast in library where podcast.autoDownloadEnabled {
+            guard !Task.isCancelled else { return }
+            guard let newest = (try? await episodes.episodes(podcastID: podcast.id, limit: 1))?.first,
                   localFileURL(for: newest) == nil,
                   (try? await downloadAudio(for: newest)) != nil
             else { continue }
 
+            let notify = notifySetting(for: podcast.id)
             if notify == .downloaded {
-                postNotification(title: podcast.title, body: "\(newest.title) is ready to listen", id: "dl-\(newest.id)")
+                postNotification(
+                    title: podcast.title,
+                    body: "\(newest.title) is ready to listen",
+                    id: "dl-\(newest.id)"
+                )
             }
 
-            // The per-show pipeline steps (§9.3): download → transcribe → scan,
-            // each only if the show opted in.
             let prefs = pipelinePrefs(for: podcast.id)
             if prefs.autoTranscribe {
                 await transcribeOnDevice(newest)
@@ -1604,24 +1665,22 @@ final class AppModel {
                     }
                 }
             }
+            // One show per wake: heavy work, and the scheduler calls again.
+            break
         }
-        await enforceRetention()
-    }
 
-    /// Overnight transcription: one episode at a time (§9.7), newest first,
-    /// downloaded-but-untranscribed only. Scanning stays manual until the
-    /// model earns trust.
-    func performOvernightProcessing(_ task: BGProcessingTask?) async {
-        defer { scheduleBackgroundWork() }
-        await reloadLibrary()
+        await enforceRetention()
+
+        // Transcribe one untranscribed download, then sweep stale scans.
         for podcast in library {
+            guard !Task.isCancelled else { return }
             guard let candidates = try? await episodes.episodes(podcastID: podcast.id, limit: 3)
             else { continue }
             for episode in candidates where localFileURL(for: episode) != nil {
                 let has = (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
                 if !has {
                     await transcribeOnDevice(episode)
-                    return   // one per wake; the scheduler calls us again
+                    return
                 }
             }
         }
