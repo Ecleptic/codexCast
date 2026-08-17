@@ -348,7 +348,10 @@ private struct PlayerPage: View {
                 Button {
                     Task { await model.markAdEnd() }
                 } label: {
-                    Label("End ad", systemImage: "flag.checkered")
+                    HStack(spacing: 6) {
+                        Image(systemName: "flag.checkered")
+                        Text("End ad")
+                    }
                 }
                 .buttonStyle(.glassProminent)
                 .tint(.orange)
@@ -425,7 +428,8 @@ private struct QueuePage: View {
         }
         .listStyle(.plain)
         .environment(\.editMode, .constant(.active))
-        .task { await reload() }
+        // Same reason: advancing removes the finished episode from the queue.
+        .task(id: model.nowPlaying?.id) { await reload() }
     }
 
     private var upNextPlaylist: Playlist? {
@@ -521,7 +525,9 @@ private struct InfoPage: View {
                 ContentUnavailableView("Nothing Here Yet", systemImage: "doc.text")
             }
         }
-        .task {
+        // id: — the player sheet outlives the episode. Without it, Script
+        // and Info kept showing the PREVIOUS episode after auto-advance.
+        .task(id: model.nowPlaying?.id) {
             guard let episode = model.nowPlaying else { return }
             chapters = await model.loadChapters(for: episode)
         }
@@ -861,13 +867,16 @@ private struct TranscriptPage: View {
                             transcript = try? await model.transcripts.transcript(episodeID: episode.id)
                         }
                     } label: {
-                        Label("Transcribe This Episode", systemImage: "waveform")
+                        HStack(spacing: 6) {
+                            Image(systemName: "waveform")
+                            Text("Transcribe This Episode")
+                        }
                     }
                     .buttonStyle(.glassProminent)
                 }
             }
         }
-        .task {
+        .task(id: model.nowPlaying?.id) {
             guard let episode = model.nowPlaying else { return }
             transcript = try? await model.transcripts.transcript(episodeID: episode.id)
         }

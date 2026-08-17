@@ -963,6 +963,9 @@ final class AppModel {
 
         let elapsed = Int(Date().timeIntervalSince(started))
         scanState[episode.id] = .done(found: segments.count, seconds: elapsed)
+        // Scanning the episode you're listening to must repaint the seek bar
+        // and the Ads list — the same refresh the correction verbs do.
+        await refreshSegmentsIfPlaying(episode)
 
         // §5.8: where the feed ships no chapters, the topic segmentation the
         // scan already computed becomes user-facing chapters — titled by the
@@ -2007,6 +2010,7 @@ final class AppModel {
     func deleteTranscript(_ episode: EpisodeRecord) async {
         try? await transcripts.delete(episodeID: episode.id)
         try? await segmentRepository.replaceMachineSegments([], episodeID: episode.id)
+        await refreshSegmentsIfPlaying(episode)
     }
 
     /// Deletes any segment — machine or user-marked (Cam's request). Also

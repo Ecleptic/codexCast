@@ -231,10 +231,10 @@ struct EpisodeListView: View {
                 Button {
                     model.play(latest)
                 } label: {
-                    Label(
-                        latest.playbackPositionMs > 15_000 ? "Resume Latest" : "Play Latest",
-                        systemImage: "play.fill"
-                    )
+                    HStack(spacing: 6) {
+                        Image(systemName: "play.fill")
+                        Text(latest.playbackPositionMs > 15_000 ? "Resume Latest" : "Play Latest")
+                    }
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.glassProminent)

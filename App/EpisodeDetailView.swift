@@ -250,7 +250,10 @@ struct EpisodeDetailView: View {
                         Button {
                             Task { await transcribeHere() }
                         } label: {
-                            Label("Transcribe on this iPhone", systemImage: "waveform")
+                            HStack(spacing: 6) {
+                                Image(systemName: "waveform")
+                                Text("Transcribe on this iPhone")
+                            }
                         }
                         .buttonStyle(.glassProminent)
 
