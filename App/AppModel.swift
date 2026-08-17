@@ -1612,7 +1612,7 @@ final class AppModel {
         }
         guard let path, FileManager.default.fileExists(atPath: path) else { return }
         let url = URL(fileURLWithPath: path)
-        let peaks = await Task.detached(priority: .utility) {
+        let peaks = await Task.detached(priority: .userInitiated) {
             Self.computePeaks(url: url, bins: 160)
         }.value
         if !peaks.isEmpty {
@@ -1620,37 +1620,44 @@ final class AppModel {
         }
     }
 
-    /// RMS loudness per bin with contrast stretching — NOT peak amplitude.
-    /// Measured on a real episode: max-amplitude over multi-second bins of
-    /// mastered speech is 0.73–1.0 everywhere, which renders as a solid
-    /// block ("it's still a bar"). RMS spreads 0.12–1.0 across the same
-    /// file and shows the episode's actual shape.
+    /// RMS loudness per bin, SAMPLED — seek to each bin and decode only half
+    /// a second there, never the whole file. Measured: full decode of a
+    /// 2-hour MP3 took 12.7s on an M-series Mac (minutes for a 4-hour file
+    /// on the phone — the waveform "never appeared" because it genuinely
+    /// hadn't finished); sampling produces a comparable picture in 0.21s.
+    /// RMS rather than peak amplitude: peaks of mastered speech are
+    /// 0.73–1.0 in every bin, which renders as a solid block.
     nonisolated private static func computePeaks(url: URL, bins: Int) -> [Float] {
         guard let file = try? AVAudioFile(forReading: url) else { return [] }
-        let frameCount = Int(file.length)
-        guard frameCount > bins else { return [] }
-        let framesPerBin = frameCount / bins
+        let totalFrames = file.length
+        guard totalFrames > AVAudioFramePosition(bins) else { return [] }
+        let framesPerBin = totalFrames / AVAudioFramePosition(bins)
         let format = file.processingFormat
-        guard let buffer = AVAudioPCMBuffer(
-            pcmFormat: format, frameCapacity: AVAudioFrameCount(framesPerBin)
-        ) else { return [] }
+        let sampleFrames = AVAudioFrameCount(
+            min(Double(framesPerBin), format.sampleRate * 0.5)
+        )
+        guard sampleFrames > 0,
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: sampleFrames)
+        else { return [] }
 
         var values: [Float] = []
         values.reserveCapacity(bins)
-        for _ in 0..<bins {
-            do { try file.read(into: buffer, frameCount: AVAudioFrameCount(framesPerBin)) }
-            catch { break }
-            guard let channel = buffer.floatChannelData?[0] else { break }
+        for bin in 0..<bins {
+            file.framePosition = AVAudioFramePosition(bin) * framesPerBin + framesPerBin / 2
+            do { try file.read(into: buffer, frameCount: sampleFrames) }
+            catch { values.append(0); continue }
+            guard let channel = buffer.floatChannelData?[0], buffer.frameLength > 0 else {
+                values.append(0)
+                continue
+            }
             var sum = 0.0
             var count = 0
-            let length = Int(buffer.frameLength)
-            // Stride: this is a picture, not a measurement.
             var index = 0
-            while index < length {
+            while index < Int(buffer.frameLength) {
                 let value = Double(channel[index])
                 sum += value * value
                 count += 1
-                index += 16
+                index += 4
             }
             values.append(count > 0 ? Float((sum / Double(count)).squareRoot()) : 0)
         }

@@ -159,6 +159,9 @@ private struct PlayerPage: View {
                 waveform: model.nowPlaying.flatMap { model.waveforms[$0.id] }
             )
             .frame(height: 34)
+            // The system slider insets its track by the thumb's radius; the
+            // bar must match or its cursor rides ahead of the thumb.
+            .padding(.horizontal, 13)
             .task(id: model.nowPlaying?.id) {
                 if let episode = model.nowPlaying {
                     await model.loadWaveform(for: episode)
