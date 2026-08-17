@@ -210,8 +210,16 @@ private struct EpisodeRow: View {
                         Text(Duration.milliseconds(duration), format: .units(allowed: [.hours, .minutes], width: .narrow))
                     }
                 }
+                // Downloaded vs streaming, at a glance: a tinted arrow means
+                // it's on this phone; a hollow cloud means it will stream.
                 if episode.localPath != nil {
-                    Image(systemName: "arrow.down.circle.fill").font(.caption2)
+                    Image(systemName: "arrow.down.circle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.tint)
+                } else {
+                    Image(systemName: "cloud")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
                 }
             }
             .font(.caption)

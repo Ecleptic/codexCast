@@ -104,6 +104,11 @@ final class AppModel {
         showBadges = (try? await segmentRepository.kindsByShow()) ?? [:]
     }
 
+    func setFollowed(_ followed: Bool, podcast: PodcastRecord) async {
+        try? await podcasts.setFollowed(followed, podcastID: podcast.id)
+        await reloadLibrary()
+    }
+
     // MARK: - Playlists (A5.2)
 
     func episodes(in playlist: Playlist) async -> [EpisodeRecord] {
