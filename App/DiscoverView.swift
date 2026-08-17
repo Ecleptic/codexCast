@@ -1,4 +1,6 @@
+import CodexCastCore
 import CodexCastFeeds
+import CodexCastPersistence
 import SwiftUI
 
 struct DiscoverView: View {
@@ -10,6 +12,19 @@ struct DiscoverView: View {
     @State private var statusMessage: String?
     @State private var showAddByURL = false
     @State private var chart: [TopChartsClient.ChartEntry] = []
+    @State private var suggestions: [PodcastSearchResult] = []
+    @State private var selectedGenre: Int? = nil
+    @State private var preview: PreviewTarget?
+
+    /// What a tapped row opens: enough identity to look the show up.
+    struct PreviewTarget: Identifiable {
+        var id: String { title }
+        var title: String
+        var artist: String?
+        var artworkURL: URL?
+        var collectionID: Int?
+        var feedURL: URL?
+    }
 
     var body: some View {
         NavigationStack {
@@ -19,32 +34,36 @@ struct DiscoverView: View {
                         .foregroundStyle(.secondary)
                 }
                 if query.isEmpty && results.isEmpty {
-                    Section("Top Podcasts") {
-                        ForEach(chart) { entry in
-                            ChartRow(entry: entry)
+                    genreChips
+
+                    if !suggestions.isEmpty {
+                        Section("Suggested for You") {
+                            ForEach(visibleSuggestions) { result in
+                                row(for: result)
+                            }
+                        }
+                    }
+
+                    Section(selectedGenre == nil
+                        ? "Top Podcasts"
+                        : "Top in \(TopChartsClient.genres.first { $0.id == selectedGenre }?.name ?? "Genre")"
+                    ) {
+                        ForEach(visibleChart) { entry in
+                            ChartRow(entry: entry) {
+                                preview = PreviewTarget(
+                                    title: entry.name, artist: entry.artistName,
+                                    artworkURL: entry.artworkURL,
+                                    collectionID: entry.id, feedURL: nil
+                                )
+                            }
                         }
                         if chart.isEmpty {
                             HStack { ProgressView(); Text("Loading charts…").foregroundStyle(.secondary) }
                         }
                     }
                 }
-                ForEach(results) { result in
-                    SearchResultRow(result: result) {
-                        guard let feedURL = result.feedURL else { return }
-                        Task {
-                            do {
-                                try await model.subscribe(
-                                    feedURL: feedURL,
-                                    itunesCollectionID: result.collectionID
-                                )
-                                statusMessage = nil
-                            } catch {
-                                // A dead button teaches the user the app is
-                                // broken; a reason teaches them what happened.
-                                statusMessage = "Couldn't add \(result.title): \(error.localizedDescription)"
-                            }
-                        }
-                    }
+                ForEach(visibleResults) { result in
+                    row(for: result)
                 }
             }
             .navigationTitle("Discover")
@@ -62,12 +81,120 @@ struct DiscoverView: View {
             .sheet(isPresented: $showAddByURL) {
                 AddByURLView()
             }
+            .sheet(item: $preview) { target in
+                PodcastPreviewSheet(target: target)
+            }
             .task {
                 if chart.isEmpty {
                     chart = (try? await model.charts.topPodcasts()) ?? []
                 }
+                if suggestions.isEmpty {
+                    await loadSuggestions()
+                }
             }
         }
+    }
+
+    // MARK: - Filtering (blocklist + already-subscribed for suggestions)
+
+    private var visibleChart: [TopChartsClient.ChartEntry] {
+        chart.filter { !model.isBlocked(collectionID: $0.id, artist: $0.artistName) }
+    }
+
+    private var visibleResults: [PodcastSearchResult] {
+        results.filter { !model.isBlocked(collectionID: $0.collectionID, artist: $0.author) }
+    }
+
+    private var visibleSuggestions: [PodcastSearchResult] {
+        suggestions.filter { !model.isBlocked(collectionID: $0.collectionID, artist: $0.author) }
+    }
+
+    @ViewBuilder
+    private var genreChips: some View {
+        Section {
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    chip("All", selected: selectedGenre == nil) {
+                        selectedGenre = nil
+                        Task { chart = (try? await model.charts.topPodcasts()) ?? [] }
+                    }
+                    ForEach(TopChartsClient.genres, id: \.id) { genre in
+                        chip(genre.name, selected: selectedGenre == genre.id) {
+                            selectedGenre = genre.id
+                            chart = []
+                            Task {
+                                chart = (try? await model.charts.topPodcasts(genre: genre.id)) ?? []
+                            }
+                        }
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 0))
+        }
+        .listSectionSeparator(.hidden)
+    }
+
+    private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(selected ? .semibold : .regular))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(selected ? AnyShapeStyle(.tint.opacity(0.18)) : AnyShapeStyle(.quaternary), in: Capsule())
+                .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func row(for result: PodcastSearchResult) -> some View {
+        SearchResultRow(
+            result: result,
+            onOpen: {
+                preview = PreviewTarget(
+                    title: result.title, artist: result.author,
+                    artworkURL: result.artworkURL,
+                    collectionID: result.collectionID, feedURL: result.feedURL
+                )
+            },
+            onSubscribe: {
+                guard let feedURL = result.feedURL else { return }
+                Task {
+                    do {
+                        try await model.subscribe(
+                            feedURL: feedURL, itunesCollectionID: result.collectionID
+                        )
+                        statusMessage = nil
+                    } catch {
+                        statusMessage = "Couldn't add \(result.title): \(error.localizedDescription)"
+                    }
+                }
+            }
+        )
+    }
+
+    /// "Because you follow X": the directory has no recommendations API, so
+    /// suggestions are searches seeded by the producers of followed shows,
+    /// minus what's already in the library and anything blocked.
+    private func loadSuggestions() async {
+        let seeds = model.library
+            .filter(\.isFollowed)
+            .sorted { ($0.isPinned ? 0 : 1) < ($1.isPinned ? 0 : 1) }
+            .prefix(3)
+        var collected: [PodcastSearchResult] = []
+        let subscribedFeeds = Set(model.library.map(\.feedURL))
+        for seed in seeds {
+            guard let author = seed.author, !author.isEmpty else { continue }
+            let found = (try? await model.search.search(term: author)) ?? []
+            for candidate in found.prefix(4) {
+                guard let feed = candidate.feedURL?.absoluteString,
+                      !subscribedFeeds.contains(feed),
+                      !collected.contains(where: { $0.collectionID == candidate.collectionID })
+                else { continue }
+                collected.append(candidate)
+            }
+        }
+        suggestions = Array(collected.prefix(9))
     }
 
     /// Debounced search: the directory rate-limits aggressively, and a
@@ -95,9 +222,12 @@ struct DiscoverView: View {
     }
 }
 
+// MARK: - Rows
+
 private struct SearchResultRow: View {
     @Environment(AppModel.self) private var model
     let result: PodcastSearchResult
+    let onOpen: () -> Void
     let onSubscribe: () -> Void
 
     private var isSubscribed: Bool {
@@ -110,32 +240,254 @@ private struct SearchResultRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 12) {
-            AsyncImage(url: result.artworkURL) { image in
-                image.resizable().aspectRatio(contentMode: .fill)
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 8).fill(.quaternary)
-            }
-            .frame(width: 48, height: 48)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+        Button(action: onOpen) {
+            HStack(spacing: 12) {
+                AsyncImage(url: result.artworkURL) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 8).fill(.quaternary)
+                }
+                .frame(width: 48, height: 48)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(result.title).font(.headline).lineLimit(2)
-                if let author = result.author {
-                    Text(author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(result.title).font(.headline).lineLimit(2)
+                    if let author = result.author {
+                        Text(author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                }
+
+                Spacer()
+
+                if isSubscribed {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.tint)
+                } else if result.feedURL != nil {
+                    Button("Follow", action: onSubscribe)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
                 }
             }
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            DiscoverBlockMenu(collectionID: result.collectionID, artist: result.author)
+        }
+    }
+}
 
-            Spacer()
+/// A top-charts row; tapping opens the preview, Follow resolves the feed.
+private struct ChartRow: View {
+    @Environment(AppModel.self) private var model
+    let entry: TopChartsClient.ChartEntry
+    let onOpen: () -> Void
+    @State private var isWorking = false
+    @State private var errorText: String?
 
-            if isSubscribed {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.tint)
-            } else if result.feedURL != nil {
-                Button("Follow", action: onSubscribe)
+    private var isSubscribed: Bool {
+        model.library.contains { $0.itunesCollectionID == entry.id }
+    }
+
+    var body: some View {
+        Button(action: onOpen) {
+            HStack(spacing: 12) {
+                AsyncImage(url: entry.artworkURL) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 8).fill(.quaternary)
+                }
+                .frame(width: 48, height: 48)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(entry.name).font(.subheadline.weight(.medium)).lineLimit(2)
+                    if let artist = entry.artistName {
+                        Text(artist).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    if let errorText {
+                        Text(errorText).font(.caption2).foregroundStyle(.red).lineLimit(2)
+                    }
+                }
+
+                Spacer()
+
+                if isSubscribed {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
+                } else if isWorking {
+                    ProgressView()
+                } else {
+                    Button("Follow") {
+                        isWorking = true
+                        errorText = nil
+                        Task {
+                            do {
+                                guard let feedURL = try await model.charts.feedURL(for: entry) else {
+                                    throw HTTPError.status(404)
+                                }
+                                try await model.subscribe(feedURL: feedURL, itunesCollectionID: entry.id)
+                            } catch {
+                                errorText = "Couldn't add: \(error.localizedDescription)"
+                            }
+                            isWorking = false
+                        }
+                    }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
+                }
             }
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            DiscoverBlockMenu(collectionID: entry.id, artist: entry.artistName)
+        }
+    }
+}
+
+/// "Never show me this again" — hides a show (or everything by a producer)
+/// from charts, search, and suggestions. Local preference only.
+private struct DiscoverBlockMenu: View {
+    @Environment(AppModel.self) private var model
+    let collectionID: Int?
+    let artist: String?
+
+    var body: some View {
+        if let collectionID {
+            Button(role: .destructive) {
+                model.blocklist.collectionIDs.insert(collectionID)
+            } label: {
+                Label("Block This Show", systemImage: "nosign")
+            }
+        }
+        if let artist, !artist.isEmpty {
+            Button(role: .destructive) {
+                model.blocklist.producers.insert(artist.lowercased())
+            } label: {
+                Label("Block Everything by \(artist)", systemImage: "nosign")
+            }
+        }
+    }
+}
+
+// MARK: - Preview sheet
+
+/// Look before you follow: artwork, description, and recent episodes,
+/// fetched straight from the feed without subscribing. Follow puts the show
+/// with your regulars; Add just shelves it in the library.
+private struct PodcastPreviewSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let target: DiscoverView.PreviewTarget
+
+    @State private var feedURL: URL?
+    @State private var summary: String?
+    @State private var episodes: [String] = []
+    @State private var loadFailed = false
+    @State private var isSubscribing = false
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    HStack(spacing: 14) {
+                        AsyncImage(url: target.artworkURL) { image in
+                            image.resizable().aspectRatio(contentMode: .fill)
+                        } placeholder: {
+                            RoundedRectangle(cornerRadius: 12).fill(.quaternary)
+                        }
+                        .frame(width: 84, height: 84)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(target.title).font(.headline)
+                            if let artist = target.artist {
+                                Text(artist).font(.subheadline).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .listRowSeparator(.hidden)
+
+                    HStack(spacing: 10) {
+                        Button {
+                            subscribe(following: true)
+                        } label: {
+                            Label("Follow", systemImage: "heart.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button {
+                            subscribe(following: false)
+                        } label: {
+                            Label("Add", systemImage: "plus")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .disabled(feedURL == nil || isSubscribing)
+                } footer: {
+                    Text("Follow: appears on Home and in New Releases. Add: kept in your library for browsing only.")
+                }
+
+                if let summary, !summary.isEmpty {
+                    Section("About") {
+                        Text(summary.htmlToPlainText).font(.callout)
+                    }
+                }
+
+                if !episodes.isEmpty {
+                    Section("Recent Episodes") {
+                        ForEach(episodes, id: \.self) { title in
+                            Text(title).font(.callout).lineLimit(2)
+                        }
+                    }
+                } else if loadFailed {
+                    Section {
+                        Text("Couldn't load this show's feed.")
+                            .foregroundStyle(.orange)
+                    }
+                } else {
+                    Section { HStack { ProgressView(); Text("Loading…").foregroundStyle(.secondary) } }
+                }
+            }
+            .navigationTitle("Preview")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                Button("Done") { dismiss() }
+            }
+            .task { await load() }
+        }
+    }
+
+    private func load() async {
+        var url = target.feedURL
+        if url == nil, let collectionID = target.collectionID {
+            url = try? await model.search.lookup(collectionID: collectionID)?.feedURL
+        }
+        guard let url else {
+            loadFailed = true
+            return
+        }
+        feedURL = url
+        guard let result = try? await model.fetcher.fetch(url),
+              case .updated(let feed, _) = result
+        else {
+            loadFailed = true
+            return
+        }
+        summary = feed.summary
+        episodes = feed.episodes.prefix(10).map(\.title)
+    }
+
+    private func subscribe(following: Bool) {
+        guard let feedURL else { return }
+        isSubscribing = true
+        Task {
+            if following {
+                try? await model.subscribe(feedURL: feedURL, itunesCollectionID: target.collectionID)
+            } else {
+                try? await model.addWithoutFollowing(feedURL: feedURL, itunesCollectionID: target.collectionID)
+            }
+            dismiss()
         }
     }
 }
@@ -189,66 +541,6 @@ private struct AddByURLView: View {
             } catch {
                 errorMessage = "Couldn't load that feed: \(error.localizedDescription)"
                 isWorking = false
-            }
-        }
-    }
-}
-
-/// A top-charts row: subscribing resolves the feed URL through one lookup.
-private struct ChartRow: View {
-    @Environment(AppModel.self) private var model
-    let entry: TopChartsClient.ChartEntry
-    @State private var isWorking = false
-    @State private var errorText: String?
-
-    private var isSubscribed: Bool {
-        model.library.contains { $0.itunesCollectionID == entry.id }
-    }
-
-    var body: some View {
-        HStack(spacing: 12) {
-            AsyncImage(url: entry.artworkURL) { image in
-                image.resizable().aspectRatio(contentMode: .fill)
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 8).fill(.quaternary)
-            }
-            .frame(width: 48, height: 48)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(entry.name).font(.subheadline.weight(.medium)).lineLimit(2)
-                if let artist = entry.artistName {
-                    Text(artist).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                }
-                if let errorText {
-                    Text(errorText).font(.caption2).foregroundStyle(.red).lineLimit(2)
-                }
-            }
-
-            Spacer()
-
-            if isSubscribed {
-                Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
-            } else if isWorking {
-                ProgressView()
-            } else {
-                Button("Follow") {
-                    isWorking = true
-                    errorText = nil
-                    Task {
-                        do {
-                            guard let feedURL = try await model.charts.feedURL(for: entry) else {
-                                throw HTTPError.status(404)
-                            }
-                            try await model.subscribe(feedURL: feedURL, itunesCollectionID: entry.id)
-                        } catch {
-                            errorText = "Couldn't add: \(error.localizedDescription)"
-                        }
-                        isWorking = false
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
             }
         }
     }

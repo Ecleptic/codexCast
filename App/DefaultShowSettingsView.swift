@@ -13,7 +13,7 @@ struct DefaultShowSettingsView: View {
     @State private var applied: String?
 
     private static let limitChoices: [(String, Int?)] = [
-        ("Unlimited", nil), ("1", 1), ("2", 2), ("3", 3),
+        ("Unlimited", nil), ("None", 0), ("1", 1), ("2", 2), ("3", 3),
         ("5", 5), ("10", 10), ("20", 20),
     ]
 
@@ -50,11 +50,11 @@ struct DefaultShowSettingsView: View {
     ) -> some View {
         Section {
             Picker("Keep downloaded episodes", selection: Binding(
-                get: { defaults.wrappedValue.episodeLimit ?? 0 },
-                set: { defaults.wrappedValue.episodeLimit = $0 == 0 ? nil : $0 }
+                get: { defaults.wrappedValue.episodeLimit ?? -1 },
+                set: { defaults.wrappedValue.episodeLimit = $0 == -1 ? nil : $0 }
             )) {
                 ForEach(Self.limitChoices, id: \.0) { choice in
-                    Text(choice.0).tag(choice.1 ?? 0)
+                    Text(choice.0).tag(choice.1 ?? -1)
                 }
             }
             Toggle("Auto-download new episodes", isOn: defaults.autoDownload)

@@ -8,6 +8,10 @@ struct SettingsView: View {
                     NavigationLink("Audio Settings") { AudioSettingsView() }
                 }
 
+                Section("Appearance") {
+                    NavigationLink("App Icon") { AppIconSettingsView() }
+                }
+
                 Section("Library") {
                     NavigationLink("Show Defaults") { DefaultShowSettingsView() }
                     NavigationLink("Episode Limits") { EpisodeLimitsView() }

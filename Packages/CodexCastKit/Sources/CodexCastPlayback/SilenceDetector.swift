@@ -19,7 +19,11 @@ public struct SilenceDetector: Sendable {
 
     public init(
         frameMs: Int = 20,
-        relativeThreshold: Double = 0.08,
+        // 0.05, down from 0.08: a softly spoken one-syllable sentence
+        // ("Yeah.") between two pauses was falling under the old threshold,
+        // merging pause+word+pause into ONE gap — which trimming then
+        // hopped over entirely, swallowing the word (field report).
+        relativeThreshold: Double = 0.05,
         absoluteFloor: Double = 0.002
     ) {
         self.frameMs = frameMs

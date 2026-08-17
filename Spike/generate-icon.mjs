@@ -184,3 +184,39 @@ fs.writeFileSync(
   ),
 )
 console.log("wrote AppIcon.appiconset/Contents.json")
+
+
+// ---------------------------------------------------------------------------
+// Alternate home-screen icons (user-selectable in Settings > App Icon).
+// Loose PNGs, NOT in the asset catalog: iOS alternate icons are looked up by
+// filename via CFBundleAlternateIcons. 120px (@2x) and 180px (@3x).
+// ---------------------------------------------------------------------------
+
+const ALT_DIR = path.join(HERE, "..", "App", "AlternateIcons")
+fs.mkdirSync(ALT_DIR, { recursive: true })
+
+const ALTERNATES = {
+  // The dark mark as an always-on choice.
+  IconInk: PALETTES.dark,
+  // Violet ground flipped to a deep accent field with cream band.
+  IconViolet: {
+    bgA: "#6f58c4",
+    bgB: "#4b3a90",
+    ramp: ["#efe9ff", "#e3dafd", "#d4c8f7", "#c4b5f0", "#b5a4e9"],
+    band: "#1a1a3e",
+    bandInner: "#23234f",
+    cup: "#1a1a3e",
+    cupPad: "#e1dac7",
+    opaque: true,
+  },
+}
+
+for (const [name, pal] of Object.entries(ALTERNATES)) {
+  const svg = buildSvg(pal)
+  for (const [suffix, size] of [["@2x", 120], ["@3x", 180]]) {
+    let img = sharp(Buffer.from(svg)).resize(size, size)
+    if (pal.opaque) img = img.flatten({ background: pal.bgB ?? "#000000" })
+    await img.png().toFile(path.join(ALT_DIR, `${name}${suffix}.png`))
+    console.log(`wrote AlternateIcons/${name}${suffix}.png`)
+  }
+}

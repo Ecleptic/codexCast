@@ -136,6 +136,13 @@ public final class PlaybackEngine {
     /// the eventual stats screen; also proof the feature is doing something.
     public private(set) var timeSavedByTrimMs: Int = 0
 
+    /// Minimum quiet time between two trim hops. A one-syllable sentence
+    /// between two pauses would otherwise sit squeezed between two seek
+    /// stalls and barely be heard (field report); after any hop, the next
+    /// pause plays out naturally.
+    private static let trimCooldownMs = 2_500
+    private var lastTrimHopAtMediaMs = -1_000_000
+
     /// Kept clear of BOTH edges of every gap. The energy detector counts a
     /// sentence's trailing fade-out as "silence", so gliding edge-to-edge
     /// whipped sentence tails through at 3x — heard in the field as
@@ -388,6 +395,9 @@ public final class PlaybackEngine {
 
         let remainingMs = gap.endMs - mediaPositionMs
         guard remainingMs > 100 else { return }
+        // Cooldown in MEDIA time so seeks and speed changes can't confuse it.
+        guard abs(mediaPositionMs - lastTrimHopAtMediaMs) > Self.trimCooldownMs else { return }
+        lastTrimHopAtMediaMs = gap.endMs
         isProgrammaticSeek = true
         seek(toMediaMs: gap.endMs)
         isProgrammaticSeek = false

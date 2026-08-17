@@ -8,10 +8,16 @@ import Foundation
 /// file (seconds of work, decode is far faster than real time), saved as a
 /// sidecar next to the media, and dies with it when retention evicts the file.
 public struct SilenceMap: Codable, Sendable {
+    /// Bumped whenever detector parameters change; stale sidecars fail to
+    /// decode (missing/mismatched version) and get recomputed.
+    public static let currentFormatVersion = 2
+
+    public var formatVersion: Int
     public var gaps: [SilenceDetector.Gap]
     public var mediaDurationMs: Int
 
     public init(gaps: [SilenceDetector.Gap], mediaDurationMs: Int) {
+        self.formatVersion = Self.currentFormatVersion
         self.gaps = gaps
         self.mediaDurationMs = mediaDurationMs
     }
@@ -90,8 +96,11 @@ public struct SilenceMap: Codable, Sendable {
     }
 
     public static func load(for mediaURL: URL) -> SilenceMap? {
-        guard let data = try? Data(contentsOf: sidecarURL(for: mediaURL)) else { return nil }
-        return try? JSONDecoder().decode(SilenceMap.self, from: data)
+        guard let data = try? Data(contentsOf: sidecarURL(for: mediaURL)),
+              let map = try? JSONDecoder().decode(SilenceMap.self, from: data),
+              map.formatVersion == Self.currentFormatVersion
+        else { return nil }
+        return map
     }
 
     public func save(for mediaURL: URL) throws {

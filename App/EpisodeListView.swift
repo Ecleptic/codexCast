@@ -9,6 +9,14 @@ struct EpisodeListView: View {
     @State private var episodes: [EpisodeRecord] = []
     @State private var descriptionExpanded = false
     @State private var searchText = ""
+    @State private var selection = Set<Episode.ID>()
+    @Environment(\.editMode) private var editMode
+
+    private var isSelecting: Bool { editMode?.wrappedValue.isEditing == true }
+
+    private var selectedEpisodes: [EpisodeRecord] {
+        episodes.filter { selection.contains($0.id) }
+    }
 
     private var visibleEpisodes: [EpisodeRecord] {
         guard !searchText.isEmpty else { return episodes }
@@ -16,7 +24,7 @@ struct EpisodeListView: View {
     }
 
     var body: some View {
-        List {
+        List(selection: $selection) {
             showHeader
             ForEach(visibleEpisodes, id: \.id) { episode in
             NavigationLink {
@@ -24,6 +32,7 @@ struct EpisodeListView: View {
             } label: {
                 EpisodeRow(episode: episode, isPlaying: model.nowPlaying?.id == episode.id)
             }
+            .tag(episode.id)
             .swipeActions(edge: .leading) {
                 Button {
                     model.play(episode)
@@ -69,6 +78,18 @@ struct EpisodeListView: View {
         .navigationTitle(podcast.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // Bulk verbs: whole-show sweeps from the menu, or select
+            // specific episodes with Edit and act on just those.
+            Menu {
+                if isSelecting {
+                    bulkActions(on: selectedEpisodes, label: "\(selection.count) Selected")
+                } else {
+                    bulkActions(on: episodes, label: "All Episodes")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            EditButton()
             NavigationLink {
                 ShowSettingsView(podcast: podcast)
             } label: {
@@ -86,6 +107,51 @@ struct EpisodeListView: View {
         }
         .task {
             episodes = (try? await model.episodes.episodes(podcastID: podcast.id)) ?? []
+        }
+    }
+
+    @ViewBuilder
+    private func bulkActions(on targets: [EpisodeRecord], label: String) -> some View {
+        Section(label) {
+            Button {
+                bulk(targets) { episode in
+                    if !episode.isPlayed { await model.togglePlayed(episode) }
+                }
+            } label: {
+                Label("Mark Played", systemImage: "checkmark.circle")
+            }
+            Button {
+                bulk(targets) { episode in
+                    if episode.isPlayed { await model.togglePlayed(episode) }
+                }
+            } label: {
+                Label("Mark Unplayed", systemImage: "circle")
+            }
+            Button {
+                bulk(targets) { episode in
+                    _ = try? await model.downloadAudio(for: episode)
+                }
+            } label: {
+                Label("Download", systemImage: "arrow.down.circle")
+            }
+            Button(role: .destructive) {
+                bulk(targets) { episode in
+                    await model.deleteDownload(episode)
+                }
+            } label: {
+                Label("Delete Downloads", systemImage: "trash")
+            }
+        }
+    }
+
+    private func bulk(_ targets: [EpisodeRecord], _ action: @escaping (EpisodeRecord) async -> Void) {
+        Task {
+            for episode in targets {
+                await action(episode)
+            }
+            episodes = (try? await model.episodes.episodes(podcastID: podcast.id)) ?? []
+            selection.removeAll()
+            editMode?.wrappedValue = .inactive
         }
     }
 

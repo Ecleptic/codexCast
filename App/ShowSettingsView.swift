@@ -58,7 +58,7 @@ struct ShowSettingsView: View {
         )
     }
 
-    private static let limitChoices: [Int?] = [nil, 1, 2, 3, 5, 10, 20, 50]
+    private static let limitChoices: [Int?] = [nil, 0, 1, 2, 3, 5, 10, 20, 50]
 
     var body: some View {
         Form {
@@ -323,6 +323,7 @@ struct ShowSettingsView: View {
 
     private func limitLabel(_ choice: Int?) -> String {
         guard let choice else { return "All episodes" }
+        if choice == 0 { return "None (in-progress kept)" }
         return choice == 1 ? "1 newest episode" : "\(choice) newest episodes"
     }
 }

@@ -83,6 +83,7 @@ final class AppModel {
         segmentRepository = SegmentRepository(database: database)
         audioSettings = Self.loadAudioSettings()
         showDefaults = Self.loadShowDefaults()
+        blocklist = Self.loadBlocklist()
         patternRepository = AdPatternRepository(database: database)
         corrections = CorrectionRepository(database: database)
         chapters = ChapterRepository(database: database)
@@ -103,6 +104,46 @@ final class AppModel {
         try? await playlistRepository.ensureBuiltIns()
         playlists = (try? await playlistRepository.all()) ?? []
         showBadges = (try? await segmentRepository.kindsByShow()) ?? [:]
+    }
+
+    // MARK: - Discover blocklist ("never show me this again")
+
+    struct DiscoverBlocklist: Codable, Hashable {
+        var collectionIDs: Set<Int> = []
+        /// Lowercased producer/artist names.
+        var producers: Set<String> = []
+    }
+
+    var blocklist: DiscoverBlocklist {
+        didSet {
+            if let data = try? JSONEncoder().encode(blocklist) {
+                UserDefaults.standard.set(data, forKey: "discoverBlocklist")
+            }
+        }
+    }
+
+    static func loadBlocklist() -> DiscoverBlocklist {
+        guard let data = UserDefaults.standard.data(forKey: "discoverBlocklist"),
+              let decoded = try? JSONDecoder().decode(DiscoverBlocklist.self, from: data)
+        else { return DiscoverBlocklist() }
+        return decoded
+    }
+
+    func isBlocked(collectionID: Int?, artist: String?) -> Bool {
+        if let collectionID, blocklist.collectionIDs.contains(collectionID) { return true }
+        if let artist, blocklist.producers.contains(artist.lowercased()) { return true }
+        return false
+    }
+
+    /// Subscribes without following: the show lands in the browsing library
+    /// ("Everything"), never in Home or New Releases.
+    func addWithoutFollowing(feedURL: URL, itunesCollectionID: Int? = nil) async throws {
+        try await subscribe(feedURL: feedURL, itunesCollectionID: itunesCollectionID)
+        if let record = library.first(where: { $0.feedURL == feedURL.absoluteString }) {
+            try? await podcasts.setFollowed(false, podcastID: record.id)
+            await applyDefaults(showDefaults.added, to: record.id)
+            await reloadLibrary()
+        }
     }
 
     // MARK: - Global show defaults ("set once, applies to my regulars")
