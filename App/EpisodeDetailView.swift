@@ -20,7 +20,6 @@ struct EpisodeDetailView: View {
         case info = "Info"
     }
     @State private var page: Page = .notes
-    @State private var showVideo = false
     @State private var isLoadingTranscript = false
     @State private var transcriptError: String?
 
@@ -66,12 +65,12 @@ struct EpisodeDetailView: View {
 
                         if model.videoURL(for: episode) != nil {
                             Button {
-                                Task {
-                                    await model.playVideo(episode)
-                                    showVideo = true
-                                }
+                                Task { await model.playVideo(episode) }
                             } label: {
-                                Label("Video", systemImage: "play.rectangle")
+                                HStack(spacing: 6) {
+                                    Image(systemName: "play.rectangle.fill")
+                                    Text("Video")
+                                }
                             }
                             .buttonStyle(.glass)
                         }
@@ -275,9 +274,6 @@ struct EpisodeDetailView: View {
                 }
             }
         }
-        .sheet(isPresented: $showVideo) {
-            VideoPlayerSheet()
-        }
         .task {
             transcript = try? await model.transcripts.transcript(episodeID: episode.id)
             segments = (try? await model.segmentRepository.segments(episodeID: episode.id)) ?? []
@@ -346,27 +342,3 @@ struct EpisodeDetailView: View {
 }
 
 
-/// Video playback through the SAME engine as audio (§8.3): same timeline,
-/// same boundary observers, so ad skipping, undo, and position persistence
-/// all work identically. The sheet merely renders the shared player.
-private struct VideoPlayerSheet: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        VideoPlayerRepresentable(player: model.player.underlyingPlayer)
-            .ignoresSafeArea()
-    }
-}
-
-private struct VideoPlayerRepresentable: UIViewControllerRepresentable {
-    let player: AVPlayer
-
-    func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let controller = AVPlayerViewController()
-        controller.player = player
-        controller.allowsPictureInPicturePlayback = true
-        return controller
-    }
-
-    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {}
-}

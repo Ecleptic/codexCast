@@ -10,6 +10,7 @@ struct SettingsView: View {
 
                 Section("Appearance") {
                     NavigationLink("App Icon") { AppIconSettingsView() }
+                    NavigationLink("Video") { VideoSettingsView() }
                 }
 
                 Section("Library") {

@@ -276,10 +276,15 @@ private struct SearchResultRow: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.tint)
                 } else if result.feedURL != nil {
-                    Button("Follow", action: onSubscribe)
+                    Button(action: onSubscribe) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                            Text("Follow")
+                        }
                         .font(.subheadline.weight(.semibold))
-                        .buttonStyle(.glassProminent)
-                        .controlSize(.small)
+                    }
+                    .buttonStyle(.glassProminent)
+                    .controlSize(.small)
                 }
             }
         }
@@ -330,7 +335,7 @@ private struct ChartRow: View {
                 } else if isWorking {
                     ProgressView()
                 } else {
-                    Button("Follow") {
+                    Button {
                         isWorking = true
                         errorText = nil
                         Task {
@@ -344,8 +349,13 @@ private struct ChartRow: View {
                             }
                             isWorking = false
                         }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                            Text("Follow")
+                        }
+                        .font(.subheadline.weight(.semibold))
                     }
-                    .font(.subheadline.weight(.semibold))
                     .buttonStyle(.glassProminent)
                     .controlSize(.small)
                 }
@@ -390,8 +400,18 @@ private struct DiscoverBlockMenu: View {
 /// with your regulars; Add just shelves it in the library.
 private struct PodcastPreviewSheet: View {
     @Environment(AppModel.self) private var model
+    @Environment(Router.self) private var router
     @Environment(\.dismiss) private var dismiss
     let target: DiscoverView.PreviewTarget
+
+    /// The library record for this show, if it's already subscribed —
+    /// matched by iTunes ID or by the feed URL we resolved.
+    private var existing: PodcastRecord? {
+        model.library.first {
+            ($0.itunesCollectionID != nil && $0.itunesCollectionID == target.collectionID)
+                || $0.feedURL == (feedURL ?? target.feedURL)?.absoluteString
+        }
+    }
 
     @State private var feedURL: URL?
     @State private var summary: String?
@@ -421,24 +441,61 @@ private struct PodcastPreviewSheet: View {
                     }
                     .listRowSeparator(.hidden)
 
-                    HStack(spacing: 10) {
+                    if let existing {
+                        // Already in the library: the useful action is the
+                        // way in, not another Follow button.
                         Button {
-                            subscribe(following: true)
+                            dismiss()
+                            router.openShow(existing.id)
                         } label: {
-                            Label("Follow", systemImage: "heart.fill")
-                                .frame(maxWidth: .infinity)
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.forward.circle.fill")
+                                Text(existing.isFollowed ? "Go to Show (Following)" : "Go to Show (Added)")
+                            }
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.glassProminent)
 
                         Button {
-                            subscribe(following: false)
+                            Task {
+                                await model.setFollowed(!existing.isFollowed, podcast: existing)
+                            }
                         } label: {
-                            Label("Add", systemImage: "plus")
-                                .frame(maxWidth: .infinity)
+                            HStack(spacing: 6) {
+                                Image(systemName: existing.isFollowed ? "heart.slash" : "heart.fill")
+                                Text(existing.isFollowed ? "Unfollow" : "Follow")
+                            }
+                            .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.glass)
+                    } else {
+                        HStack(spacing: 10) {
+                            Button {
+                                subscribe(following: true)
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "heart.fill")
+                                    Text("Follow")
+                                }
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.glassProminent)
+
+                            Button {
+                                subscribe(following: false)
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus")
+                                    Text("Add")
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.glass)
+                        }
+                        .disabled(feedURL == nil || isSubscribing)
                     }
-                    .disabled(feedURL == nil || isSubscribing)
                 } footer: {
                     Text("Follow: appears on Home and in New Releases. Add: kept in your library for browsing only.")
                 }

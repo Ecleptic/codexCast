@@ -28,6 +28,7 @@ struct CodexCastApp: App {
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.scenePhase) private var scenePhase
     @State private var router = Router()
 
     var body: some View {
@@ -84,6 +85,12 @@ struct RootView: View {
         .task {
             await model.restoreSession()
             model.scheduleBackgroundWork()
+            await model.refreshIfStale()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Coming back to the app is itself a "check for new episodes".
+            guard phase == .active else { return }
+            Task { await model.refreshIfStale() }
         }
     }
 }

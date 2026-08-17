@@ -111,9 +111,16 @@ public final class PlaybackEngine {
     private let observers: ObserverBox
 
     /// The wrapped player, for surfaces that must render it directly —
-    /// `AVPlayerViewController` for video (§8.3). Same player, same
-    /// timeline, same skips; renditions are the same content.
+    /// the inline video layer (§8.3). Same player, same timeline, same
+    /// skips; renditions are the same content.
     public var underlyingPlayer: AVPlayer { player }
+
+    /// Whether the LOADED item actually carries video — asked of the asset,
+    /// not guessed from the feed, because a downloaded file from a video
+    /// feed is video whatever the rendition list claimed.
+    public private(set) var hasVideo = false
+    /// Guards against a slow track query landing after the next episode.
+    private var videoProbeToken = UUID()
 
     // MARK: DSP (§10.1/§10.4) — Voice Boost, mono, normalization via audio tap
 
@@ -178,6 +185,14 @@ public final class PlaybackEngine {
     public func load(url: URL, timeline: DisplayTimeline, startAtMs: Int = 0) {
         let item = AVPlayerItem(url: url)
         player.replaceCurrentItem(with: item)
+        hasVideo = false
+        let token = UUID()
+        videoProbeToken = token
+        Task { [weak self] in
+            let tracks = try? await item.asset.loadTracks(withMediaType: .video)
+            guard let self, self.videoProbeToken == token else { return }
+            self.hasVideo = !(tracks ?? []).isEmpty
+        }
         tapController.attach(to: item)
         tapController.update(processing)
         // The old episode's silence map means nothing here; the caller

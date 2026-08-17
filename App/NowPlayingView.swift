@@ -57,15 +57,14 @@ private struct PlayerPage: View {
     @Environment(AppModel.self) private var model
     @Environment(Router.self) private var router
     @State private var scrubMs: Double?
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var videoAttached = true
 
     var body: some View {
         VStack(spacing: 22) {
             Spacer(minLength: 0)
 
-            artwork
-                .frame(maxWidth: 300, maxHeight: 300)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(radius: 12, y: 6)
+            stage
 
             VStack(spacing: 6) {
                 // Tap the title for episode details, the show name for the
@@ -149,6 +148,70 @@ private struct PlayerPage: View {
     private var showTitle: String? {
         guard let episode = model.nowPlaying else { return nil }
         return model.library.first { $0.id == episode.podcastId }?.title
+    }
+
+    /// Poster or video, in the same slot. Video is inline and native —
+    /// same engine, same scrubber below it, controls layered on top the way
+    /// every video app does it.
+    @ViewBuilder
+    private var stage: some View {
+        if model.player.hasVideo, model.videoSettings.showVideoStage {
+            VideoLayerView(
+                // Detached in the background so audio keeps playing.
+                player: videoAttached ? model.player.underlyingPlayer : nil,
+                gravity: model.videoSettings.cropToFill ? .resizeAspectFill : .resizeAspect
+            )
+            .aspectRatio(model.videoSettings.cropToFill ? 1 : 16 / 9, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(radius: 12, y: 6)
+            .overlay(alignment: .topTrailing) { stageControls }
+            .padding(.horizontal, model.videoSettings.cropToFill ? 24 : 0)
+            .onChange(of: scenePhase) { _, phase in
+                videoAttached = phase == .active
+            }
+            .accessibilityLabel("Video")
+        } else {
+            artwork
+                .frame(maxWidth: 300, maxHeight: 300)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .shadow(radius: 12, y: 6)
+                .overlay(alignment: .topTrailing) {
+                    if model.player.hasVideo { stageControls }
+                }
+        }
+    }
+
+    /// Video/poster and fit/fill, floating on the stage like every video app.
+    private var stageControls: some View {
+        HStack(spacing: 8) {
+            if model.videoSettings.showVideoStage, model.player.hasVideo {
+                Button {
+                    model.videoSettings.cropToFill.toggle()
+                } label: {
+                    Image(systemName: model.videoSettings.cropToFill
+                        ? "arrow.down.right.and.arrow.up.left"
+                        : "arrow.up.left.and.arrow.down.right")
+                        .font(.footnote.weight(.semibold))
+                        .frame(width: 30, height: 30)
+                }
+                .buttonStyle(.glass)
+                .clipShape(Circle())
+                .accessibilityLabel(model.videoSettings.cropToFill ? "Show whole frame" : "Crop to fill")
+            }
+
+            Button {
+                model.videoSettings.showVideoStage.toggle()
+            } label: {
+                Image(systemName: model.videoSettings.showVideoStage ? "photo" : "play.rectangle")
+                    .font(.footnote.weight(.semibold))
+                    .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.glass)
+            .clipShape(Circle())
+            .accessibilityLabel(model.videoSettings.showVideoStage ? "Show poster" : "Show video")
+        }
+        .padding(10)
     }
 
     private var artwork: some View {

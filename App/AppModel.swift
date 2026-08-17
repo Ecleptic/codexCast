@@ -84,6 +84,7 @@ final class AppModel {
         audioSettings = Self.loadAudioSettings()
         showDefaults = Self.loadShowDefaults()
         blocklist = Self.loadBlocklist()
+        videoSettings = Self.loadVideoSettings()
         patternRepository = AdPatternRepository(database: database)
         corrections = CorrectionRepository(database: database)
         chapters = ChapterRepository(database: database)
@@ -104,6 +105,32 @@ final class AppModel {
         try? await playlistRepository.ensureBuiltIns()
         playlists = (try? await playlistRepository.all()) ?? []
         showBadges = (try? await segmentRepository.kindsByShow()) ?? [:]
+    }
+
+    // MARK: - Video (§8.3)
+
+    struct VideoSettings: Codable, Hashable {
+        /// Play the video rendition when an episode has one.
+        var playVideoWhenAvailable = true
+        /// Crop to fill the stage instead of showing the whole frame.
+        var cropToFill = false
+        /// Show the video stage rather than the poster while video plays.
+        var showVideoStage = true
+    }
+
+    var videoSettings: VideoSettings {
+        didSet {
+            if let data = try? JSONEncoder().encode(videoSettings) {
+                UserDefaults.standard.set(data, forKey: "videoSettings")
+            }
+        }
+    }
+
+    static func loadVideoSettings() -> VideoSettings {
+        guard let data = UserDefaults.standard.data(forKey: "videoSettings"),
+              let decoded = try? JSONDecoder().decode(VideoSettings.self, from: data)
+        else { return VideoSettings() }
+        return decoded
     }
 
     // MARK: - Discover blocklist ("never show me this again")
@@ -1387,7 +1414,10 @@ final class AppModel {
 
     func scheduleBackgroundWork() {
         let refresh = BGAppRefreshTaskRequest(identifier: Self.refreshTaskID)
-        refresh.earliestBeginDate = Date(timeIntervalSinceNow: 60 * 60)
+        // Ask early and often. iOS still decides when — background refresh
+        // ran hours late in the field — which is exactly why the foreground
+        // check below exists rather than trusting this alone.
+        refresh.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
         try? BGTaskScheduler.shared.submit(refresh)
 
         // Overnight: charging + network, per §9.7.
@@ -1398,9 +1428,55 @@ final class AppModel {
         try? BGTaskScheduler.shared.submit(processing)
     }
 
+    // MARK: - Foreground freshness
+
+    private static let lastRefreshKey = "lastFeedRefreshAt"
+
+    var lastRefreshedAt: Date? {
+        UserDefaults.standard.object(forKey: Self.lastRefreshKey) as? Date
+    }
+
+    /// Refreshes followed shows when the app comes forward and the library
+    /// has gone stale. iOS grants background refresh on its own schedule —
+    /// a daily show arrived two hours late in the field — so opening the app
+    /// must itself be a refresh trigger, the way every podcast app behaves.
+    func refreshIfStale(minimumInterval: TimeInterval = 15 * 60) async {
+        if let last = lastRefreshedAt, Date().timeIntervalSince(last) < minimumInterval {
+            return
+        }
+        await refreshFollowedNow()
+    }
+
+    /// Followed shows only, newest-first: the regulars are what "is there
+    /// anything new?" means, and 97 feeds would take a minute.
+    func refreshFollowedNow() async {
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        defer { isRefreshing = false }
+
+        await reloadLibrary()
+        for podcast in library where podcast.isFollowed {
+            let newGuids = await refreshReturningNew(podcast)
+            if notifySetting(for: podcast.id) == .newEpisode, !newGuids.isEmpty {
+                postNotification(
+                    title: podcast.title,
+                    body: newGuids.count == 1 ? "New episode available" : "\(newGuids.count) new episodes",
+                    id: "new-\(podcast.id)"
+                )
+            }
+        }
+        UserDefaults.standard.set(Date(), forKey: Self.lastRefreshKey)
+        await reloadLibrary()
+    }
+
+    private(set) var isRefreshing = false
+
     /// Feed refresh + auto-download of the newest episode for opted-in shows.
     func performBackgroundRefresh(_ task: BGAppRefreshTask?) async {
-        defer { scheduleBackgroundWork() }
+        defer {
+            UserDefaults.standard.set(Date(), forKey: Self.lastRefreshKey)
+            scheduleBackgroundWork()
+        }
         await reloadLibrary()
         for podcast in library {
             let newGuids = await refreshReturningNew(podcast)
@@ -1936,13 +2012,15 @@ final class AppModel {
 
     /// Streams an episode's primary audio, with any gated ad segments loaded
     /// as skip blocks — detection's output becomes playback behavior here.
-    func play(_ episode: EpisodeRecord, startAtMs: Int? = nil) {
+    func play(_ episode: EpisodeRecord, startAtMs: Int? = nil, forceVideo: Bool = false) {
         Task {
-            await playWithSegments(episode, startAtMs: startAtMs)
+            await playWithSegments(episode, startAtMs: startAtMs, forceVideo: forceVideo)
         }
     }
 
-    private func playWithSegments(_ episode: EpisodeRecord, startAtMs: Int?) async {
+    private func playWithSegments(
+        _ episode: EpisodeRecord, startAtMs: Int?, forceVideo: Bool = false
+    ) async {
         nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
 
         // Auto-skip is opt-in while the model is unproven: first field test
@@ -1953,7 +2031,19 @@ final class AppModel {
         if skipEnabled, let outcome = await gatedSegments(for: episode) {
             blocks = skipBlocks(from: outcome.autoSkippable)
         }
-        startPlayback(episode, startAtMs: startAtMs, blocks: blocks)
+        // Video is the same playback, not a separate mode: one engine, one
+        // timeline, the same skips — only the output surface differs (§8.3).
+        var override: URL?
+        if forceVideo {
+            override = videoURL(for: episode)
+        } else if videoSettings.playVideoWhenAvailable,
+                  localFileURL(for: episode) == nil,
+                  let video = videoURL(for: episode) {
+            // Offline copies win over streaming video; otherwise, if the
+            // show ships video, that's what "play" means.
+            override = video
+        }
+        startPlayback(episode, startAtMs: startAtMs, blocks: blocks, overrideURL: override)
     }
 
     /// §5.5: segments sharing a chunk are one ad break — one block, one jump,
@@ -2199,18 +2289,10 @@ final class AppModel {
         startPlayback(episode, startAtMs: episode.playbackPositionMs, blocks: [], autoplay: false)
     }
 
-    /// Plays the episode's video rendition through the shared engine — same
-    /// timeline, same skip blocks, same position persistence (§8.3).
+    /// Explicit "play the video" — same engine and timeline as audio.
     func playVideo(_ episode: EpisodeRecord) async {
-        guard let url = videoURL(for: episode) else { return }
-        nowPlayingSegments = (try? await segmentRepository.segments(episodeID: episode.id)) ?? []
-        var blocks: [SkipBlock] = []
-        let skipEnabled = overrides(for: episode.podcastId).autoSkipAds ?? audioSettings.autoSkipAds
-        if skipEnabled, let outcome = await gatedSegments(for: episode) {
-            blocks = skipBlocks(from: outcome.autoSkippable)
-        }
-        startPlayback(
-            episode, startAtMs: episode.playbackPositionMs, blocks: blocks, overrideURL: url
+        await playWithSegments(
+            episode, startAtMs: episode.playbackPositionMs, forceVideo: true
         )
     }
 

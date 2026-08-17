@@ -138,7 +138,13 @@ struct HomeView: View {
                 EpisodeDetailView(episode: episode)
             }
             .refreshable {
-                for podcast in model.library { await model.refresh(podcast) }
+                // Followed shows first so "anything new?" answers fast; the
+                // rest of the library follows.
+                await model.refreshFollowedNow()
+                await reload()
+                for podcast in model.library where !podcast.isFollowed {
+                    await model.refresh(podcast)
+                }
                 await reload()
             }
             .task { await reload() }
