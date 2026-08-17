@@ -117,6 +117,31 @@ private struct PlayerPage: View {
             }
             .padding(.horizontal, 32)
 
+            // Right where the ear is: sound-changing features must be
+            // toggleable mid-listen, or "is that the app or the episode?"
+            // can never be answered.
+            Toggle(isOn: Binding(
+                get: { model.audioSettings.trimSilence },
+                set: { newValue in
+                    model.audioSettings.trimSilence = newValue
+                    model.applyAudioSettings()
+                }
+            )) {
+                Text("Shorten silences").font(.callout)
+            }
+            .padding(.horizontal, 32)
+
+            Toggle(isOn: Binding(
+                get: { model.audioSettings.voiceBoostEnabled },
+                set: { newValue in
+                    model.audioSettings.voiceBoostEnabled = newValue
+                    model.applyAudioSettings()
+                }
+            )) {
+                Text("Voice boost").font(.callout)
+            }
+            .padding(.horizontal, 32)
+
             Spacer(minLength: 8)
         }
     }

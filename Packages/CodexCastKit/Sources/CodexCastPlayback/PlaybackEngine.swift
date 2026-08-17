@@ -143,10 +143,23 @@ public final class PlaybackEngine {
     /// to clip because the region is silent.
     private static let trimMultiplier = 1.75
     private static let trimRateCap = 3.0
+    /// Kept clear of BOTH edges of every gap. The energy detector counts a
+    /// sentence's trailing fade-out as "silence", so gliding edge-to-edge
+    /// whipped sentence tails through at 3x — heard in the field as
+    /// "sentences getting cut off". Only the interior is ever sped up.
+    private static let trimEdgePaddingMs = 220
 
     public func setTrimSilence(gaps: [SilenceDetector.Gap], enabled: Bool) {
-        trimGaps = gaps.sorted { $0.startMs < $1.startMs }
-        trimEnabled = enabled && !gaps.isEmpty
+        trimGaps = gaps
+            .map {
+                SilenceDetector.Gap(
+                    startMs: $0.startMs + Self.trimEdgePaddingMs,
+                    endMs: $0.endMs - Self.trimEdgePaddingMs
+                )
+            }
+            .filter { $0.durationMs >= 250 }
+            .sorted { $0.startMs < $1.startMs }
+        trimEnabled = enabled && !trimGaps.isEmpty
         activeTrimGap = nil
         configureTrimObservers()
         applyTrimRate()
