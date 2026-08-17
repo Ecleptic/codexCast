@@ -132,17 +132,10 @@ public final class PlaybackEngine {
     /// Silence gaps of the loaded media, from its `SilenceMap`.
     private var trimGaps: [SilenceDetector.Gap] = []
     private var trimEnabled = false
-    /// The gap the playhead is currently speeding through, if any.
-    private var activeTrimGap: SilenceDetector.Gap?
     /// Wall-clock milliseconds saved by trimming, this app-session. Feed for
     /// the eventual stats screen; also proof the feature is doing something.
     public private(set) var timeSavedByTrimMs: Int = 0
 
-    /// How much faster to run inside a silence. A glide, not a cut: pitch is
-    /// preserved by the player's time-domain stretcher and there is nothing
-    /// to clip because the region is silent.
-    private static let trimMultiplier = 1.75
-    private static let trimRateCap = 3.0
     /// Kept clear of BOTH edges of every gap. The energy detector counts a
     /// sentence's trailing fade-out as "silence", so gliding edge-to-edge
     /// whipped sentence tails through at 3x — heard in the field as
@@ -160,7 +153,6 @@ public final class PlaybackEngine {
             .filter { $0.durationMs >= 250 }
             .sorted { $0.startMs < $1.startMs }
         trimEnabled = enabled && !trimGaps.isEmpty
-        activeTrimGap = nil
         configureTrimObservers()
         applyTrimRate()
     }
@@ -185,7 +177,6 @@ public final class PlaybackEngine {
         // provides a new one via setTrimSilence once it is analyzed.
         trimGaps = []
         trimEnabled = false
-        activeTrimGap = nil
         self.timeline = timeline
         seek(toMediaMs: startAtMs)
         configureObservers()
@@ -231,8 +222,6 @@ public final class PlaybackEngine {
         if isPlaying {
             player.rate = player.defaultRate
         }
-        // The base changed under the glide; recompute from scratch.
-        activeTrimGap = nil
         applyTrimRate()
     }
 
@@ -341,23 +330,24 @@ public final class PlaybackEngine {
 
     // MARK: - Silence trimming
 
-    /// One boundary time at each gap edge, so the glide starts and ends
-    /// exactly where the silence does — the same exactness argument as ad
-    /// skipping (§11.1), and far cheaper than polling.
+    /// One boundary time at each gap start — the hop happens there, so the
+    /// same exactness argument as ad skipping (§11.1), and far cheaper than
+    /// polling.
     private func configureTrimObservers() {
         observers.removeTrim()
         guard trimEnabled else { return }
 
-        // An hour of conversation can carry over a thousand gap edges; keep
-        // the longest gaps if the count gets silly, they hold most of the win.
+        // An hour of conversation can carry over a thousand gaps; keep the
+        // longest if the count gets silly, they hold most of the win.
         var gaps = trimGaps
         if gaps.count > 1500 {
             gaps = gaps.sorted { $0.durationMs > $1.durationMs }.prefix(1500)
                 .sorted { $0.startMs < $1.startMs }
         }
 
-        let times = gaps.flatMap { [$0.startMs, $0.endMs] }
-            .map { NSValue(time: CMTime(value: CMTimeValue($0), timescale: 1000)) }
+        let times = gaps.map {
+            NSValue(time: CMTime(value: CMTimeValue($0.startMs), timescale: 1000))
+        }
         guard !times.isEmpty else { return }
 
         observers.trimBoundary = player.addBoundaryTimeObserver(
@@ -373,7 +363,7 @@ public final class PlaybackEngine {
 
     private func trimGap(at mediaMs: Int) -> SilenceDetector.Gap? {
         // Sorted; a linear scan with early exit is fine at this size and this
-        // call rate (gap edges + seeks, not per-frame).
+        // call rate (gap starts + seeks, not per-frame).
         for gap in trimGaps {
             if gap.startMs > mediaMs { return nil }
             if mediaMs < gap.endMs { return gap }
@@ -381,33 +371,28 @@ public final class PlaybackEngine {
         return nil
     }
 
-    /// Moves between base rate and the glide rate depending on where the
-    /// playhead is. Idempotent; called from every place position or intent
-    /// can change.
+    /// Hops over a silent interior in one exact seek — NO rate changes.
+    ///
+    /// The first implementation glided the rate up through silences; every
+    /// entry and exit re-ran the pitch-corrector and the transitions were
+    /// audible ("weird jittering", field-confirmed by toggling the feature).
+    /// A seek that starts and lands 220ms inside confirmed silence has
+    /// nothing audible to glitch: the pause just gets shorter. Same proven
+    /// machinery as ad skips. Name kept so call sites read unchanged.
     private func applyTrimRate() {
-        guard isPlaying else { return }
-        let base = Double(player.defaultRate)
-        let inGap = trimEnabled && !isScrubbing
-            ? trimGap(at: mediaPositionMs)
-            : nil
-        // Inside a skip block the skip observer owns the playhead.
-        let target = (inGap != nil && timeline.block(at: mediaPositionMs) == nil)
-            ? min(base * Self.trimMultiplier, Self.trimRateCap)
-            : base
+        guard isPlaying, trimEnabled, !isScrubbing, !isProgrammaticSeek else { return }
+        guard let gap = trimGap(at: mediaPositionMs),
+              // Inside a skip block the skip observer owns the playhead.
+              timeline.block(at: mediaPositionMs) == nil
+        else { return }
 
-        if let leaving = activeTrimGap, leaving != inGap {
-            // Credit the whole gap on exit; partial passes under-credit
-            // occasionally, which is the honest direction to err.
-            let boost = min(base * Self.trimMultiplier, Self.trimRateCap)
-            if boost > base {
-                let saved = Double(leaving.durationMs) * (1 / base - 1 / boost)
-                timeSavedByTrimMs += max(0, Int(saved))
-            }
-        }
-        activeTrimGap = inGap
+        let remainingMs = gap.endMs - mediaPositionMs
+        guard remainingMs > 100 else { return }
+        isProgrammaticSeek = true
+        seek(toMediaMs: gap.endMs)
+        isProgrammaticSeek = false
 
-        if abs(Double(player.rate) - target) > 0.01 {
-            player.rate = Float(target)
-        }
+        let base = max(0.5, Double(player.defaultRate))
+        timeSavedByTrimMs += Int(Double(remainingMs) / base)
     }
 }
