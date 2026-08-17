@@ -30,6 +30,14 @@ struct HomeView: View {
                                                     onGoToEpisode: { router.homePath.append(episode) },
                                                     onGoToShow: { router.homePath.append(episode.podcastId) }
                                                 )
+                                                Button(role: .destructive) {
+                                                    Task {
+                                                        await model.removeFromContinueListening(episode)
+                                                        await reload()
+                                                    }
+                                                } label: {
+                                                    Label("Remove from Continue Listening", systemImage: "xmark.circle")
+                                                }
                                             }
                                     }
                                 }
@@ -73,6 +81,23 @@ struct HomeView: View {
                             VStack(spacing: 0) {
                                 ForEach(newReleases, id: \.id) { episode in
                                     HomeEpisodeRow(episode: episode) { router.homePath.append($0) }
+                                        // One gesture, two stages: a short
+                                        // pull queues, keep pulling and it
+                                        // turns red to dismiss (mark played).
+                                        .modifier(TwoStageSwipe(
+                                            queueAction: {
+                                                Task {
+                                                    await model.addToUpNext(episode)
+                                                    await reload()
+                                                }
+                                            },
+                                            removeAction: {
+                                                Task {
+                                                    await model.togglePlayed(episode)
+                                                    await reload()
+                                                }
+                                            }
+                                        ))
                                     Divider().padding(.leading, 74)
                                 }
                             }
@@ -245,5 +270,61 @@ struct EpisodeArtwork: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size > 100 ? 10 : 8))
+    }
+}
+
+/// Mail-style two-stage trailing swipe for rows living in a ScrollView
+/// (where List swipe actions don't exist): a short pull reveals the queue
+/// action in blue; pulling past the second threshold turns it red and
+/// releasing dismisses instead.
+struct TwoStageSwipe: ViewModifier {
+    var queueAction: () -> Void
+    var removeAction: () -> Void
+
+    @GestureState private var drag: CGFloat = 0
+
+    private let queueThreshold: CGFloat = 60
+    private let removeThreshold: CGFloat = 170
+
+    func body(content: Content) -> some View {
+        let engaged = max(0, -drag)
+        content
+            .offset(x: min(0, drag))
+            .background(alignment: .trailing) {
+                ZStack(alignment: .trailing) {
+                    Rectangle()
+                        .fill(engaged >= removeThreshold ? Color.red : Color.blue)
+                    Label(
+                        engaged >= removeThreshold ? "Dismiss" : "Up Next",
+                        systemImage: engaged >= removeThreshold
+                            ? "xmark.bin.fill"
+                            : "text.line.first.and.arrowtriangle.forward"
+                    )
+                    .labelStyle(.iconOnly)
+                    .foregroundStyle(.white)
+                    .padding(.trailing, 20)
+                }
+                .opacity(engaged > 8 ? 1 : 0)
+            }
+            .clipped()
+            .gesture(
+                DragGesture(minimumDistance: 25)
+                    .updating($drag) { value, state, _ in
+                        // Horizontal intent only; the shelf scrolls vertically.
+                        if abs(value.translation.width) > abs(value.translation.height) * 1.5 {
+                            state = value.translation.width
+                        }
+                    }
+                    .onEnded { value in
+                        let final = max(0, -value.translation.width)
+                        if final >= removeThreshold {
+                            removeAction()
+                        } else if final >= queueThreshold {
+                            queueAction()
+                        }
+                    }
+            )
+            .animation(.snappy(duration: 0.25), value: drag == 0)
+            .sensoryFeedback(.impact(weight: .medium), trigger: engaged >= removeThreshold)
     }
 }

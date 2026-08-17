@@ -9,6 +9,7 @@ struct SettingsView: View {
                 }
 
                 Section("Library") {
+                    NavigationLink("Show Defaults") { DefaultShowSettingsView() }
                     NavigationLink("Episode Limits") { EpisodeLimitsView() }
                     NavigationLink("Storage") { StorageView() }
                     NavigationLink("Import & Export") { ImportExportView() }

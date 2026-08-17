@@ -82,6 +82,7 @@ final class AppModel {
         retention = RetentionPolicy(database: database)
         segmentRepository = SegmentRepository(database: database)
         audioSettings = Self.loadAudioSettings()
+        showDefaults = Self.loadShowDefaults()
         patternRepository = AdPatternRepository(database: database)
         corrections = CorrectionRepository(database: database)
         chapters = ChapterRepository(database: database)
@@ -102,6 +103,72 @@ final class AppModel {
         try? await playlistRepository.ensureBuiltIns()
         playlists = (try? await playlistRepository.all()) ?? []
         showBadges = (try? await segmentRepository.kindsByShow()) ?? [:]
+    }
+
+    // MARK: - Global show defaults ("set once, applies to my regulars")
+
+    /// Per-class defaults: followed shows (the regulars) usually want the
+    /// full pipeline; added shows (the browsing library) usually want
+    /// nothing automatic.
+    struct ShowDefaults: Codable, Hashable {
+        var episodeLimit: Int?
+        var autoDownload = false
+        var autoTranscribe = false
+        var autoScan = false
+        var notifyOn: NotifyOn = .never
+    }
+
+    struct GlobalShowDefaults: Codable, Hashable {
+        var followed = ShowDefaults()
+        var added = ShowDefaults()
+    }
+
+    var showDefaults: GlobalShowDefaults {
+        didSet {
+            if let data = try? JSONEncoder().encode(showDefaults) {
+                UserDefaults.standard.set(data, forKey: "showDefaults")
+            }
+        }
+    }
+
+    static func loadShowDefaults() -> GlobalShowDefaults {
+        guard let data = UserDefaults.standard.data(forKey: "showDefaults"),
+              let decoded = try? JSONDecoder().decode(GlobalShowDefaults.self, from: data)
+        else { return GlobalShowDefaults() }
+        return decoded
+    }
+
+    /// Writes one class's defaults onto one show — used for newly subscribed
+    /// shows and by the explicit "apply to all" buttons. Never runs behind
+    /// the user's back on existing shows.
+    func applyDefaults(_ defaults: ShowDefaults, to podcastID: Podcast.ID) async {
+        try? await retention.setLimit(defaults.episodeLimit, podcastID: podcastID)
+        try? await podcasts.setAutoDownload(defaults.autoDownload, podcastID: podcastID)
+        await savePipelinePrefs(
+            ShowPipelinePrefs(autoTranscribe: defaults.autoTranscribe, autoScan: defaults.autoScan),
+            podcastID: podcastID
+        )
+        await setNotifySetting(defaults.notifyOn, podcastID: podcastID)
+    }
+
+    func applyDefaultsToAll(followedShows: Bool) async {
+        let defaults = followedShows ? showDefaults.followed : showDefaults.added
+        for podcast in library where podcast.isFollowed == followedShows {
+            await applyDefaults(defaults, to: podcast.id)
+        }
+        await reloadLibrary()
+    }
+
+    /// Clears an episode's progress so it leaves Continue Listening; if it's
+    /// the one playing right now, playback stops and the mini player goes
+    /// with it — "remove" means gone, not lurking.
+    func removeFromContinueListening(_ episode: EpisodeRecord) async {
+        if nowPlaying?.id == episode.id {
+            player.pause()
+            nowPlaying = nil
+            UserDefaults.standard.removeObject(forKey: "lastEpisodeID")
+        }
+        try? await episodes.savePosition(episodeID: episode.id, positionMs: 0, durationMs: nil)
     }
 
     func setFollowed(_ followed: Bool, podcast: PodcastRecord) async {
@@ -565,6 +632,18 @@ final class AppModel {
         let windows = TranscriptWindower.windows(
             for: transcript, resolved: resolved, configuration: windowConfiguration
         )
+        // A4, checked FIRST: many shows run a music bed under ad reads.
+        // Music regions are computed before any model pass and used as a
+        // suspicion source — evidence, never a verdict (transitions and
+        // intros are music too; the verifier still decides from the words).
+        var musicRegions: [MusicBedDetector.Region] = []
+        if let audioURL = localFileURL(for: episode) {
+            scanState[episode.id] = .preparing("Listening for music beds…")
+            musicRegions = await Task.detached(priority: .userInitiated) {
+                MusicBedDetector.musicRegions(fileURL: audioURL)
+            }.value
+        }
+
         scanState[episode.id] = .scanning(windowsDone: 0, windowsTotal: windows.count)
         classifier.prewarm(context: context)
 
@@ -601,15 +680,21 @@ final class AppModel {
                 let marker = LexicalAdMarkers.hit(
                     transcript.text(fromMs: chapter.startMs, toMs: chapter.endMs)
                 )
-                guard overlappingSweeps > 0 || marker else { continue }
+                let musicOverlapMs = musicRegions.reduce(0) { total, region in
+                    total + max(0, min(region.endMs, chapter.endMs) - max(region.startMs, chapter.startMs))
+                }
+                let music = musicOverlapMs >= 5_000
+                guard overlappingSweeps > 0 || marker || music else { continue }
                 candidates.append((
                     chapter.startMs...chapter.endMs,
-                    overlappingSweeps + (marker ? 1 : 0)
+                    overlappingSweeps + (marker ? 1 : 0) + (music ? 1 : 0)
                 ))
             }
         } else {
-            // Embedding assets unavailable: candidates from the sweep alone.
-            candidates = Self.mergeCandidates(rawSweeps)
+            // Embedding assets unavailable: sweep hits plus music regions.
+            candidates = Self.mergeCandidates(
+                rawSweeps + musicRegions.map { ($0.startMs, $0.endMs) }
+            )
         }
 
         // §5.7 calibration inputs.
@@ -1738,6 +1823,12 @@ final class AppModel {
             etag: validators.etag,
             lastModified: validators.lastModified
         )
+        // Only genuinely NEW shows inherit the followed-class defaults —
+        // re-subscribing (Discover follow of an OPML show, repeat import)
+        // must never silently rewrite a show's customized settings.
+        if !library.contains(where: { $0.id == record.id }) {
+            await applyDefaults(showDefaults.followed, to: record.id)
+        }
         await reloadLibrary()
     }
 

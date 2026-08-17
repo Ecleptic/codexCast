@@ -12,6 +12,7 @@
 		0BE553B3F2A42CEC183F46BD /* EpisodeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197ED145FAC304355353C8E1 /* EpisodeListView.swift */; };
 		0C91B4FED7A10D2C6A51ECD6 /* CodexCastFeeds in Frameworks */ = {isa = PBXBuildFile; productRef = C676E321AA8E8076B4217FD2 /* CodexCastFeeds */; };
 		29A38E37DC6A6AF99E1DE498 /* HTMLText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202F8C90F77046AABC3576DD /* HTMLText.swift */; };
+		3CC5581F977B87D1AD9332D7 /* DefaultShowSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04828026E467B3BD815A1B4D /* DefaultShowSettingsView.swift */; };
 		51A5859E90031F8B41F2A030 /* ReviewCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE4DA50ACCB45BBD83080DF /* ReviewCardView.swift */; };
 		579DA001537CC7E7E5DA8619 /* ShowSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */; };
 		641650F77684086614099CAD /* NowPlayingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */; };
@@ -43,6 +44,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04828026E467B3BD815A1B4D /* DefaultShowSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultShowSettingsView.swift; sourceTree = "<group>"; };
 		101C9BCE3F871996CCC31BCC /* CodexCast.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CodexCast.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13E01DDCDAB399DDADF254EB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		197ED145FAC304355353C8E1 /* EpisodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeListView.swift; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 				FD1188313195CBCBA224CDCE /* AudioSettings.swift */,
 				5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */,
 				EC5E8479D847F921AB10493C /* CodexCastApp.swift */,
+				04828026E467B3BD815A1B4D /* DefaultShowSettingsView.swift */,
 				4A588F0297F1F19700E2448F /* DetectionBadge.swift */,
 				F2DA7694D224531A293462B9 /* DiscoverView.swift */,
 				BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */,
@@ -235,6 +238,7 @@
 				831AB4FA8508AE4E4C7A8D8C /* AudioSettings.swift in Sources */,
 				964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */,
 				D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */,
+				3CC5581F977B87D1AD9332D7 /* DefaultShowSettingsView.swift in Sources */,
 				DC3756A64E58A61633E9A6FF /* DetectionBadge.swift in Sources */,
 				91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */,
 				B2B6CBCEC944EC7B0ADFE10B /* EpisodeActions.swift in Sources */,
