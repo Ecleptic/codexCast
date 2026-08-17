@@ -12,7 +12,8 @@ struct DiscoverView: View {
     @State private var statusMessage: String?
     @State private var showAddByURL = false
     @State private var chart: [TopChartsClient.ChartEntry] = []
-    @State private var selectedGenre: Int? = nil
+    @State private var selectedGenre: TopChartsClient.Genre? = nil
+    @State private var selectedSubgenre: TopChartsClient.Genre? = nil
     @State private var preview: PreviewTarget?
 
     /// What a tapped row opens: enough identity to look the show up.
@@ -35,10 +36,7 @@ struct DiscoverView: View {
                 if query.isEmpty && results.isEmpty {
                     genreChips
 
-                    Section(selectedGenre == nil
-                        ? "Top Podcasts"
-                        : "Top in \(TopChartsClient.genres.first { $0.id == selectedGenre }?.name ?? "Genre")"
-                    ) {
+                    Section(chartTitle) {
                         ForEach(visibleChart) { entry in
                             ChartRow(entry: entry) {
                                 preview = PreviewTarget(
@@ -93,6 +91,24 @@ struct DiscoverView: View {
         results.filter { !model.isBlocked(collectionID: $0.collectionID, artist: $0.author) }
     }
 
+    private var chartTitle: String {
+        if let sub = selectedSubgenre { return "Top in \(sub.name)" }
+        if let genre = selectedGenre { return "Top in \(genre.name)" }
+        return "Top Podcasts"
+    }
+
+    private func loadChart() {
+        chart = []
+        let genreID = (selectedSubgenre ?? selectedGenre)?.id
+        Task {
+            if let genreID {
+                chart = (try? await model.charts.topPodcasts(genre: genreID)) ?? []
+            } else {
+                chart = (try? await model.charts.topPodcasts()) ?? []
+            }
+        }
+    }
+
     @ViewBuilder
     private var genreChips: some View {
         Section {
@@ -100,21 +116,40 @@ struct DiscoverView: View {
                 HStack(spacing: 8) {
                     chip("All", selected: selectedGenre == nil) {
                         selectedGenre = nil
-                        Task { chart = (try? await model.charts.topPodcasts()) ?? [] }
+                        selectedSubgenre = nil
+                        loadChart()
                     }
-                    ForEach(TopChartsClient.genres, id: \.id) { genre in
-                        chip(genre.name, selected: selectedGenre == genre.id) {
-                            selectedGenre = genre.id
-                            chart = []
-                            Task {
-                                chart = (try? await model.charts.topPodcasts(genre: genre.id)) ?? []
-                            }
+                    ForEach(TopChartsClient.genreTree) { genre in
+                        chip(genre.name, selected: selectedGenre?.id == genre.id) {
+                            selectedGenre = genre
+                            selectedSubgenre = nil
+                            loadChart()
                         }
                     }
                 }
             }
             .scrollIndicators(.hidden)
             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 0))
+
+            // Second level: the picked genre's subgenres, when it has any.
+            if let genre = selectedGenre, !genre.children.isEmpty {
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        chip("All \(genre.name)", selected: selectedSubgenre == nil) {
+                            selectedSubgenre = nil
+                            loadChart()
+                        }
+                        ForEach(genre.children) { sub in
+                            chip(sub.name, selected: selectedSubgenre?.id == sub.id) {
+                                selectedSubgenre = sub
+                                loadChart()
+                            }
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 6, trailing: 0))
+            }
         }
         .listSectionSeparator(.hidden)
     }

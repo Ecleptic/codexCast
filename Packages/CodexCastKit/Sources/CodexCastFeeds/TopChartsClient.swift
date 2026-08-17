@@ -61,14 +61,71 @@ public struct TopChartsClient: Sendable {
 
     // MARK: - Genre charts
 
-    /// The directory's podcast genres, curated to the useful set.
-    public static let genres: [(id: Int, name: String)] = [
-        (1318, "Technology"), (1489, "News"), (1303, "Comedy"),
-        (1321, "Business"), (1488, "True Crime"), (1324, "Society & Culture"),
-        (1533, "Science"), (1487, "History"), (1512, "Health & Fitness"),
-        (1545, "Sports"), (1301, "Arts"), (1304, "Education"),
-        (1310, "Music"), (1483, "Fiction"), (1309, "TV & Film"),
+    public struct Genre: Sendable, Hashable, Identifiable {
+        public let id: Int
+        public let name: String
+        public let children: [Genre]
+
+        public init(id: Int, name: String, children: [Genre] = []) {
+            self.id = id
+            self.name = name
+            self.children = children
+        }
+    }
+
+    /// The directory's genre tree, curated to entries verified live against
+    /// the chart API (2026-08-17). Apple offers no "development" genre;
+    /// Technology and News → Tech News are the closest it has.
+    public static let genreTree: [Genre] = [
+        Genre(id: 1318, name: "Technology"),
+        Genre(id: 1489, name: "News", children: [
+            Genre(id: 1526, name: "Daily News"), Genre(id: 1531, name: "Tech News"),
+            Genre(id: 1529, name: "Politics"), Genre(id: 1490, name: "Business News"),
+        ]),
+        Genre(id: 1303, name: "Comedy", children: [
+            Genre(id: 1497, name: "Stand-Up"), Genre(id: 1495, name: "Interviews"),
+        ]),
+        Genre(id: 1321, name: "Business", children: [
+            Genre(id: 1412, name: "Investing"), Genre(id: 1493, name: "Entrepreneurship"),
+        ]),
+        Genre(id: 1488, name: "True Crime"),
+        Genre(id: 1502, name: "Leisure", children: [
+            Genre(id: 1510, name: "Video Games"), Genre(id: 1507, name: "Games"),
+            Genre(id: 1504, name: "Automotive"),
+        ]),
+        Genre(id: 1545, name: "Sports", children: [
+            Genre(id: 1553, name: "Football"), Genre(id: 1547, name: "Basketball"),
+            Genre(id: 1546, name: "Baseball"), Genre(id: 1557, name: "Soccer"),
+            Genre(id: 1564, name: "Wrestling"),
+        ]),
+        Genre(id: 1324, name: "Society & Culture", children: [
+            Genre(id: 1543, name: "Documentary"), Genre(id: 1544, name: "Relationships"),
+        ]),
+        Genre(id: 1533, name: "Science"),
+        Genre(id: 1487, name: "History"),
+        Genre(id: 1512, name: "Health & Fitness", children: [
+            Genre(id: 1516, name: "Mental Health"), Genre(id: 1514, name: "Fitness"),
+            Genre(id: 1517, name: "Nutrition"),
+        ]),
+        Genre(id: 1301, name: "Arts", children: [
+            Genre(id: 1482, name: "Books"), Genre(id: 1306, name: "Food"),
+        ]),
+        Genre(id: 1304, name: "Education", children: [
+            Genre(id: 1501, name: "Self-Improvement"), Genre(id: 1499, name: "How To"),
+            Genre(id: 1500, name: "Language Learning"),
+        ]),
+        Genre(id: 1305, name: "Kids & Family", children: [
+            Genre(id: 1521, name: "Parenting"),
+        ]),
+        Genre(id: 1310, name: "Music"),
+        Genre(id: 1483, name: "Fiction"),
+        Genre(id: 1309, name: "TV & Film"),
     ]
+
+    /// Flat top-level list, kept for callers that don't browse the tree.
+    public static var genres: [(id: Int, name: String)] {
+        genreTree.map { ($0.id, $0.name) }
+    }
 
     /// Per-genre top podcasts via the legacy RSS generator — the modern
     /// marketing-tools endpoint has no genre axis, and the legacy one still
