@@ -85,6 +85,14 @@ struct PodcastsGridView: View {
                                         }
                                     }
                                     Spacer()
+                                    if let since = model.dormancy(for: podcast.id) {
+                                        Image(systemName: "zzz")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                            .accessibilityLabel(
+                                                "No new episodes since \(since.formatted(date: .abbreviated, time: .omitted))"
+                                            )
+                                    }
                                     if podcast.isPinned {
                                         Image(systemName: "pin.fill")
                                             .font(.caption2).foregroundStyle(.secondary)
@@ -139,6 +147,18 @@ struct PodcastsGridView: View {
                                         .padding(5)
                                         .glassEffect(.regular, in: Circle())
                                         .padding(4)
+                                }
+                            }
+                            .overlay(alignment: .bottomTrailing) {
+                                // Quietly mark a show that has gone quiet.
+                                if model.dormancy(for: podcast.id) != nil {
+                                    Image(systemName: "zzz")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .padding(5)
+                                        .glassEffect(.regular, in: Circle())
+                                        .padding(4)
+                                        .offset(y: -22)
                                 }
                             }
                             .overlay(alignment: .topLeading) {

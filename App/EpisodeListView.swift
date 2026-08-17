@@ -196,6 +196,15 @@ struct EpisodeListView: View {
                 }
             }
 
+            if let since = model.dormancy(for: podcast.id) {
+                Label(
+                    "No new episodes since \(since.formatted(date: .abbreviated, time: .omitted))",
+                    systemImage: "zzz"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
             // A2: what this app has actually found on this show, at a glance.
             if let kinds = model.showBadges[podcast.id], !kinds.isEmpty {
                 HStack(spacing: 6) {

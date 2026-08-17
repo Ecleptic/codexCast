@@ -253,6 +253,26 @@ public struct EpisodeRepository: Sendable {
 
     /// Episodes started but unfinished, most recently published first — the
     /// Continue Listening shelf.
+    /// Newest publish date per show — the signal behind the dormant marker
+    /// (a show that has not published in months).
+    public func latestPublishDates() async throws -> [Podcast.ID: Date] {
+        try await database.read { db in
+            let rows = try Row.fetchAll(
+                db,
+                sql: "SELECT podcastId, MAX(publishedAt) AS newest FROM episodes GROUP BY podcastId"
+            )
+            var result: [Podcast.ID: Date] = [:]
+            for row in rows {
+                guard let idString: String = row["podcastId"],
+                      let uuid = UUID(uuidString: idString),
+                      let newest: Date = row["newest"]
+                else { continue }
+                result[Podcast.ID(uuid)] = newest
+            }
+            return result
+        }
+    }
+
     public func inProgress(limit: Int = 20) async throws -> [EpisodeRecord] {
         try await database.read { db in
             // Every show, followed or merely added — "what was I in the

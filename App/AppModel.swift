@@ -100,11 +100,28 @@ final class AppModel {
     /// A2 badges: which promotional-content kinds have been found per show.
     private(set) var showBadges: [Podcast.ID: Set<SegmentKind>] = [:]
 
+    /// Newest episode per show, for the dormant marker.
+    private(set) var latestEpisodeDates: [Podcast.ID: Date] = [:]
+
+    /// A show with nothing new for this long reads as dormant — the same
+    /// courtesy Overcast pays: say so quietly rather than let a dead feed
+    /// look identical to a live one.
+    static let dormantAfter: TimeInterval = 90 * 24 * 60 * 60
+
+    /// How long since this show last published, if it has been a while.
+    func dormancy(for podcastID: Podcast.ID) -> Date? {
+        guard let newest = latestEpisodeDates[podcastID],
+              Date().timeIntervalSince(newest) > Self.dormantAfter
+        else { return nil }
+        return newest
+    }
+
     func reloadLibrary() async {
         library = (try? await podcasts.all()) ?? []
         try? await playlistRepository.ensureBuiltIns()
         playlists = (try? await playlistRepository.all()) ?? []
         showBadges = (try? await segmentRepository.kindsByShow()) ?? [:]
+        latestEpisodeDates = (try? await episodes.latestPublishDates()) ?? [:]
     }
 
     // MARK: - Video (§8.3)
@@ -347,20 +364,56 @@ final class AppModel {
         )
     }
 
+    struct OPMLImportResult: Sendable {
+        var added = 0
+        /// Show title and why it failed. Surfaced, not swallowed.
+        var failures: [(title: String, reason: String)] = []
+    }
+
     /// Subscribes to everything in an OPML file, skipping what fails so one
     /// broken feed cannot abort the whole import.
-    func importOPML(_ entries: [OPMLEntry]) async -> Int {
-        var added = 0
+    ///
+    /// Failures are REPORTED. An import of 97 feeds landed 91 and the app
+    /// said only "imported 91" — half the missing ones were transient
+    /// network failures that succeed on a retry, and there was no way to
+    /// know which shows were gone or why. One retry each; whatever still
+    /// fails is named.
+    func importOPML(_ entries: [OPMLEntry]) async -> OPMLImportResult {
+        var result = OPMLImportResult()
         for entry in entries {
             do {
                 try await subscribe(feedURL: entry.feedURL)
-                added += 1
+                result.added += 1
             } catch {
-                continue
+                // One retry: a timeout should not cost a show.
+                try? await Task.sleep(for: .seconds(1))
+                do {
+                    try await subscribe(feedURL: entry.feedURL)
+                    result.added += 1
+                } catch {
+                    result.failures.append((entry.title, Self.describe(error)))
+                }
             }
         }
         await reloadLibrary()
-        return added
+        return result
+    }
+
+    /// Plain-language reason for a feed failure.
+    static func describe(_ error: any Error) -> String {
+        if let http = error as? HTTPError {
+            switch http {
+            case .status(404): return "feed no longer exists (404)"
+            case .status(401), .status(403): return "private feed — needs a current link"
+            case .status(let code): return "server error \(code)"
+            case .rateLimited: return "server asked us to slow down"
+            case .notHTTP: return "that address isn't a web feed"
+            }
+        }
+        if (error as NSError).domain == NSURLErrorDomain {
+            return "couldn't reach the server"
+        }
+        return "couldn't read the feed"
     }
 
     // MARK: - Transcripts

@@ -136,8 +136,15 @@ struct ImportExportView: View {
                 defer { if scoped { url.stopAccessingSecurityScopedResource() } }
 
                 let entries = try OPML.parse(try Data(contentsOf: url))
-                let added = await model.importOPML(entries)
-                message = "Imported \(added) of \(entries.count) subscriptions."
+                let result = await model.importOPML(entries)
+                var summary = "Imported \(result.added) of \(entries.count) subscriptions."
+                if !result.failures.isEmpty {
+                    let list = result.failures
+                        .map { "• \($0.title) — \($0.reason)" }
+                        .joined(separator: "\n")
+                    summary += "\n\nCouldn't add:\n" + list
+                }
+                message = summary
             } catch {
                 message = "Couldn't read that OPML file."
             }
