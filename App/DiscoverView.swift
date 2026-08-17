@@ -120,7 +120,11 @@ struct DiscoverView: View {
                         loadChart()
                     }
                     ForEach(TopChartsClient.genreTree) { genre in
-                        chip(genre.name, selected: selectedGenre?.id == genre.id) {
+                        chip(
+                            genre.name,
+                            selected: selectedGenre?.id == genre.id,
+                            hasChildren: !genre.children.isEmpty
+                        ) {
                             selectedGenre = genre
                             selectedSubgenre = nil
                             loadChart()
@@ -154,15 +158,26 @@ struct DiscoverView: View {
         .listSectionSeparator(.hidden)
     }
 
-    private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+    private func chip(
+        _ title: String, selected: Bool, hasChildren: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.subheadline.weight(selected ? .semibold : .regular))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(selected ? AnyShapeStyle(.tint.opacity(0.18)) : AnyShapeStyle(.quaternary), in: Capsule())
-                .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
-                .contentShape(Capsule())
+            HStack(spacing: 3) {
+                Text(title)
+                    .font(.subheadline.weight(selected ? .semibold : .regular))
+                if hasChildren {
+                    // This genre opens a second row of subgenres.
+                    Image(systemName: "chevron.down")
+                        .font(.caption2.weight(.semibold))
+                        .opacity(0.55)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(selected ? AnyShapeStyle(.tint.opacity(0.18)) : AnyShapeStyle(.quaternary), in: Capsule())
+            .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
+            .contentShape(Capsule())
         }
         // Borderless, NOT plain: a plain button inside a List row loses the
         // tap to the row's own hit-testing — the chips read as decoration.
