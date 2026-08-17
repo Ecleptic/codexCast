@@ -1,5 +1,6 @@
 import CodexCastCore
 import CodexCastPersistence
+import CodexCastPlayback
 import SwiftUI
 
 /// Per-show storage usage with bulk delete (§12). Deleting removes media
@@ -63,6 +64,9 @@ struct StorageView: View {
                   episode.id != model.nowPlaying?.id
             else { continue }
             try? FileManager.default.removeItem(at: url)
+            // The silence sidecar dies with its media — the other two
+            // deletion paths do this; this one leaked a file per episode.
+            try? FileManager.default.removeItem(at: SilenceMap.sidecarURL(for: url))
             evicted.append(episode.id)
         }
         try? await model.retention.markEvicted(evicted)
