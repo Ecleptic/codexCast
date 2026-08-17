@@ -17,6 +17,26 @@ struct AudioSettings: Hashable, Sendable, Codable {
     /// segments are always shown; skipping them silently is opt-in.
     var autoSkipAds: Bool = false
 
+    /// Lenient decoding, on purpose.
+    ///
+    /// Swift's synthesized `Decodable` does NOT fall back to a property's
+    /// default when its key is missing — it throws. Since these blobs are
+    /// loaded with `try?` and fall back to a fresh instance, ADDING one field
+    /// in a future build would silently reset every setting the listener had
+    /// chosen. Decoding each key independently makes new fields additive.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        speed = try container.decodeIfPresent(Double.self, forKey: .speed) ?? 1.0
+        trimSilence = try container.decodeIfPresent(Bool.self, forKey: .trimSilence) ?? false
+        voiceBoostEnabled = try container.decodeIfPresent(Bool.self, forKey: .voiceBoostEnabled) ?? false
+        voiceBoostLevel = try container.decodeIfPresent(VoiceBoostLevel.self, forKey: .voiceBoostLevel) ?? .low
+        monoDownmix = try container.decodeIfPresent(Bool.self, forKey: .monoDownmix) ?? false
+        volumeNormalization = try container.decodeIfPresent(Bool.self, forKey: .volumeNormalization) ?? false
+        autoSkipAds = try container.decodeIfPresent(Bool.self, forKey: .autoSkipAds) ?? false
+    }
+
+    init() {}
+
     /// Resolved per-show defaults for the playback engine.
     var resolvedDefaults: ResolvedPlaybackSettings {
         ResolvedPlaybackSettings(

@@ -116,6 +116,17 @@ final class AppModel {
         var cropToFill = false
         /// Show the video stage rather than the poster while video plays.
         var showVideoStage = true
+
+        init() {}
+
+        /// Lenient: a new field must not reset the listener's choices.
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            playVideoWhenAvailable = try container
+                .decodeIfPresent(Bool.self, forKey: .playVideoWhenAvailable) ?? true
+            cropToFill = try container.decodeIfPresent(Bool.self, forKey: .cropToFill) ?? false
+            showVideoStage = try container.decodeIfPresent(Bool.self, forKey: .showVideoStage) ?? true
+        }
     }
 
     var videoSettings: VideoSettings {
@@ -139,6 +150,14 @@ final class AppModel {
         var collectionIDs: Set<Int> = []
         /// Lowercased producer/artist names.
         var producers: Set<String> = []
+
+        init() {}
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            collectionIDs = try container.decodeIfPresent(Set<Int>.self, forKey: .collectionIDs) ?? []
+            producers = try container.decodeIfPresent(Set<String>.self, forKey: .producers) ?? []
+        }
     }
 
     var blocklist: DiscoverBlocklist {
@@ -184,11 +203,31 @@ final class AppModel {
         var autoTranscribe = false
         var autoScan = false
         var notifyOn: NotifyOn = .never
+
+        init() {}
+
+        /// Lenient: a new field must not reset the listener's choices.
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            episodeLimit = try container.decodeIfPresent(Int.self, forKey: .episodeLimit)
+            autoDownload = try container.decodeIfPresent(Bool.self, forKey: .autoDownload) ?? false
+            autoTranscribe = try container.decodeIfPresent(Bool.self, forKey: .autoTranscribe) ?? false
+            autoScan = try container.decodeIfPresent(Bool.self, forKey: .autoScan) ?? false
+            notifyOn = try container.decodeIfPresent(NotifyOn.self, forKey: .notifyOn) ?? .never
+        }
     }
 
     struct GlobalShowDefaults: Codable, Hashable {
         var followed = ShowDefaults()
         var added = ShowDefaults()
+
+        init() {}
+
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            followed = try container.decodeIfPresent(ShowDefaults.self, forKey: .followed) ?? ShowDefaults()
+            added = try container.decodeIfPresent(ShowDefaults.self, forKey: .added) ?? ShowDefaults()
+        }
     }
 
     var showDefaults: GlobalShowDefaults {
@@ -1855,6 +1894,18 @@ final class AppModel {
         var autoTranscribe: Bool = false
         /// After transcription, scan for ads automatically.
         var autoScan: Bool = false
+
+        init(autoTranscribe: Bool = false, autoScan: Bool = false) {
+            self.autoTranscribe = autoTranscribe
+            self.autoScan = autoScan
+        }
+
+        /// Lenient: a new field must not reset every show's pipeline prefs.
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            autoTranscribe = try container.decodeIfPresent(Bool.self, forKey: .autoTranscribe) ?? false
+            autoScan = try container.decodeIfPresent(Bool.self, forKey: .autoScan) ?? false
+        }
     }
 
     func pipelinePrefs(for podcastID: Podcast.ID) -> ShowPipelinePrefs {
