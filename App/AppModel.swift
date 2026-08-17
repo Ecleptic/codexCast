@@ -161,6 +161,41 @@ final class AppModel {
         return decoded
     }
 
+    // MARK: - YouTube via Podsync (personal convenience)
+
+    /// The self-hosted Podsync server that turns YouTube channels into
+    /// podcast feeds. Editable in Settings; this default is the author's.
+    var podsyncServer: String {
+        get { UserDefaults.standard.string(forKey: "podsyncServer") ?? "https://podsync.poseidonserver.com" }
+        set { UserDefaults.standard.set(newValue, forKey: "podsyncServer") }
+    }
+
+    /// Share a YouTube channel, get a podcast. Resolves @handles to channel
+    /// IDs (no API key — the ID is in YouTube's own HTML), builds the
+    /// Podsync feed URL, and subscribes. Returns a user-facing sentence.
+    @discardableResult
+    func addYouTubeLink(_ url: URL) async -> String {
+        guard let server = URL(string: podsyncServer) else {
+            return "Set a Podsync server in Settings first."
+        }
+        guard YouTubeLink.target(for: url) != nil else {
+            return "That doesn't look like a YouTube link."
+        }
+        do {
+            let feedURL = try await YouTubeLink.feedURL(forSharedURL: url, server: server)
+            if let existing = library.first(where: { $0.feedURL == feedURL.absoluteString }) {
+                return "Already subscribed to \(existing.title)."
+            }
+            try await subscribe(feedURL: feedURL)
+            let title = library.first { $0.feedURL == feedURL.absoluteString }?.title
+            return "Added \(title ?? "the channel")."
+        } catch YouTubeLink.LinkError.channelNotFound {
+            return "Couldn't find that channel on YouTube."
+        } catch {
+            return "Couldn't add it: \(Self.describe(error))"
+        }
+    }
+
     // MARK: - Discover blocklist ("never show me this again")
 
     struct DiscoverBlocklist: Codable, Hashable {

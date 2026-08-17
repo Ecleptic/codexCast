@@ -20,6 +20,7 @@ struct SettingsView: View {
                     NavigationLink("Episode Limits") { EpisodeLimitsView() }
                     NavigationLink("Storage") { StorageView() }
                     NavigationLink("Import & Export") { ImportExportView() }
+                    NavigationLink("YouTube") { YouTubeSettingsView() }
                 }
 
                 Section("Ad Detection") {

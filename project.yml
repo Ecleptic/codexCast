@@ -12,6 +12,24 @@ packages:
     path: Packages/CodexCastKit
 
 targets:
+  ShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShareExtension
+        excludes:
+          - "Info.plist"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.ckg.codexcast.share
+        INFOPLIST_FILE: ShareExtension/Info.plist
+        SWIFT_VERSION: "6.0"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: YFJ5Q82C77
+        TARGETED_DEVICE_FAMILY: "1"
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.1.0
+
   CodexCast:
     type: application
     platform: iOS
@@ -20,6 +38,7 @@ targets:
         excludes:
           - "Info.plist"
     dependencies:
+      - target: ShareExtension
       - package: CodexCastKit
         products:
           - CodexCastCore

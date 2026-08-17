@@ -94,7 +94,23 @@ always `setTaskCompleted` exactly once, and keep the work inside the
 budget. Heavy work (downloads, transcription, scanning) belongs to the
 processing task.
 
-## 9. Measure before believing a fix
+## 9. A hand-written Info.plist needs the identity keys
+
+Setting `INFOPLIST_FILE` means Xcode uses the file verbatim and injects
+nothing. Omit `CFBundleExecutable`/`CFBundleIdentifier`/`CFBundleName`
+and installs fail with an unhelpful "Please try again later" — hit once
+on the app (missing bundle ID) and again on the share extension
+(`MissingBundleExecutable`). Use build variables:
+`$(EXECUTABLE_NAME)`, `$(PRODUCT_BUNDLE_IDENTIFIER)`, `$(PRODUCT_NAME)`.
+
+## 10. Read the WHOLE response before concluding it is not there
+
+Resolving a YouTube handle "failed" three times because the probe read
+only the first 600 KB of a 1.2 MB page and the channel ID sits past the
+first megabyte. Same family as trusting a fix without measuring: the
+data was there, the look was too short.
+
+## 11. Measure before believing a fix
 
 Three separate sessions were spent "fixing" a waveform that was
 rendering fine but drawing flat, then computing too slowly to appear,

@@ -30,6 +30,7 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var scenePhase
     @State private var router = Router()
+    @State private var addResult: String?
 
     var body: some View {
         // The mini player is a tab-bar accessory (iOS 26 Liquid Glass), so it
@@ -86,6 +87,24 @@ struct RootView: View {
             await model.restoreSession()
             model.scheduleBackgroundWork()
             await model.refreshIfStale()
+        }
+        .onOpenURL { url in
+            // codexcast://add?url=<encoded YouTube link> — the share sheet's
+            // hand-off, and anything else that wants to add a channel.
+            guard url.scheme == "codexcast", url.host == "add",
+                  let shared = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                      .queryItems?.first(where: { $0.name == "url" })?.value,
+                  let target = URL(string: shared)
+            else { return }
+            Task { addResult = await model.addYouTubeLink(target) }
+        }
+        .alert(
+            "YouTube",
+            isPresented: Binding(get: { addResult != nil }, set: { if !$0 { addResult = nil } })
+        ) {
+            Button("OK") { addResult = nil }
+        } message: {
+            Text(addResult ?? "")
         }
         .onChange(of: scenePhase) { _, phase in
             // Coming back to the app is itself a "check for new episodes".
