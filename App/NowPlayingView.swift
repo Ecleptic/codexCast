@@ -159,7 +159,7 @@ private struct PlayerPage: View {
                 waveform: model.nowPlaying.flatMap { model.waveforms[$0.id] }
             )
             .frame(height: 34)
-            .task {
+            .task(id: model.nowPlaying?.id) {
                 if let episode = model.nowPlaying {
                     await model.loadWaveform(for: episode)
                 }
@@ -381,6 +381,13 @@ private struct InfoPage: View {
                 Section("Detected Ads") {
                     if model.nowPlayingSegments.isEmpty {
                         switch model.scanState[episode.id] {
+                        case .preparing(let step):
+                            HStack(spacing: 10) {
+                                ProgressView()
+                                Text(model.workLabel(for: episode.id) ?? step)
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                            }
                         case .scanning(let done, let total):
                             HStack(spacing: 10) {
                                 ProgressView(value: Double(done), total: Double(max(1, total)))

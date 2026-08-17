@@ -216,6 +216,24 @@ final class AppModel {
     private(set) var episodeWork: [Episode.ID: EpisodeWork] = [:]
     private(set) var episodeWorkErrors: [Episode.ID: String] = [:]
 
+    /// A live sentence for whatever step is running, preferred over the scan
+    /// chain's coarser label whenever fine-grained work state exists.
+    func workLabel(for episodeID: Episode.ID) -> String? {
+        switch episodeWork[episodeID] {
+        case .downloading(let fraction):
+            if let fraction {
+                return "Downloading… \(Int(fraction * 100))%"
+            }
+            return "Downloading the episode…"
+        case .preparingSpeechModel:
+            return "Preparing the speech model…"
+        case .transcribing:
+            return "Transcribing on this iPhone…"
+        case nil:
+            return nil
+        }
+    }
+
     private var mediaDirectory: URL {
         let support = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
@@ -260,6 +278,15 @@ final class AppModel {
         _ = try await episodes.recordDownload(
             episodeID: episode.id, localPath: destination.path, mediaHash: hash
         )
+
+        // If this episode is playing right now (the scan chain downloads
+        // mid-listen), refresh the in-memory record and give the seek bar
+        // its waveform — the visible proof the download happened.
+        if nowPlaying?.id == episode.id,
+           let fresh = try? await episodes.find(id: episode.id) {
+            nowPlaying = fresh
+            await loadWaveform(for: fresh)
+        }
         return destination
     }
 
@@ -302,6 +329,10 @@ final class AppModel {
     // MARK: - Ad detection (§5, first on-device pass)
 
     enum ScanState: Equatable {
+        /// The chain's long non-window steps — downloading, transcribing,
+        /// drift check, candidate verification — each named so the UI is
+        /// never silent while minutes of real work happen.
+        case preparing(String)
         case scanning(windowsDone: Int, windowsTotal: Int)
         case done(found: Int, seconds: Int)
         case unavailable(String)
@@ -317,6 +348,12 @@ final class AppModel {
         // already requires the file), transcribe, then scan. One tap should
         // never dead-end into "do the other thing first".
         if !((try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false) {
+            let needsDownload = episode.localPath.map {
+                !FileManager.default.fileExists(atPath: $0)
+            } ?? true
+            scanState[episode.id] = .preparing(
+                needsDownload ? "Downloading the episode…" : "Transcribing on this iPhone…"
+            )
             await transcribeOnDevice(episode)
         }
         guard var transcript = try? await transcripts.transcript(episodeID: episode.id) else {
@@ -334,6 +371,7 @@ final class AppModel {
         if transcript.source == .podcasting20,
            let path = episode.localPath, FileManager.default.fileExists(atPath: path),
            !((try? await transcripts.isDriftChecked(episodeID: episode.id)) ?? true) {
+            scanState[episode.id] = .preparing("Verifying the feed transcript against the audio…")
             let engine = TranscriptionEngine()
             let audioURL = URL(fileURLWithPath: path)
             if let samples = try? await engine.sampleTranscripts(fileAt: audioURL) {
@@ -430,6 +468,7 @@ final class AppModel {
         // Shazam's matcher pointed at our own catalog, on device.
         if let path = episode.localPath, FileManager.default.fileExists(atPath: path),
            let stored = try? await fingerprints.all(), !stored.isEmpty {
+            scanState[episode.id] = .preparing("Listening for ads you've confirmed before…")
             let audioURL = URL(fileURLWithPath: path)
             let references = stored.map {
                 AdFingerprinter.Reference(id: $0.id, signature: $0.signature, durationMs: $0.durationMs)
@@ -565,7 +604,10 @@ final class AppModel {
         var verified: [(candidate: (span: ClosedRange<Int>, agreement: Int),
                         verdict: OnDeviceClassifier.Verification,
                         startMs: Int, endMs: Int)] = []
-        for candidate in candidates {
+        for (candidateIndex, candidate) in candidates.enumerated() {
+            scanState[episode.id] = .preparing(
+                "Double-checking suspicious section \(candidateIndex + 1) of \(candidates.count)…"
+            )
             let excerpt = Self.excerptPrompt(for: candidate.span, transcript: transcript)
             guard let verdict = try? await classifier.verify(excerpt: excerpt, context: context),
                   verdict.isAd
@@ -1560,10 +1602,15 @@ final class AppModel {
     private(set) var waveforms: [Episode.ID: [Float]] = [:]
 
     func loadWaveform(for episode: EpisodeRecord) async {
-        guard waveforms[episode.id] == nil,
-              let path = episode.localPath,
-              FileManager.default.fileExists(atPath: path)
-        else { return }
+        guard waveforms[episode.id] == nil else { return }
+        // The caller's record may be a snapshot from before a download
+        // finished (the scan chain downloads mid-playback) — check the
+        // database for the current file, not the stale copy.
+        var path = episode.localPath
+        if path == nil || !FileManager.default.fileExists(atPath: path!) {
+            path = (try? await episodes.find(id: episode.id))?.localPath
+        }
+        guard let path, FileManager.default.fileExists(atPath: path) else { return }
         let url = URL(fileURLWithPath: path)
         let peaks = await Task.detached(priority: .utility) {
             Self.computePeaks(url: url, bins: 160)

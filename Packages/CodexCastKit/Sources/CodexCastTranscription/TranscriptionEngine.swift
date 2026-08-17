@@ -47,7 +47,52 @@ public struct TranscriptionEngine: Sendable {
     /// One at a time by policy (§9.7): `SpeechAnalyzer` is memory-hungry and
     /// two concurrent long episodes will get the app jetsammed. The job queue
     /// enforces that; this type just does one file.
+    ///
+    /// Long files are transcribed in sections: a 4-hour episode fed whole
+    /// hits the OS speech-recognizer ceiling ("maximum number of recognizers
+    /// reached") and runs the analyzer far past its comfortable memory. Each
+    /// section is a fresh analyzer over a streamed temp slice; timestamps
+    /// are shifted back to episode time and concatenated.
     public func transcribe(
+        fileAt url: URL,
+        locale: Locale = Locale(identifier: "en_US")
+    ) async throws -> TimedTranscript {
+        let chunkSeconds = 900.0   // 15 minutes: well under any recognizer limit
+        let durationSeconds: Double
+        do {
+            let file = try AVAudioFile(forReading: url)
+            durationSeconds = Double(file.length) / file.processingFormat.sampleRate
+        } catch {
+            durationSeconds = 0
+        }
+        guard durationSeconds > chunkSeconds * 1.5 else {
+            return try await transcribeWhole(fileAt: url, locale: locale)
+        }
+
+        var allSegments: [TimedTranscript.Segment] = []
+        var offset = 0.0
+        while offset < durationSeconds - 1 {
+            let length = min(chunkSeconds, durationSeconds - offset)
+            guard let slice = try AudioSlicer.write(
+                from: url, startSeconds: offset, durationSeconds: length
+            ) else { break }
+            defer { slice.cleanUp() }
+            // One bad section must not sink four hours of work.
+            if let part = try? await transcribeWhole(fileAt: slice.url, locale: locale) {
+                allSegments.append(contentsOf: part.segments.map { segment in
+                    var shifted = segment
+                    shifted.startMs += slice.startMs
+                    shifted.endMs += slice.startMs
+                    return shifted
+                })
+            }
+            offset += chunkSeconds
+        }
+        guard !allSegments.isEmpty else { throw EngineError.emptyResult }
+        return TimedTranscript(source: .onDevice, segments: allSegments)
+    }
+
+    func transcribeWhole(
         fileAt url: URL,
         locale: Locale = Locale(identifier: "en_US")
     ) async throws -> TimedTranscript {

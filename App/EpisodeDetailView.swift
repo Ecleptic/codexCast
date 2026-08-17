@@ -87,6 +87,13 @@ struct EpisodeDetailView: View {
             if page == .ads {
             Section("Ad Detection") {
                 switch model.scanState[episode.id] {
+                case .preparing(let step):
+                    HStack(spacing: 10) {
+                        ProgressView()
+                        Text(model.workLabel(for: episode.id) ?? step)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
                 case .scanning(let done, let total):
                     HStack(spacing: 10) {
                         ProgressView(value: Double(done), total: Double(max(1, total)))
