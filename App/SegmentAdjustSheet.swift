@@ -104,7 +104,7 @@ struct SegmentAdjustSheet: View {
                 nudge("+1s", 1_000, valueMs, lowerLimit, upperLimit)
                 nudge("+5s", 5_000, valueMs, lowerLimit, upperLimit)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.glass)
         }
     }
 

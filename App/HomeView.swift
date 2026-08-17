@@ -301,8 +301,11 @@ struct TwoStageSwipe: ViewModifier {
                 .opacity(engaged > 8 ? 1 : 0)
             }
             .clipped()
-            .gesture(
-                DragGesture(minimumDistance: 25)
+            // simultaneousGesture, not .gesture: a plain gesture on a row
+            // inside a ScrollView loses the touch to the scroll pan and
+            // never fires — the swipe read as dead.
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 12)
                     .updating($drag) { value, state, _ in
                         // Horizontal intent only; the shelf scrolls vertically.
                         if abs(value.translation.width) > abs(value.translation.height) * 1.5 {

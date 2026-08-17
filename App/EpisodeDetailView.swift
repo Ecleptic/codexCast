@@ -49,14 +49,14 @@ struct EpisodeDetailView: View {
                         } label: {
                             Label("Play", systemImage: "play.fill")
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
 
                         Button {
                             Task { await model.addToUpNext(episode) }
                         } label: {
                             Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.glass)
 
                         if model.videoURL(for: episode) != nil {
                             Button {
@@ -67,7 +67,7 @@ struct EpisodeDetailView: View {
                             } label: {
                                 Label("Video", systemImage: "play.rectangle")
                             }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.glass)
                         }
                     }
                     .padding(.top, 4)
@@ -247,7 +247,7 @@ struct EpisodeDetailView: View {
                         } label: {
                             Label("Transcribe on this iPhone", systemImage: "waveform")
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.glassProminent)
 
                         Text("Downloads the episode and transcribes it on-device. Audio never leaves your phone.")
                             .font(.caption)

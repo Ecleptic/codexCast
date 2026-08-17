@@ -237,7 +237,7 @@ struct EpisodeListView: View {
                     )
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
             }
         }
         .padding(.vertical, 6)

@@ -588,7 +588,7 @@ struct UndoSkipBanner: View {
                 Button("Undo") {
                     model.undoLastSkip()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .controlSize(.small)
             }
             .padding(.horizontal, 16)
@@ -788,7 +788,7 @@ private struct TranscriptPage: View {
                     } label: {
                         Label("Transcribe This Episode", systemImage: "waveform")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                 }
             }
         }
