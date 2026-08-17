@@ -248,3 +248,38 @@ stingers (candidate). The model never receives raw audio.
 
 Corpus remains at 6/10 episodes; labels now accrue in-app via the
 correction verbs, review card, and learning export.
+
+## Video podcast feeds (2026-08-17 survey)
+
+Video podcasts are scarce in RSS — most "video podcasts" are YouTube-only
+and their RSS carries audio. Probed 24 candidate feeds for `video/*`
+enclosures, `podcast:alternateEnclosure` video, and HLS. Results:
+
+**TWiT is the motherlode.** Every TWiT show publishes a SEPARATE video feed
+with a `video/mp4` enclosure on every item — 1920x1080 H.264:
+
+| Show | Video feed |
+|---|---|
+| This Week in Tech | `https://feeds.twit.tv/twit_video_hd.xml` |
+| Security Now | `https://feeds.twit.tv/sn_video_hd.xml` |
+| MacBreak Weekly | `https://feeds.twit.tv/mbw_video_hd.xml` |
+| Windows Weekly | `https://feeds.twit.tv/ww_video_hd.xml` |
+| Tech News Weekly | `https://feeds.twit.tv/tnw_video_hd.xml` |
+| Untitled Linux Show | `https://feeds.twit.tv/uls_video_hd.xml` |
+| Hands-On Mac | `https://feeds.twit.tv/hom_video_hd.xml` |
+| Home Theater Geeks | `https://feeds.twit.tv/htg_video_hd.xml` |
+
+Verified: enclosure resolves through the Podscribe/Megaphone tracker to
+`cdn.twit.tv/...1920x1080.mp4`, answers range requests (HTTP 206 — so
+seeking works), and is a valid ISO MP4. **~2.1-2.9 GB per episode**, which
+makes these the real test of §8.3's storage warnings and A5.3 retention.
+
+**Podcasting 2.0** (`https://mp3s.nashownotes.com/pc20rss.xml`) remains the
+HLS case: `podcast:alternateEnclosure` with `.m3u8`, 720p — and the
+malformed `application.x-mpegURL` MIME type our parser already tolerates.
+
+**Traps found:** Podnews' 46 `alternateEnclosure` tags are AUDIO bitrate
+alternates (AAC/Opus/MP3), not video — counting alternateEnclosure tags
+without checking the `type` overstates video support. Jupiter Broadcasting
+feeds (Self-Hosted, Coder Radio) are audio-only in RSS despite the shows
+being filmed.
