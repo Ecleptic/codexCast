@@ -133,3 +133,39 @@ covers most "table stakes"; these are the standouts:
 Streaming removal (Overcast's choice; we keep streaming), folders (playlists
 cover it), parametric EQ (niche), cross-device sync (single-device app for
 now — revisit with codexReader's encrypted-iCloud pattern if ever needed).
+
+## CarPlay (2026-08-17)
+
+Implemented: `App/CarPlaySceneDelegate.swift` — a tab bar with Continue,
+Shows (followed only), and Up Next; one level of drilling into a show;
+tapping an episode plays it through the normal `AppModel` path (so ad
+skipping, Smart Speed, position saving, and the queue all behave) and
+pushes the system Now Playing screen. Now Playing needs no extra work:
+CarPlay reads the same `MPNowPlayingInfoCenter` the lock screen uses.
+
+**It will not appear in a car yet.** `com.apple.developer.carplay-audio`
+is granted only on request:
+
+1. Apply at <https://developer.apple.com/contact/carplay> — category
+   Audio, "Play Music & Audio Content". Review takes days to weeks.
+2. When granted, enable it on the App ID, regenerate the profile, add
+   the entitlement to a `CodexCast.entitlements` file, and reference it
+   from `project.yml`.
+
+The entitlement is deliberately NOT in the project today: adding it
+before approval makes code signing fail outright, which would break
+every build and install.
+
+Testable now without approval: Xcode's Simulator → I/O → External
+Displays → CarPlay.
+
+Verified: declaring the CarPlay scene role requires ALSO declaring
+`UIWindowSceneSessionRoleApplication`, or the phone app launches with no
+window. Both roles are declared; app confirmed launching in the
+simulator afterwards.
+
+Deferred to when the entitlement lands: runtime limit checks
+(`CPTabBarTemplate.maximumTabCount`, `CPListTemplate.maximumItemCount`
+— these vary per head unit), live `isPlaying` refresh across templates,
+and the iOS 27 additions (MiniPlayer opt-out, `CPPlaybackConfiguration`
+progress on list items).

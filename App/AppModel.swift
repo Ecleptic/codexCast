@@ -65,6 +65,11 @@ final class AppModel {
         return decoded
     }
 
+    /// The single instance, reachable from surfaces the SwiftUI view tree
+    /// does not own — CarPlay's scene delegate is created by the system, so
+    /// it cannot be handed the model through the environment.
+    private(set) static weak var shared: AppModel?
+
     init() throws {
         let support = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
@@ -93,6 +98,7 @@ final class AppModel {
         sponsors = SponsorRepository(database: database)
         neverSkip = NeverSkipRepository(database: database)
         fingerprints = FingerprintRepository(database: database)
+        Self.shared = self
     }
 
     // MARK: - Library
