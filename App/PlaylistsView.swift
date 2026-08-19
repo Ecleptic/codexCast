@@ -121,7 +121,8 @@ struct PlaylistDetailView: View {
         List {
             ForEach(episodes, id: \.id) { episode in
                 Button {
-                    model.play(episode)
+                    // The rest of the playlist follows this one.
+                    model.play(episode, from: playlist, ordered: episodes)
                 } label: {
                     HStack(spacing: 12) {
                         // The show's artwork — a playlist mixes shows, and

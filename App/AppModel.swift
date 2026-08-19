@@ -2575,6 +2575,14 @@ final class AppModel {
     /// Streams an episode's primary audio, with any gated ad segments loaded
     /// as skip blocks — detection's output becomes playback behavior here.
     func play(_ episode: EpisodeRecord, startAtMs: Int? = nil, forceVideo: Bool = false) {
+        // Playing something that is not where the active playlist stands
+        // ends that playlist: the listener went somewhere else, and having a
+        // forgotten queue resume afterwards is a jump scare, not a feature.
+        if let queue = playbackQueue,
+           queue.episodeIDs.indices.contains(queue.index),
+           queue.episodeIDs[queue.index] != episode.id {
+            setPlaybackQueue(nil)
+        }
         Task {
             await playWithSegments(episode, startAtMs: startAtMs, forceVideo: forceVideo)
         }
@@ -2723,6 +2731,118 @@ final class AppModel {
         installRemoteCommands()
     }
 
+    // MARK: - Playing from a playlist (A5.2)
+
+    /// The list playback is walking, and where it had got to.
+    ///
+    /// A playlist and Up Next are the same object by design, but only Up Next
+    /// was ever played THROUGH: starting episode three of a playlist played
+    /// exactly one episode and then stopped. A playlist is a queue.
+    struct PlaybackQueue: Codable, Sendable {
+        var playlistID: Playlist.ID
+        var name: String
+        /// Snapshotted at play time. A rules-based playlist re-evaluates as
+        /// episodes are marked played, so re-deriving the list at the end of
+        /// each episode would lose the listener's place in it.
+        var episodeIDs: [Episode.ID]
+        var index: Int
+    }
+
+    private(set) var playbackQueue: PlaybackQueue?
+
+    private static let playbackQueueKey = "activePlaybackQueue"
+
+    /// Plays an episode as part of its playlist, so the rest follows.
+    func play(_ episode: EpisodeRecord, from playlist: Playlist, ordered: [EpisodeRecord]) {
+        // Up Next is already the queue every advance falls back to; giving it
+        // a second, frozen copy of itself would only go stale.
+        if playlist.name == Playlist.upNextName {
+            setPlaybackQueue(nil)
+        } else {
+            let ids = ordered.map(\.id)
+            setPlaybackQueue(PlaybackQueue(
+                playlistID: playlist.id,
+                name: playlist.name,
+                episodeIDs: ids,
+                index: ids.firstIndex(of: episode.id) ?? 0
+            ))
+        }
+        play(episode)
+    }
+
+    private func setPlaybackQueue(_ queue: PlaybackQueue?) {
+        playbackQueue = queue
+        // Survives relaunch: an episode ending is exactly the moment the app
+        // has most likely been backgrounded for an hour.
+        let defaults = UserDefaults.standard
+        guard let queue, let data = try? JSONEncoder().encode(queue) else {
+            defaults.removeObject(forKey: Self.playbackQueueKey)
+            return
+        }
+        defaults.set(data, forKey: Self.playbackQueueKey)
+    }
+
+    private func restorePlaybackQueue() {
+        guard let data = UserDefaults.standard.data(forKey: Self.playbackQueueKey),
+              let queue = try? JSONDecoder().decode(PlaybackQueue.self, from: data)
+        else { return }
+        playbackQueue = queue
+    }
+
+    /// The next episode in the active playlist that is still worth playing.
+    /// Skips anything since played or deleted, and advances the stored index
+    /// so the queue survives being resumed later.
+    private func nextFromPlaybackQueue() async -> EpisodeRecord? {
+        guard var queue = playbackQueue else { return nil }
+        var cursor = queue.index + 1
+        while cursor < queue.episodeIDs.count {
+            let candidate = queue.episodeIDs[cursor]
+            if let record = try? await episodes.find(id: candidate), !record.isPlayed {
+                queue.index = cursor
+                setPlaybackQueue(queue)
+                return record
+            }
+            cursor += 1
+        }
+        // Walked off the end — the playlist is finished.
+        setPlaybackQueue(nil)
+        return nil
+    }
+
+    /// The playlist playback is walking and the episodes still ahead in it —
+    /// what the player's Queue page shows below Up Next.
+    func playbackQueueContents() async -> (playlist: Playlist, all: [EpisodeRecord], upcoming: [EpisodeRecord])? {
+        guard let queue = playbackQueue,
+              let playlist = playlists.first(where: { $0.id == queue.playlistID })
+        else { return nil }
+        var all: [EpisodeRecord] = []
+        for id in queue.episodeIDs {
+            guard let record = try? await episodes.find(id: id) else { continue }
+            all.append(record)
+        }
+        let upcoming = queue.episodeIDs
+            .dropFirst(queue.index + 1)
+            .compactMap { id in all.first { $0.id == id } }
+            .filter { !$0.isPlayed }
+        return (playlist, all, upcoming)
+    }
+
+    /// What plays after this, for the player to show. Up Next wins over the
+    /// playlist, the same order advanceQueue uses.
+    func upNextTitle() async -> String? {
+        if let queue = playlists.first(where: { $0.name == Playlist.upNextName }),
+           let next = (try? await playlistRepository.episodes(in: queue))?.first {
+            return next.title
+        }
+        guard let queue = playbackQueue else { return nil }
+        for candidate in queue.episodeIDs.dropFirst(queue.index + 1) {
+            if let record = try? await episodes.find(id: candidate), !record.isPlayed {
+                return record.title
+            }
+        }
+        return nil
+    }
+
     // MARK: - End-of-episode review (A3)
 
     /// Queued when an episode finishes with unreviewed detections — the batch
@@ -2763,9 +2883,14 @@ final class AppModel {
             player.pause()
             return
         }
-        guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }),
-              let next = (try? await playlistRepository.episodes(in: queue))?.first
-        else {
+        // Explicit beats implicit: something the listener queued by hand
+        // plays before the playlist simply carries on.
+        if let upNext = playlists.first(where: { $0.name == Playlist.upNextName }),
+           let next = (try? await playlistRepository.episodes(in: upNext))?.first {
+            play(next)
+            return
+        }
+        guard let next = await nextFromPlaybackQueue() else {
             nowPlaying = nil
             return
         }
@@ -2856,6 +2981,7 @@ final class AppModel {
     /// Restores the last session paused, so the mini player is present from
     /// launch and "continue where I was" is one tap (ux invariant 1 + 3).
     func restoreSession() async {
+        restorePlaybackQueue()
         guard nowPlaying == nil,
               let idString = UserDefaults.standard.string(forKey: "lastEpisodeID"),
               let uuid = UUID(uuidString: idString),

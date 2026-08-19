@@ -188,3 +188,15 @@ whose notification waits on the pipeline ("downloaded" / "ads scanned")
 gets a plain "new episode available" after 90 minutes rather than
 silence until the work finally happens.
 
+## Playlists are queues (2026-08-19)
+
+Playing an episode from a playlist now plays the REST of the playlist.
+`AppModel.PlaybackQueue` snapshots the ordered episode IDs and the
+listener's place in them at play time (a rules-based playlist
+re-evaluates as episodes are marked played, so re-deriving the list at
+each advance would lose the place); it survives relaunch in
+UserDefaults. Precedence on advance: hand-queued Up Next first, then the
+playlist, then stop. Playing anything that is not the queue's current
+item clears the queue — a forgotten playlist resuming later is a jump
+scare. The player's Queue page shows the playlist remainder under a
+"From <playlist>" section below Up Next.

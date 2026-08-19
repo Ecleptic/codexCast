@@ -374,10 +374,12 @@ private struct PlayerPage: View {
 private struct QueuePage: View {
     @Environment(AppModel.self) private var model
     @State private var queue: [EpisodeRecord] = []
+    /// The playlist currently being played through, and what is left of it.
+    @State private var source: (playlist: Playlist, all: [EpisodeRecord], upcoming: [EpisodeRecord])?
 
     var body: some View {
         List {
-            if queue.isEmpty {
+            if queue.isEmpty && (source?.upcoming.isEmpty ?? true) {
                 ContentUnavailableView(
                     "Queue is Empty",
                     systemImage: "text.line.first.and.arrowtriangle.forward",
@@ -385,43 +387,50 @@ private struct QueuePage: View {
                 )
                 .listRowSeparator(.hidden)
             }
-            ForEach(queue, id: \.id) { episode in
-                Button {
-                    model.play(episode)
-                } label: {
-                    HStack(spacing: 10) {
-                        EpisodeArtwork(episode: episode, size: 44)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(episode.title).font(.subheadline).lineLimit(2)
-                            if let duration = episode.durationMs {
-                                Text(Duration.milliseconds(duration),
-                                     format: .units(allowed: [.hours, .minutes], width: .narrow))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
+            Section {
+                ForEach(queue, id: \.id) { episode in
+                    Button { model.play(episode) } label: { QueueRow(episode: episode) }
+                        .buttonStyle(.plain)
+                }
+                .onMove { indices, destination in
+                    queue.move(fromOffsets: indices, toOffset: destination)
+                    let ids = queue.map(\.id)
+                    Task {
+                        if let playlist = upNextPlaylist {
+                            await model.reorderPlaylist(playlist.id, episodeIDs: ids)
                         }
                     }
                 }
-                .buttonStyle(.plain)
-            }
-            .onMove { indices, destination in
-                queue.move(fromOffsets: indices, toOffset: destination)
-                let ids = queue.map(\.id)
-                Task {
-                    if let playlist = upNextPlaylist {
-                        await model.reorderPlaylist(playlist.id, episodeIDs: ids)
+                .onDelete { indices in
+                    let removing = indices.map { queue[$0] }
+                    queue.remove(atOffsets: indices)
+                    Task {
+                        guard let playlist = upNextPlaylist else { return }
+                        for episode in removing {
+                            try? await model.playlistRepository.remove(
+                                episodeID: episode.id, from: playlist.id
+                            )
+                        }
                     }
                 }
+            } header: {
+                if !queue.isEmpty { Text("Up Next") }
             }
-            .onDelete { indices in
-                let removing = indices.map { queue[$0] }
-                queue.remove(atOffsets: indices)
-                Task {
-                    guard let playlist = upNextPlaylist else { return }
-                    for episode in removing {
-                        try? await model.playlistRepository.remove(
-                            episodeID: episode.id, from: playlist.id
-                        )
+
+            // What the playlist plays next, once hand-queued episodes run
+            // out — the same order advanceQueue uses, shown rather than
+            // guessed at.
+            if let source, !source.upcoming.isEmpty {
+                Section("From \(source.playlist.name)") {
+                    ForEach(source.upcoming, id: \.id) { episode in
+                        Button {
+                            model.play(episode, from: source.playlist, ordered: source.all)
+                        } label: {
+                            QueueRow(episode: episode)
+                        }
+                        .buttonStyle(.plain)
+                        .deleteDisabled(true)
+                        .moveDisabled(true)
                     }
                 }
             }
@@ -437,8 +446,29 @@ private struct QueuePage: View {
     }
 
     private func reload() async {
-        guard let playlist = upNextPlaylist else { return }
-        queue = await model.episodes(in: playlist)
+        if let playlist = upNextPlaylist {
+            queue = await model.episodes(in: playlist)
+        }
+        source = await model.playbackQueueContents()
+    }
+}
+
+private struct QueueRow: View {
+    let episode: EpisodeRecord
+
+    var body: some View {
+        HStack(spacing: 10) {
+            EpisodeArtwork(episode: episode, size: 44)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(episode.title).font(.subheadline).lineLimit(2)
+                if let duration = episode.durationMs {
+                    Text(Duration.milliseconds(duration),
+                         format: .units(allowed: [.hours, .minutes], width: .narrow))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 }
 
