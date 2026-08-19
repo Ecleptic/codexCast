@@ -546,11 +546,27 @@ final class AppModel {
 
     /// Downloads the analysis rendition — always audio, and the cheapest one,
     /// since detection and transcription are all it exists for (§8.3).
+    ///
+    /// Coalesced by episode: the download lane, the analysis lane, and a tap
+    /// on Download can all want the same file at once, and each would
+    /// otherwise open its own connection and race to move the result into
+    /// place. Callers share one task and one file.
     func downloadAudio(for episode: EpisodeRecord) async throws -> URL {
         if let existing = localFileURL(for: episode) {
             return existing
         }
+        if let inFlight = downloadTasks[episode.id] {
+            return try await inFlight.value
+        }
+        let task = Task { try await performDownload(for: episode) }
+        downloadTasks[episode.id] = task
+        defer { downloadTasks[episode.id] = nil }
+        return try await task.value
+    }
 
+    private var downloadTasks: [Episode.ID: Task<URL, Error>] = [:]
+
+    private func performDownload(for episode: EpisodeRecord) async throws -> URL {
         guard let json = episode.renditions?.data(using: .utf8),
               let renditions = try? JSONDecoder().decode([Rendition].self, from: json)
         else { throw WorkError.noAudio }
@@ -1044,6 +1060,9 @@ final class AppModel {
         segments = DetectionPipeline.assignChunks(segments.sorted { $0.startMs < $1.startMs })
 
         try? await segmentRepository.replaceMachineSegments(segments, episodeID: episode.id)
+        // Stamped even when nothing was found: "no ads in this one" is a
+        // result, and the queue must not keep offering the episode back.
+        try? await episodes.markScanned(episodeID: episode.id)
 
         // Every stored proposal opens its calibration bin (§6.4's table).
         var proposalDeciles: [String: [Int]] = [:]
@@ -1633,7 +1652,7 @@ final class AppModel {
                 // that never ran when the over-budget task was killed, so the
                 // chain died and background refresh only resumed when the app
                 // was next opened by hand — "once or twice a day".
-                model.scheduleBackgroundWork()
+                await model.scheduleBackgroundWork()
                 await model.performBackgroundRefresh(deadline: deadline)
                 completion.complete(bgTask, success: true)
             }
@@ -1648,7 +1667,7 @@ final class AppModel {
             nonisolated(unsafe) let bgTask = task
             let completion = TaskCompletion()
             let work = Task { @MainActor in
-                model.scheduleBackgroundWork()
+                await model.scheduleBackgroundWork()
                 await model.performOvernightProcessing(nil)
                 completion.complete(bgTask, success: true)
             }
@@ -1659,7 +1678,15 @@ final class AppModel {
         }
     }
 
-    func scheduleBackgroundWork() {
+    /// Asks iOS for the next refresh and the next processing window.
+    ///
+    /// The processing request is deliberately two-faced. With nothing waiting
+    /// it is the overnight, on-power request §9.7 describes. With work
+    /// waiting it drops the power requirement and asks for a window in
+    /// minutes: an episode that published this afternoon being transcribed at
+    /// 3am is the same as not having been transcribed at all — Cam got the
+    /// "scan complete" notification twelve hours after the episode landed.
+    func scheduleBackgroundWork() async {
         let refresh = BGAppRefreshTaskRequest(identifier: Self.refreshTaskID)
         // Ask early and often. iOS still decides when — background refresh
         // ran hours late in the field — which is exactly why the foreground
@@ -1670,12 +1697,210 @@ final class AppModel {
         refresh.earliestBeginDate = Date(timeIntervalSinceNow: 10 * 60)
         try? BGTaskScheduler.shared.submit(refresh)
 
-        // Overnight: charging + network, per §9.7.
+        let waiting = !(await queuedWork(limit: 1)).isEmpty
         let processing = BGProcessingTaskRequest(identifier: Self.processingTaskID)
         processing.requiresNetworkConnectivity = true
-        processing.requiresExternalPower = true
-        processing.earliestBeginDate = Date(timeIntervalSinceNow: 4 * 60 * 60)
+        processing.requiresExternalPower = !waiting
+        processing.earliestBeginDate = Date(timeIntervalSinceNow: waiting ? 5 * 60 : 4 * 60 * 60)
         try? BGTaskScheduler.shared.submit(processing)
+    }
+
+    // MARK: - The work queue (§9.3)
+
+    /// One episode's outstanding pipeline work.
+    struct QueuedWork: Identifiable, Sendable {
+        let episode: EpisodeRecord
+        let showTitle: String
+        let needsDownload: Bool
+        let needsTranscript: Bool
+        let needsScan: Bool
+        var id: Episode.ID { episode.id }
+    }
+
+    /// Episodes still owed pipeline work, shown in Settings so "is anything
+    /// happening?" has an answer.
+    private(set) var queuedWorkCount = 0
+    private var drainTask: Task<Void, Never>?
+    /// Episodes already announced this session — see announceCompletion.
+    private var announced: Set<Episode.ID> = []
+
+    var isDrainingQueue: Bool { drainTask != nil }
+
+    /// What the pipeline still owes, newest episode first.
+    ///
+    /// Newest-first is the whole point: the show that published an hour ago
+    /// is the one about to be played. Ordering by anything else is how a
+    /// three-week-old backlog item gets transcribed while this morning's
+    /// commute episode waits.
+    func queuedWork(limit: Int = 12) async -> [QueuedWork] {
+        guard let releases = try? await episodes.newReleases(limit: limit * 4) else { return [] }
+        var queue: [QueuedWork] = []
+        for episode in releases {
+            guard queue.count < limit else { break }
+            guard let show = library.first(where: { $0.id == episode.podcastId }) else { continue }
+            // Something already failed on this episode this session — a music
+            // show, a dead URL, no Apple Intelligence. Retrying it on every
+            // activation would starve everything behind it.
+            guard episodeWorkErrors[episode.id] == nil else { continue }
+            if case .unavailable = scanState[episode.id] { continue }
+
+            let prefs = pipelinePrefs(for: show.id)
+            let needsDownload = show.autoDownloadEnabled && localFileURL(for: episode) == nil
+            let hasTranscript = (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
+            let needsTranscript = prefs.autoTranscribe && !hasTranscript
+            let needsScan = prefs.autoTranscribe && prefs.autoScan && episode.lastScannedAt == nil
+            guard needsDownload || needsTranscript || needsScan else { continue }
+
+            queue.append(QueuedWork(
+                episode: episode,
+                showTitle: show.title,
+                needsDownload: needsDownload,
+                needsTranscript: needsTranscript,
+                needsScan: needsScan
+            ))
+        }
+        return queue
+    }
+
+    /// Runs the queue now, in the foreground.
+    ///
+    /// Background processing windows are Apple's to grant, and in the field
+    /// they came hours after publication — an on-power overnight window for
+    /// work the listener wanted at breakfast. Opening the app is the one
+    /// moment we know the phone is awake, unlocked, and probably in the
+    /// listener's hand, so it is the moment the backlog moves.
+    func drainQueue() {
+        guard drainTask == nil else { return }
+        drainTask = Task { [weak self] in
+            await self?.runQueue()
+            self?.drainTask = nil
+        }
+    }
+
+    /// Stops mid-item when the app leaves the foreground. Whatever step was
+    /// running finishes or is abandoned by its own cancellation checks; the
+    /// next activation recomputes the queue from what is actually on disk,
+    /// so nothing is lost by stopping here.
+    func suspendQueue() {
+        drainTask?.cancel()
+        drainTask = nil
+    }
+
+    /// Two lanes, running at once.
+    ///
+    /// Downloads are what block listening — no file, no offline playback —
+    /// and they are network-bound, so several overlap and they go first, at
+    /// user-initiated priority. Transcription and ad scanning are nice to
+    /// have by comparison, they are CPU- and memory-bound, and SpeechAnalyzer
+    /// is heavy enough that two at once gets the app jetsammed (§5.3.6), so
+    /// they run strictly one at a time behind the downloads at utility
+    /// priority. Serialising all of it in one loop meant the fourth show's
+    /// download waited on the first show's transcription — minutes of CPU
+    /// work standing in front of seconds of network.
+    private func runQueue() async {
+        // Computed once. Re-deriving after every item risks a loop on work
+        // that never completes; the next activation picks up the remainder.
+        let queue = await queuedWork()
+        queuedWorkCount = queue.count
+        defer { queuedWorkCount = 0 }
+        guard !queue.isEmpty else { return }
+
+        async let downloads: Void = runDownloadLane(queue)
+        await runAnalysisLane(queue)
+        await downloads
+    }
+
+    /// Every file the queue needs, a few at a time. Includes files the
+    /// analysis lane will want: fetching them here means transcription starts
+    /// on a file that is already on disk instead of waiting for its own.
+    private func runDownloadLane(_ queue: [QueuedWork], limit: Int = 3) async {
+        var remaining = queue.filter {
+            $0.needsDownload || $0.needsTranscript || $0.needsScan
+        }[...]
+        await withTaskGroup(of: Void.self) { group in
+            func addNext() {
+                guard !Task.isCancelled, let work = remaining.first else { return }
+                remaining = remaining.dropFirst()
+                group.addTask(priority: .userInitiated) { [weak self] in
+                    guard let self else { return }
+                    _ = try? await self.downloadAudio(for: work.episode)
+                    // "Downloaded" is a milestone worth announcing on its own:
+                    // the episode is listenable now, whatever the analysis
+                    // lane is still doing with it.
+                    if work.needsDownload { await self.announceCompletion(of: work) }
+                    if !work.needsTranscript && !work.needsScan {
+                        await self.countDownQueue()
+                    }
+                }
+            }
+            for _ in 0..<min(limit, queue.count) { addNext() }
+            for await _ in group { addNext() }
+        }
+    }
+
+    /// Transcription and scanning, newest episode first, one at a time.
+    private func countDownQueue() {
+        queuedWorkCount = max(0, queuedWorkCount - 1)
+    }
+
+    private func runAnalysisLane(_ queue: [QueuedWork]) async {
+        let work = Task(priority: .utility) { [weak self] in
+            guard let self else { return }
+            for item in queue where item.needsTranscript || item.needsScan {
+                guard !Task.isCancelled else { return }
+                if item.needsScan {
+                    // Scanning downloads and transcribes on its way through,
+                    // so the deepest needed step is the whole chain — and the
+                    // download it asks for is the one already in flight.
+                    await self.scanForAds(item.episode)
+                } else {
+                    await self.transcribeOnDevice(item.episode)
+                }
+                await self.announceCompletion(of: item)
+                self.countDownQueue()
+            }
+        }
+        await withTaskCancellationHandler {
+            await work.value
+        } onCancel: {
+            work.cancel()
+        }
+    }
+
+    /// Posts the show's configured notification once its work is done.
+    /// Silent for an episode already listened to — the pipeline finishing
+    /// after the fact is not news.
+    private func announceCompletion(of work: QueuedWork) async {
+        // Both lanes can finish with the same episode; the listener gets one
+        // banner about it, from whichever lane satisfied their setting first.
+        guard !announced.contains(work.episode.id) else { return }
+        let episode = (try? await episodes.find(id: work.episode.id)) ?? work.episode
+        guard !episode.isPlayed else {
+            clearDeferredNotice(podcastID: episode.podcastId)
+            return
+        }
+        let notify = notifySetting(for: episode.podcastId)
+        let ready = localFileURL(for: episode) != nil
+        switch notify {
+        case .downloaded where ready:
+            postNotification(
+                title: work.showTitle,
+                body: "\(episode.title) is ready to listen",
+                id: "dl-\(episode.id)"
+            )
+            announced.insert(episode.id)
+            clearDeferredNotice(podcastID: episode.podcastId)
+        case .processed where episode.lastScannedAt != nil:
+            postNotification(
+                title: work.showTitle,
+                body: "\(episode.title) is ready — ads scanned",
+                id: "proc-\(episode.id)"
+            )
+            announced.insert(episode.id)
+            clearDeferredNotice(podcastID: episode.podcastId)
+        default:
+            break
+        }
     }
 
     // MARK: - Foreground freshness
@@ -1708,6 +1933,9 @@ final class AppModel {
         await refreshConcurrently(library.filter(\.isFollowed))
         UserDefaults.standard.set(Date(), forKey: Self.lastRefreshKey)
         await reloadLibrary()
+        flushStaleNotices()
+        // Whatever the refresh just found is now the front of the queue.
+        drainQueue()
     }
 
     private(set) var isRefreshing = false
@@ -1734,14 +1962,24 @@ final class AppModel {
             for await (podcastID, newGuids) in group {
                 addNext()
                 guard !newGuids.isEmpty,
-                      notifySetting(for: podcastID) == .newEpisode,
                       let podcast = library.first(where: { $0.id == podcastID })
                 else { continue }
-                postNotification(
-                    title: podcast.title,
-                    body: newGuids.count == 1 ? "New episode available" : "\(newGuids.count) new episodes",
-                    id: "new-\(podcastID)"
-                )
+                switch notifySetting(for: podcastID) {
+                case .newEpisode:
+                    postNotification(
+                        title: podcast.title,
+                        body: newGuids.count == 1
+                            ? "New episode available" : "\(newGuids.count) new episodes",
+                        id: "new-\(podcastID)"
+                    )
+                case .downloaded, .processed:
+                    // The listener asked to hear about this show only once the
+                    // work is done. Remember when it landed so silence has a
+                    // deadline — see flushStaleNotices.
+                    deferNotice(podcastID: podcastID)
+                case .never:
+                    break
+                }
             }
         }
     }
@@ -1761,6 +1999,7 @@ final class AppModel {
         UserDefaults.standard.set(Date(), forKey: Self.lastRefreshKey)
         UserDefaults.standard.set(Date(), forKey: Self.lastBackgroundRunKey)
         await reloadLibrary()
+        flushStaleNotices()
     }
 
     private static let lastBackgroundRunKey = "lastBackgroundRunAt"
@@ -1778,55 +2017,27 @@ final class AppModel {
     func performOvernightProcessing(_ task: BGProcessingTask?) async {
         await reloadLibrary()
 
-        for podcast in library where podcast.autoDownloadEnabled {
-            guard !Task.isCancelled else { return }
-            guard let newest = (try? await episodes.episodes(podcastID: podcast.id, limit: 1))?.first,
-                  localFileURL(for: newest) == nil,
-                  (try? await downloadAudio(for: newest)) != nil
-            else { continue }
+        // The same queue the foreground drains, in the same order. There is
+        // one definition of "what work is outstanding" and one definition of
+        // which episode matters most; a background window is only a different
+        // time to run it.
+        let queue = await queuedWork()
 
-            let notify = notifySetting(for: podcast.id)
-            if notify == .downloaded {
-                postNotification(
-                    title: podcast.title,
-                    body: "\(newest.title) is ready to listen",
-                    id: "dl-\(newest.id)"
-                )
-            }
+        // Low Power Mode is the listener saying the battery matters more than
+        // this does. Downloads are cheap and still useful offline; on-device
+        // transcription and classification are not.
+        let batterySaving = ProcessInfo.processInfo.isLowPowerModeEnabled
 
-            let prefs = pipelinePrefs(for: podcast.id)
-            if prefs.autoTranscribe {
-                await transcribeOnDevice(newest)
-                if prefs.autoScan {
-                    await scanForAds(newest)
-                    if notify == .processed {
-                        postNotification(
-                            title: podcast.title,
-                            body: "\(newest.title) is ready — ads scanned",
-                            id: "proc-\(newest.id)"
-                        )
-                    }
-                }
-            }
-            // One show per wake: heavy work, and the scheduler calls again.
-            break
+        if batterySaving {
+            await runDownloadLane(queue.filter(\.needsDownload))
+        } else {
+            async let downloads: Void = runDownloadLane(queue)
+            await runAnalysisLane(queue)
+            await downloads
         }
 
         await enforceRetention()
-
-        // Transcribe one untranscribed download, then sweep stale scans.
-        for podcast in library {
-            guard !Task.isCancelled else { return }
-            guard let candidates = try? await episodes.episodes(podcastID: podcast.id, limit: 3)
-            else { continue }
-            for episode in candidates where localFileURL(for: episode) != nil {
-                let has = (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
-                if !has {
-                    await transcribeOnDevice(episode)
-                    return
-                }
-            }
-        }
+        guard !Task.isCancelled, !batterySaving else { return }
         await sweepStaleScans()
     }
 
@@ -1846,14 +2057,10 @@ final class AppModel {
             for episode in candidates where !episode.isPlayed {
                 guard (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
                 else { continue }
-                let lastScan = try? await database.read { db in
-                    try Date.fetchOne(
-                        db,
-                        sql: "SELECT MAX(createdAt) FROM detected_segments WHERE episodeId = ?",
-                        arguments: [episode.id]
-                    )
-                }
-                guard let lastScan = lastScan ?? nil, lastScan < newestPattern else { continue }
+                // episodes.lastScannedAt, not the newest segment row: an
+                // episode the scan cleared has no segments, and by the old
+                // test it looked permanently unscanned.
+                guard let lastScan = episode.lastScannedAt, lastScan < newestPattern else { continue }
                 await scanForAds(episode)
                 return   // one per wake, same battery courtesy as transcription
             }
@@ -2083,7 +2290,59 @@ final class AppModel {
         await reloadLibrary()
     }
 
+    // MARK: Deferred notices
+
+    private static let deferredNoticeKey = "deferredNewEpisodeNotices"
+
+    /// Shows whose new episode has been found but whose chosen notification
+    /// ("downloaded" / "ads scanned") has not fired yet, and when it landed.
+    private var deferredNotices: [String: Date] {
+        get { UserDefaults.standard.dictionary(forKey: Self.deferredNoticeKey) as? [String: Date] ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: Self.deferredNoticeKey) }
+    }
+
+    private func deferNotice(podcastID: Podcast.ID) {
+        var notices = deferredNotices
+        // Keep the OLDEST outstanding landing: the deadline belongs to the
+        // episode that has been waiting, not to the newest arrival.
+        guard notices["\(podcastID)"] == nil else { return }
+        notices["\(podcastID)"] = Date()
+        deferredNotices = notices
+    }
+
+    private func clearDeferredNotice(podcastID: Podcast.ID) {
+        var notices = deferredNotices
+        guard notices.removeValue(forKey: "\(podcastID)") != nil else { return }
+        deferredNotices = notices
+    }
+
+    /// A notification that arrives twelve hours after the episode did is
+    /// worse than none — Cam got "transcription and scanning complete" the
+    /// morning after the show he wanted on the drive home. If the pipeline
+    /// has not delivered within the grace period, say the plain thing while
+    /// it is still useful: the episode exists.
+    func flushStaleNotices(after grace: TimeInterval = 90 * 60) {
+        let notices = deferredNotices
+        guard !notices.isEmpty else { return }
+        var kept = notices
+        for (key, landed) in notices where Date().timeIntervalSince(landed) >= grace {
+            kept.removeValue(forKey: key)
+            guard let uuid = UUID(uuidString: key),
+                  let podcast = library.first(where: { $0.id == Podcast.ID(uuid) })
+            else { continue }
+            postNotification(
+                title: podcast.title,
+                body: "New episode available — still processing",
+                id: "new-\(key)"
+            )
+        }
+        deferredNotices = kept
+    }
+
     private func postNotification(title: String, body: String, id: String) {
+        // Nobody needs a banner about the app they are looking at; the list
+        // in front of them already changed.
+        guard UIApplication.shared.applicationState != .active else { return }
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body

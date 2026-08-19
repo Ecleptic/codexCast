@@ -85,8 +85,12 @@ struct RootView: View {
         .tabBarMinimizeBehavior(.onScrollDown)
         .task {
             await model.restoreSession()
-            model.scheduleBackgroundWork()
             await model.refreshIfStale()
+            // Launch is a work window: anything the pipeline still owes runs
+            // now rather than waiting for a background window iOS grants on
+            // its own schedule (in the field: overnight, hours too late).
+            model.drainQueue()
+            await model.scheduleBackgroundWork()
         }
         .onOpenURL { url in
             // codexcast://add?url=<encoded YouTube link> — the share sheet's
@@ -107,9 +111,22 @@ struct RootView: View {
             Text(addResult ?? "")
         }
         .onChange(of: scenePhase) { _, phase in
-            // Coming back to the app is itself a "check for new episodes".
-            guard phase == .active else { return }
-            Task { await model.refreshIfStale() }
+            // Coming back to the app is itself a "check for new episodes" —
+            // and a chance to work through the backlog while the phone is
+            // awake. Leaving stops the queue; the next activation recomputes
+            // it from what is actually on disk.
+            switch phase {
+            case .active:
+                Task {
+                    await model.refreshIfStale()
+                    model.drainQueue()
+                }
+            case .background:
+                model.suspendQueue()
+                Task { await model.scheduleBackgroundWork() }
+            default:
+                break
+            }
         }
     }
 }

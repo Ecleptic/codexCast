@@ -147,6 +147,10 @@ public struct EpisodeRecord: Codable, Hashable, FetchableRecord, MutablePersista
     public var playbackPositionMs: Int
     /// When this episode was last listened to — Continue Listening's order.
     public var lastPlayedAt: Date?
+    /// When ad detection last ran over this episode — recorded even when the
+    /// scan found nothing, so "already looked at" is answerable without
+    /// inferring it from segment rows.
+    public var lastScannedAt: Date?
     public var isPlayed: Bool
 
     public init(
@@ -171,6 +175,7 @@ public struct EpisodeRecord: Codable, Hashable, FetchableRecord, MutablePersista
         notTranscribableReason: String? = nil,
         playbackPositionMs: Int = 0,
         lastPlayedAt: Date? = nil,
+        lastScannedAt: Date? = nil,
         isPlayed: Bool = false
     ) {
         self.id = id
@@ -194,6 +199,7 @@ public struct EpisodeRecord: Codable, Hashable, FetchableRecord, MutablePersista
         self.notTranscribableReason = notTranscribableReason
         self.playbackPositionMs = playbackPositionMs
         self.lastPlayedAt = lastPlayedAt
+        self.lastScannedAt = lastScannedAt
         self.isPlayed = isPlayed
     }
 }

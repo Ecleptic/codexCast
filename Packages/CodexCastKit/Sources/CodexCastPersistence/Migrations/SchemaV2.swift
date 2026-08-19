@@ -129,3 +129,18 @@ enum SchemaV8 {
         }
     }
 }
+
+
+/// v9 — "has this episode been scanned?" needs an answer that does not depend
+/// on the scan having FOUND something. Segment rows were the proxy, so an
+/// episode with no ads looked unscanned forever and the queue kept picking it
+/// up ahead of episodes that had never been looked at.
+enum SchemaV9 {
+    static func register(in migrator: inout DatabaseMigrator) {
+        migrator.registerMigration("v9.lastScannedAt") { db in
+            try db.alter(table: "episodes") { table in
+                table.add(column: "lastScannedAt", .datetime)
+            }
+        }
+    }
+}

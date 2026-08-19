@@ -251,6 +251,16 @@ public struct EpisodeRepository: Sendable {
         }
     }
 
+    /// Records that ad detection has run over this episode, whatever it found.
+    public func markScanned(episodeID: Episode.ID, at date: Date = Date()) async throws {
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE episodes SET lastScannedAt = ? WHERE id = ?",
+                arguments: [date, episodeID]
+            )
+        }
+    }
+
     /// Episodes started but unfinished, most recently published first — the
     /// Continue Listening shelf.
     /// Newest publish date per show — the signal behind the dormant marker

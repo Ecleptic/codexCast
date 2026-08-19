@@ -344,3 +344,22 @@ struct ResubscribeBackfillTests {
         #expect(reloaded?.itunesCollectionID == 12345)
     }
 }
+
+@Suite("Scan bookkeeping — v9")
+struct ScanStampTests {
+    @Test("An episode is marked scanned even when the scan found no ads")
+    func recordsScanWithoutSegments() async throws {
+        let fixture = try Fixture()
+        let show = try await fixture.makeShow("Show")
+        let episode = try #require(try await fixture.makeEpisodes(1, podcastID: show.id).first)
+        #expect(episode.lastScannedAt == nil)
+
+        let stamp = Date(timeIntervalSince1970: 1_700_100_000)
+        try await fixture.episodes.markScanned(episodeID: episode.id, at: stamp)
+
+        let reloaded = try #require(try await fixture.episodes.find(id: episode.id))
+        // The queue asks this question, not "does it have segments?" — an
+        // episode with no ads must not look unscanned forever.
+        #expect(reloaded.lastScannedAt == stamp)
+    }
+}

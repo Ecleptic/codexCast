@@ -117,3 +117,30 @@ rendering fine but drawing flat, then computing too slowly to appear,
 then unable to find its file. Each round of guessing cost a build.
 Timing the decode and pulling the app container off the phone found the
 real causes in minutes.
+
+## 12. A background window is not a schedule — the foreground is
+
+`BGProcessingTaskRequest` with `requiresExternalPower` means "when the
+phone is charging, whenever iOS feels like it". In the field that was
+overnight: an episode published at 4pm was transcribed and ad-scanned at
+3am, and the "ready" notification landed twelve hours after the drive
+home it was meant for. Everything the listener actually waits on has to
+run while the app is open — opening it is the one moment the phone is
+known to be awake, unlocked, and in their hand. Background windows are a
+bonus, not the plan; when work is queued, ask for one soon and without
+the power requirement rather than saving it for the night.
+
+Corollary: downloads and analysis are different work and must not share
+a lane. A download is network-bound, seconds long, and the only thing
+that blocks listening; transcription and ad scanning are CPU-bound,
+minutes long, and cannot run two at a time (§5.3.6). One serial loop put
+minutes of CPU work in front of seconds of network — the fourth show's
+download waited on the first show's transcript. Downloads now run
+several at a time at user-initiated priority, analysis runs one at a
+time at utility priority, and both lanes run at once. Anything two lanes
+can ask for at the same moment needs coalescing: `downloadAudio` hands
+every caller the same in-flight task.
+
+Corollary: order the queue newest-episode-first. A backlog walked in
+library order transcribes three-week-old episodes while this morning's
+commute waits.

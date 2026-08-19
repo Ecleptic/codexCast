@@ -169,3 +169,22 @@ Deferred to when the entitlement lands: runtime limit checks
 — these vary per head unit), live `isPlaying` refresh across templates,
 and the iOS 27 additions (MiniPlayer opt-out, `CPPlaybackConfiguration`
 progress on list items).
+
+## Background work (2026-08-19)
+
+There is now ONE queue — `AppModel.queuedWork()`, newest unplayed
+episode from a followed show first — drained by TWO lanes running at
+once: downloads (three at a time, user-initiated) and analysis
+(transcribe + scan, one at a time, utility). Three places drain it: app
+launch, returning to the foreground, and the processing task. The
+foreground is the one that matters; see pitfall 12.
+
+Also changed: `episodes.lastScannedAt` (v9) so a scan that found no ads
+still counts as done; the processing request drops
+`requiresExternalPower` and asks for a five-minute window when work is
+waiting; Low Power Mode limits a background window to downloads;
+notifications are suppressed while the app is frontmost; and a show
+whose notification waits on the pipeline ("downloaded" / "ads scanned")
+gets a plain "new episode available" after 90 minutes rather than
+silence until the work finally happens.
+

@@ -43,6 +43,15 @@ struct SettingsView: View {
                             Text("Not yet")
                         }
                     }
+                    LabeledContent("Waiting to process") {
+                        if !model.isDrainingQueue {
+                            Text("Nothing")
+                        } else if model.queuedWorkCount > 0 {
+                            Text("\(model.queuedWorkCount) episode\(model.queuedWorkCount == 1 ? "" : "s")")
+                        } else {
+                            Text("Working…")
+                        }
+                    }
                     Button("Check for New Episodes Now") {
                         Task { await model.refreshFollowedNow() }
                     }
@@ -57,7 +66,10 @@ struct SettingsView: View {
                         most apps. Codex Cast also checks whenever you open it, \
                         which is usually what surfaces a new episode first. \
                         Apps that alert within minutes of publication do it by \
-                        running a server that watches feeds and pings the phone.
+                        running a server that watches feeds and pings the phone. \
+                        Downloading, transcribing, and ad scanning run while \
+                        the app is open, newest episode first, so opening \
+                        Codex Cast is what clears the backlog.
                         """
                     )
                 }
