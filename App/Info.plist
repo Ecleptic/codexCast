@@ -55,7 +55,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves your phone.</string>
+	<string>Codex Cast transcribes episodes on this device to find and skip ads. Audio never leaves the phone.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -53,6 +53,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.ckg.codexcast
         INFOPLIST_FILE: App/Info.plist
+        # CarPlay Audio (com.apple.developer.carplay-audio). Granted on the
+        # App ID by Apple; signing fails outright without that grant, which is
+        # why this arrived only once the request came back approved.
+        CODE_SIGN_ENTITLEMENTS: CodexCast.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SWIFT_VERSION: "6.0"
