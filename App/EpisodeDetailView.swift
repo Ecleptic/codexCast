@@ -188,7 +188,11 @@ struct EpisodeDetailView: View {
                     if let number = episode.episodeNumber {
                         LabeledContent("Episode", value: "#\(number)")
                     }
-                    LabeledContent("Downloaded", value: episode.localPath == nil ? "No" : "Yes")
+                    LabeledContent("Playback source") {
+                        Text(model.isDownloaded(episode)
+                            ? "Downloaded to this iPhone"
+                            : "Streams over the network")
+                    }
                 }
             }
 

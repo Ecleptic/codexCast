@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		001B1AEB29A9221B0DA285F4 /* PipelineActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27E34D525678F56754BC5CDD /* PipelineActivity.swift */; };
 		017F9AD9EC7C76C8F060F510 /* CodexCastPlayback in Frameworks */ = {isa = PBXBuildFile; productRef = BC78C732AD3598A35D9D51E8 /* CodexCastPlayback */; };
 		02083153A9EF952A315DB5C5 /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */; };
 		035A9128E6C874ED07477DCA /* IconInk@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5A382F88EC37E0914410EC6E /* IconInk@3x.png */; };
@@ -14,6 +15,7 @@
 		0C91B4FED7A10D2C6A51ECD6 /* CodexCastFeeds in Frameworks */ = {isa = PBXBuildFile; productRef = C676E321AA8E8076B4217FD2 /* CodexCastFeeds */; };
 		114E97C3392066F94472B323 /* IconViolet@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = BD9D40C10B9AD402D6F7ED58 /* IconViolet@3x.png */; };
 		1D83266DF522B9D1876367D5 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F588805476B8B58E2A994312 /* ShareViewController.swift */; };
+		2625E799CCA98589CB5F46DC /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE9B67CF1E56385AFCC413D /* DesignSystem.swift */; };
 		29A38E37DC6A6AF99E1DE498 /* HTMLText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202F8C90F77046AABC3576DD /* HTMLText.swift */; };
 		3965334BF402A12DE158E24F /* IconViolet@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 711E8FE092B8677217B6012E /* IconViolet@2x.png */; };
 		3CC5581F977B87D1AD9332D7 /* DefaultShowSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04828026E467B3BD815A1B4D /* DefaultShowSettingsView.swift */; };
@@ -41,6 +43,8 @@
 		B8763E402D088D6D4A4ACBEC /* EpisodeLimitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */; };
 		B9DFF42728EF45F5A7CA0E2B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DB3D0F2A114836988051EA /* SettingsView.swift */; };
 		BC5BD9A6EF9C364682E0E146 /* StorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C68376FFD04E8EE369D0ADF /* StorageView.swift */; };
+		C4364FC3E9D4685347678CBA /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6094212729C2AD199B8E1478 /* CarPlaySceneDelegate.swift */; };
+		CEF2C526B8FB063DFAA62142 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B290A427674AD6BDD60A5D1E /* ActivityView.swift */; };
 		D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC5E8479D847F921AB10493C /* CodexCastApp.swift */; };
 		D40228BA46A26A834E40AD20 /* Router.swift in Sources */ = {isa = PBXBuildFile; fileRef = E743A8466E4494BE1627D01B /* Router.swift */; };
 		D5E821C70D08C272C1EEA440 /* CodexCastDetection in Frameworks */ = {isa = PBXBuildFile; productRef = DC64841B03CDBB942BB0D71F /* CodexCastDetection */; };
@@ -79,13 +83,14 @@
 
 /* Begin PBXFileReference section */
 		04828026E467B3BD815A1B4D /* DefaultShowSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultShowSettingsView.swift; sourceTree = "<group>"; };
-		101C9BCE3F871996CCC31BCC /* CodexCast.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CodexCast.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		101C9BCE3F871996CCC31BCC /* CodexCast.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = CodexCast.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13E01DDCDAB399DDADF254EB /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
-		17EBE9DA3391FF91F01FEE66 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		17EBE9DA3391FF91F01FEE66 /* ShareExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		197ED145FAC304355353C8E1 /* EpisodeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeListView.swift; sourceTree = "<group>"; };
 		1C68376FFD04E8EE369D0ADF /* StorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageView.swift; sourceTree = "<group>"; };
 		202F8C90F77046AABC3576DD /* HTMLText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLText.swift; sourceTree = "<group>"; };
 		2777DCA89FDC3A7F90679ED5 /* EpisodeLimitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeLimitsView.swift; sourceTree = "<group>"; };
+		27E34D525678F56754BC5CDD /* PipelineActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineActivity.swift; sourceTree = "<group>"; };
 		3EF3D41866219715D83FE1B0 /* ShowSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowSettingsView.swift; sourceTree = "<group>"; };
 		43BB462F4FC79B134F9443D6 /* EpisodeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeDetailView.swift; sourceTree = "<group>"; };
 		447FEF16C7DDAE2618CF4226 /* VideoLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoLayerView.swift; sourceTree = "<group>"; };
@@ -95,19 +100,21 @@
 		5337A78024550C7084356105 /* AppIconSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconSettingsView.swift; sourceTree = "<group>"; };
 		5A382F88EC37E0914410EC6E /* IconInk@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "IconInk@3x.png"; sourceTree = "<group>"; };
 		5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSettingsView.swift; sourceTree = "<group>"; };
+		6094212729C2AD199B8E1478 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		711E8FE092B8677217B6012E /* IconViolet@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "IconViolet@2x.png"; sourceTree = "<group>"; };
+		7AE9B67CF1E56385AFCC413D /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		7EE4DA50ACCB45BBD83080DF /* ReviewCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewCardView.swift; sourceTree = "<group>"; };
 		854553ACD07CBF7CEEAEA0EB /* CodexCastKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = CodexCastKit; path = Packages/CodexCastKit; sourceTree = SOURCE_ROOT; };
 		8FFF62F5B7ABDC4759AD31B2 /* ImportExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportExportView.swift; sourceTree = "<group>"; };
 		91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingView.swift; sourceTree = "<group>"; };
 		A0BB3042EAA04FA1A6611534 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A4D41B70F6F4E74D1329DEDA /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
 		AF5B198DD5214FF271395709 /* SegmentAdjustSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentAdjustSheet.swift; sourceTree = "<group>"; };
 		B21F72A5F7E8B0D36865C523 /* VideoSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoSettingsView.swift; sourceTree = "<group>"; };
+		B290A427674AD6BDD60A5D1E /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
 		B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniPlayerView.swift; sourceTree = "<group>"; };
 		BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeActions.swift; sourceTree = "<group>"; };
 		BD9D40C10B9AD402D6F7ED58 /* IconViolet@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "IconViolet@3x.png"; sourceTree = "<group>"; };
-		C83338F23035FEB80018AAFE /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
-		C8DB4E1430360B970049B320 /* CodexCast.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CodexCast.entitlements; sourceTree = "<group>"; };
 		D5E13B731CAF8F1E0022A0CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9DB3D0F2A114836988051EA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E743A8466E4494BE1627D01B /* Router.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Router.swift; sourceTree = "<group>"; };
@@ -142,13 +149,16 @@
 		2FAE9BEBFC1BB948E05D3E4F /* App */ = {
 			isa = PBXGroup;
 			children = (
+				B290A427674AD6BDD60A5D1E /* ActivityView.swift */,
 				5337A78024550C7084356105 /* AppIconSettingsView.swift */,
 				13E01DDCDAB399DDADF254EB /* AppModel.swift */,
 				D5E13B731CAF8F1E0022A0CB /* Assets.xcassets */,
 				FD1188313195CBCBA224CDCE /* AudioSettings.swift */,
 				5C4522CCEE295C1D6A4EE432 /* AudioSettingsView.swift */,
+				6094212729C2AD199B8E1478 /* CarPlaySceneDelegate.swift */,
 				EC5E8479D847F921AB10493C /* CodexCastApp.swift */,
 				04828026E467B3BD815A1B4D /* DefaultShowSettingsView.swift */,
+				7AE9B67CF1E56385AFCC413D /* DesignSystem.swift */,
 				4A588F0297F1F19700E2448F /* DetectionBadge.swift */,
 				F2DA7694D224531A293462B9 /* DiscoverView.swift */,
 				BAC53B084B49320AFFF1C36F /* EpisodeActions.swift */,
@@ -161,6 +171,7 @@
 				50975386D4925546C9385E4C /* LearningViews.swift */,
 				B76D41DE9F6455F76D7EBF49 /* MiniPlayerView.swift */,
 				91CA83C545E0A02FFDB54D4D /* NowPlayingView.swift */,
+				27E34D525678F56754BC5CDD /* PipelineActivity.swift */,
 				4D4DBDA5D4DDC46FE928C4C5 /* PlaylistsView.swift */,
 				FF403B1AD1C1051907C4A47B /* PodcastsGridView.swift */,
 				7EE4DA50ACCB45BBD83080DF /* ReviewCardView.swift */,
@@ -180,7 +191,6 @@
 		32652594218DD89C758024FF = {
 			isa = PBXGroup;
 			children = (
-				C8DB4E1430360B970049B320 /* CodexCast.entitlements */,
 				2FAE9BEBFC1BB948E05D3E4F /* App */,
 				5B72FB7359ACA202AF7419C6 /* Packages */,
 				7DEC8195D5353A1C25B4842E /* ShareExtension */,
@@ -208,7 +218,7 @@
 		7DEC8195D5353A1C25B4842E /* ShareExtension */ = {
 			isa = PBXGroup;
 			children = (
-				C83338F23035FEB80018AAFE /* ShareExtension.entitlements */,
+				A4D41B70F6F4E74D1329DEDA /* ShareExtension.entitlements */,
 				F588805476B8B58E2A994312 /* ShareViewController.swift */,
 			);
 			path = ShareExtension;
@@ -281,7 +291,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2700;
+				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					5F307C30B3D7733EF4C1095D = {
 						DevelopmentTeam = YFJ5Q82C77;
@@ -344,12 +354,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEF2C526B8FB063DFAA62142 /* ActivityView.swift in Sources */,
 				5060D8220412C773222F057D /* AppIconSettingsView.swift in Sources */,
 				A4372104BF238A0C93398CA3 /* AppModel.swift in Sources */,
 				831AB4FA8508AE4E4C7A8D8C /* AudioSettings.swift in Sources */,
 				964EE2EEAB3002EFCC362978 /* AudioSettingsView.swift in Sources */,
+				C4364FC3E9D4685347678CBA /* CarPlaySceneDelegate.swift in Sources */,
 				D2DAB8A596C64E6AB16408D0 /* CodexCastApp.swift in Sources */,
 				3CC5581F977B87D1AD9332D7 /* DefaultShowSettingsView.swift in Sources */,
+				2625E799CCA98589CB5F46DC /* DesignSystem.swift in Sources */,
 				DC3756A64E58A61633E9A6FF /* DetectionBadge.swift in Sources */,
 				91D6366F40FAD66CF920D627 /* DiscoverView.swift in Sources */,
 				B2B6CBCEC944EC7B0ADFE10B /* EpisodeActions.swift in Sources */,
@@ -362,6 +375,7 @@
 				6557D740D1BD19FE8578A8DB /* LearningViews.swift in Sources */,
 				A62F327CAA9E052DC166177C /* MiniPlayerView.swift in Sources */,
 				641650F77684086614099CAD /* NowPlayingView.swift in Sources */,
+				001B1AEB29A9221B0DA285F4 /* PipelineActivity.swift in Sources */,
 				02083153A9EF952A315DB5C5 /* PlaylistsView.swift in Sources */,
 				FADF9A3D882B5E1EFF78654F /* PodcastsGridView.swift in Sources */,
 				51A5859E90031F8B41F2A030 /* ReviewCardView.swift in Sources */,
@@ -396,6 +410,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -414,9 +429,9 @@
 		2EEB2B3D1D211CC1BC4A5CDB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -440,6 +455,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				INFOPLIST_FILE = App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -459,7 +475,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -491,10 +506,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -515,7 +528,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -525,9 +537,9 @@
 		7213DB27D5D585B4425BCCE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -546,7 +558,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -578,10 +589,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = YFJ5Q82C77;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -595,7 +604,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;

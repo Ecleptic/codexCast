@@ -30,7 +30,7 @@ struct EpisodeListView: View {
             NavigationLink {
                 EpisodeDetailView(episode: episode)
             } label: {
-                EpisodeRow(episode: episode, isPlaying: model.nowPlaying?.id == episode.id)
+                EpisodeRow(episode: episode)
             }
             .tag(episode.id)
             .swipeActions(edge: .leading) {
@@ -254,71 +254,15 @@ struct EpisodeListView: View {
     }
 }
 
+/// The show page's row.
+///
+/// The shared component, with no show name — you are already inside the
+/// show, so repeating it in every row is noise. Everything else about the
+/// row is identical to Home, playlists and the queue, which is the point.
 private struct EpisodeRow: View {
     let episode: EpisodeRecord
-    let isPlaying: Bool
-
-    /// Fraction listened, for the row's progress bar.
-    private var progress: Double? {
-        guard episode.playbackPositionMs > 15_000,
-              let duration = episode.durationMs, duration > 0,
-              !episode.isPlayed
-        else { return nil }
-        return min(1, Double(episode.playbackPositionMs) / Double(duration))
-    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                if isPlaying {
-                    Image(systemName: "speaker.wave.2.fill")
-                        .foregroundStyle(.tint)
-                }
-                if episode.isPlayed {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Text(episode.title)
-                    .font(.headline)
-                    .lineLimit(2)
-                    .foregroundStyle(episode.isPlayed ? .secondary : .primary)
-            }
-            HStack(spacing: 8) {
-                if let published = episode.publishedAt {
-                    Text(published, format: .relative(presentation: .named))
-                }
-                if let duration = episode.durationMs {
-                    if let progress {
-                        // Remaining, not total, once started — what every
-                        // player shows because it is what you actually want.
-                        Text("\(max(0, duration - episode.playbackPositionMs) / 60_000) min left")
-                    } else {
-                        Text(Duration.milliseconds(duration), format: .units(allowed: [.hours, .minutes], width: .narrow))
-                    }
-                }
-                // Downloaded vs streaming, at a glance: a tinted arrow means
-                // it's on this phone; a hollow cloud means it will stream.
-                if episode.localPath != nil {
-                    Image(systemName: "arrow.down.circle.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.tint)
-                } else {
-                    Image(systemName: "cloud")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-            if let progress {
-                ProgressView(value: progress)
-                    .tint(.accentColor)
-                    .scaleEffect(x: 1, y: 0.6)
-            }
-        }
-        .padding(.vertical, 2)
-        .contentShape(Rectangle())
+        EpisodeRowContent(episode: episode)
     }
 }

@@ -11,6 +11,7 @@ struct HomeView: View {
     @State private var inProgress: [EpisodeRecord] = []
     @State private var upNext: [EpisodeRecord] = []
     @State private var newReleases: [EpisodeRecord] = []
+    @State private var showActivity = false
 
     var body: some View {
         @Bindable var router = router
@@ -61,10 +62,11 @@ struct HomeView: View {
                                         }
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal, Metrics.gutter)
+                            .padding(.bottom, 4)
                         }
                         .scrollIndicators(.hidden)
-                        .listRowInsets(EdgeInsets())
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
                         .listRowSeparator(.hidden)
                     }
                 }
@@ -159,6 +161,27 @@ struct HomeView: View {
             .listStyle(.plain)
             .headerProminence(.increased)
             .navigationTitle("Home")
+            .toolbar {
+                // Top left: what the phone is busy with. Top right: make it
+                // check now. Both were previously buried three taps deep in
+                // Settings, which is why "is it downloading?" was unanswerable
+                // from the screen you actually look at.
+                ToolbarItem(placement: .topBarLeading) {
+                    ActivityToolbarButton(isPresented: $showActivity)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Check for New Episodes", systemImage: "arrow.clockwise") {
+                        Task {
+                            await model.refreshFollowedNow()
+                            await reload()
+                        }
+                    }
+                    .disabled(model.isRefreshing)
+                }
+            }
+            .sheet(isPresented: $showActivity) {
+                ActivityView().environment(router)
+            }
             .navigationDestination(for: Playlist.ID.self) { id in
                 if let playlist = model.playlists.first(where: { $0.id == id }) {
                     PlaylistDetailView(playlist: playlist)
@@ -296,7 +319,7 @@ private struct ContinueCard: View {
             model.play(episode)
         } label: {
             VStack(alignment: .leading, spacing: 8) {
-                EpisodeArtwork(episode: episode, size: 140)
+                EpisodeArtwork(episode: episode, size: Metrics.cardArtwork)
 
                 Text(episode.title)
                     .font(.caption.weight(.medium))
@@ -306,13 +329,17 @@ private struct ContinueCard: View {
                 ProgressView(value: fraction)
                     .tint(.accentColor)
 
-                if let duration = episode.durationMs {
-                    Text(remaining(duration: duration))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                HStack(spacing: 5) {
+                    if let duration = episode.durationMs {
+                        Text(remaining(duration: duration))
+                    }
+                    Spacer(minLength: 0)
+                    DownloadStateIcon(episode: episode)
                 }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             }
-            .frame(width: 140)
+            .frame(width: Metrics.cardArtwork)
         }
         .buttonStyle(.plain)
     }
@@ -323,7 +350,11 @@ private struct ContinueCard: View {
     }
 }
 
-/// Standard episode row for Home shelves: artwork, state, one-tap play.
+/// Standard episode row for Home shelves.
+///
+/// A thin wrapper now: the row itself is `EpisodeRowContent`, shared with
+/// playlists, the player queue and Activity, so an episode looks the same
+/// wherever it is listed and gains state indicators everywhere at once.
 struct HomeEpisodeRow: View {
     @Environment(AppModel.self) private var model
     let episode: EpisodeRecord
@@ -335,42 +366,19 @@ struct HomeEpisodeRow: View {
     var body: some View {
         // A Button row, not a NavigationLink: links draw a disclosure
         // chevron, and chevron + play control in one row reads as clutter.
-        HStack(spacing: 12) {
+        HStack(spacing: 0) {
             Button(action: onOpen) {
-                HStack(spacing: 12) {
-                    EpisodeArtwork(episode: episode, size: 52)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        if let published = episode.publishedAt {
-                            Text(published, format: .relative(presentation: .named))
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        Text(episode.title)
-                            .font(.subheadline.weight(.medium))
-                            .lineLimit(2)
-                            .foregroundStyle(episode.isPlayed ? .secondary : .primary)
-                    }
-
-                    Spacer(minLength: 8)
-                }
-                .contentShape(Rectangle())
+                EpisodeRowContent(
+                    episode: episode,
+                    showTitle: model.library.first { $0.id == episode.podcastId }?.title
+                )
             }
             .buttonStyle(.borderless)
             .tint(.primary)
 
-            Button {
-                model.play(episode)
-            } label: {
-                Image(systemName: "play.fill")
-                    .font(.footnote.weight(.bold))
-                    .frame(width: 34, height: 34)
-            }
-            .buttonStyle(.glass)
-            .clipShape(Circle())
+            RowPlayButton(episode: episode)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
+        .padding(.horizontal, Metrics.gutter)
         // No .contextMenu here on purpose: attached inside the row, the
         // system picks one of these buttons as the lift source — which is
         // why long-press magnified only the play circle. The owning List
@@ -391,12 +399,10 @@ struct EpisodeArtwork: View {
     }
 
     var body: some View {
-        AsyncImage(url: url) { image in
-            image.resizable().aspectRatio(contentMode: .fill)
-        } placeholder: {
-            RoundedRectangle(cornerRadius: size > 100 ? 10 : 8).fill(.quaternary)
-        }
-        .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: size > 100 ? 10 : 8))
+        ShowArtwork(
+            url: url,
+            size: size,
+            fallbackText: model.library.first { $0.id == episode.podcastId }?.title
+        )
     }
 }

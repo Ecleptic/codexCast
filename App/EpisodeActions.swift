@@ -53,7 +53,7 @@ struct EpisodeContextMenu: View {
 
         Divider()
 
-        if episode.localPath == nil {
+        if !model.isDownloaded(episode) {
             Button {
                 Task { _ = try? await model.downloadAudio(for: episode); onChange() }
             } label: {
@@ -84,7 +84,7 @@ struct EpisodeContextMenu: View {
             )
         }
 
-        if episode.localPath != nil {
+        if model.isDownloaded(episode) {
             Button(role: .destructive) {
                 Task { await model.deleteDownload(episode); onChange() }
             } label: {

@@ -2,6 +2,15 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
+    @Environment(Router.self) private var router
+    @State private var showActivity = false
+
+    private var queueSummary: String {
+        if model.isDrainingQueue {
+            return model.queuedWorkCount > 0 ? "\(model.queuedWorkCount) working" : "Working…"
+        }
+        return "Idle"
+    }
 
     var body: some View {
         NavigationStack {
@@ -43,15 +52,19 @@ struct SettingsView: View {
                             Text("Not yet")
                         }
                     }
-                    LabeledContent("Waiting to process") {
-                        if !model.isDrainingQueue {
-                            Text("Nothing")
-                        } else if model.queuedWorkCount > 0 {
-                            Text("\(model.queuedWorkCount) episode\(model.queuedWorkCount == 1 ? "" : "s")")
-                        } else {
-                            Text("Working…")
+                    Button {
+                        showActivity = true
+                    } label: {
+                        LabeledContent("Downloads, transcripts & scans") {
+                            HStack(spacing: 4) {
+                                Text(queueSummary)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
                     }
+                    .tint(.primary)
                     Button("Check for New Episodes Now") {
                         Task { await model.refreshFollowedNow() }
                     }
@@ -90,6 +103,9 @@ struct SettingsView: View {
 
             }
             .navigationTitle("Settings")
+            .sheet(isPresented: $showActivity) {
+                ActivityView().environment(router)
+            }
         }
     }
 }

@@ -489,6 +489,128 @@ final class AppModel {
     private(set) var episodeWork: [Episode.ID: EpisodeWork] = [:]
     private(set) var episodeWorkErrors: [Episode.ID: String] = [:]
 
+    /// Which step of the pipeline a piece of work belongs to.
+    ///
+    /// The three exist as one type because the listener's question is always
+    /// lane-shaped — "is it downloaded", "does it have a transcript", "has it
+    /// been scanned" — and one flat "processing" list can't answer any of
+    /// them. Every failure, retry, and setting hangs off a lane.
+    enum PipelineLane: String, CaseIterable, Identifiable, Sendable {
+        case download
+        case transcript
+        case adScan
+
+        var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .download: "Downloads"
+            case .transcript: "Transcripts"
+            case .adScan: "Ad Scans"
+            }
+        }
+
+        /// Singular, for a sentence about one episode.
+        var verb: String {
+            switch self {
+            case .download: "Download"
+            case .transcript: "Transcribe"
+            case .adScan: "Scan for Ads"
+            }
+        }
+
+        var systemImage: String {
+            switch self {
+            case .download: "arrow.down.circle"
+            case .transcript: "waveform"
+            case .adScan: "sparkle.magnifyingglass"
+            }
+        }
+    }
+
+    /// A lane's finished item, kept for this session.
+    ///
+    /// Without it the Activity screen could only show what is still pending,
+    /// which reads as "nothing happened" the moment the queue drains — the
+    /// opposite of the truth.
+    struct WorkCompletion: Identifiable, Sendable {
+        let id: String
+        let episodeID: Episode.ID
+        let lane: PipelineLane
+        let episodeTitle: String
+        let detail: String?
+        let finishedAt: Date
+    }
+
+    private(set) var recentCompletions: [WorkCompletion] = []
+
+    /// Which lane a recorded error came from. `episodeWorkErrors` is keyed by
+    /// episode alone, so without this a 404 on the audio file would be
+    /// reported under Transcripts.
+    private(set) var failedLane: [Episode.ID: PipelineLane] = [:]
+
+    func noteCompletion(_ lane: PipelineLane, episode: EpisodeRecord, detail: String? = nil) {
+        invalidatePendingWork()
+        let key = "\(lane.rawValue)-\(episode.id)"
+        recentCompletions.removeAll { $0.id == key }
+        recentCompletions.insert(
+            WorkCompletion(
+                id: key, episodeID: episode.id, lane: lane,
+                episodeTitle: episode.title, detail: detail, finishedAt: Date()
+            ),
+            at: 0
+        )
+        // A session log, not a history: 60 is more than anyone scrolls, and
+        // unbounded growth is a leak on a screen nobody closes.
+        if recentCompletions.count > 60 {
+            recentCompletions.removeLast(recentCompletions.count - 60)
+        }
+    }
+
+    func clearCompletion(id: String) {
+        recentCompletions.removeAll { $0.id == id }
+    }
+
+    func clearCompletions(lane: PipelineLane? = nil) {
+        guard let lane else { recentCompletions.removeAll(); return }
+        recentCompletions.removeAll { $0.lane == lane }
+    }
+
+    func recordFailure(_ lane: PipelineLane, episodeID: Episode.ID, message: String) {
+        invalidatePendingWork()
+        episodeWorkErrors[episodeID] = message
+        failedLane[episodeID] = lane
+    }
+
+    /// Clears the sticky failure so the queue will pick this episode up again.
+    /// Retrying anything is exactly this plus re-running the step.
+    func clearFailure(for episodeID: Episode.ID) {
+        invalidatePendingWork()
+        episodeWorkErrors[episodeID] = nil
+        failedLane[episodeID] = nil
+        if case .unavailable = scanState[episodeID] {
+            scanState[episodeID] = nil
+        }
+    }
+
+    /// Whether the file is on this phone RIGHT NOW.
+    ///
+    /// Always this, never `episode.localPath != nil`: the stored path embeds
+    /// a data-container UUID that iOS rotates across app updates, so the
+    /// column stays non-nil long after the file it names is gone. Rows that
+    /// trusted the column showed a download badge for episodes that would
+    /// silently stream.
+    func isDownloaded(_ episode: EpisodeRecord) -> Bool {
+        localFileURL(for: episode) != nil
+    }
+
+    /// Stops an in-flight download and clears its progress row.
+    func cancelDownload(_ episodeID: Episode.ID) {
+        downloadTasks[episodeID]?.cancel()
+        downloadTasks[episodeID] = nil
+        episodeWork[episodeID] = nil
+    }
+
     /// A live sentence for whatever step is running, preferred over the scan
     /// chain's coarser label whenever fine-grained work state exists.
     func workLabel(for episodeID: Episode.ID) -> String? {
@@ -558,7 +680,31 @@ final class AppModel {
         if let inFlight = downloadTasks[episode.id] {
             return try await inFlight.value
         }
-        let task = Task { try await performDownload(for: episode) }
+        // Success and failure are both recorded here rather than inside
+        // performDownload, so every caller — the lane, the analysis chain, a
+        // tap on Download — lands in the Activity list identically.
+        let task = Task { () throws -> URL in
+            do {
+                let url = try await performDownload(for: episode)
+                if failedLane[episode.id] == .download { clearFailure(for: episode.id) }
+                noteCompletion(.download, episode: episode, detail: Self.fileSizeLabel(url))
+                return url
+            } catch let error as URLError where error.code == .cancelled {
+                // Cancelling is a choice, not a failure. URLSession reports it
+                // as URLError.cancelled rather than CancellationError, so
+                // catching only the latter left "Download failed: cancelled"
+                // sitting in the list after the user tapped the X.
+                throw error
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                recordFailure(
+                    .download, episodeID: episode.id,
+                    message: "Download failed: \(error.localizedDescription)"
+                )
+                throw error
+            }
+        }
         downloadTasks[episode.id] = task
         defer { downloadTasks[episode.id] = nil }
         return try await task.value
@@ -612,7 +758,7 @@ final class AppModel {
     /// primary transcript path — only ~9% of a real library publishes usable
     /// feed transcripts (A6), so the phone does the work for the rest.
     func transcribeOnDevice(_ episode: EpisodeRecord) async {
-        episodeWorkErrors[episode.id] = nil
+        clearFailure(for: episode.id)
         do {
             let file = try await downloadAudio(for: episode)
 
@@ -628,13 +774,22 @@ final class AppModel {
             // §9.8: a music show or corrupt file is marked, not retried forever.
             let durationMs = episode.durationMs ?? transcript.durationMs
             if TranscriptQualityGate.verdict(transcript, mediaDurationMs: durationMs) != nil {
-                episodeWorkErrors[episode.id] =
-                    "This episode doesn't seem to be mostly speech, so the transcript was discarded."
+                recordFailure(
+                    .transcript, episodeID: episode.id,
+                    message: "This episode doesn't seem to be mostly speech, so the transcript was discarded."
+                )
             } else {
                 try await transcripts.save(transcript, episodeID: episode.id)
+                noteCompletion(
+                    .transcript, episode: episode,
+                    detail: "\(transcript.segments.count) lines"
+                )
             }
         } catch {
-            episodeWorkErrors[episode.id] = "Transcription failed: \(error.localizedDescription)"
+            recordFailure(
+                .transcript, episodeID: episode.id,
+                message: "Transcription failed: \(error.localizedDescription)"
+            )
         }
         episodeWork[episode.id] = nil
     }
@@ -1076,6 +1231,12 @@ final class AppModel {
 
         let elapsed = Int(Date().timeIntervalSince(started))
         scanState[episode.id] = .done(found: segments.count, seconds: elapsed)
+        noteCompletion(
+            .adScan, episode: episode,
+            detail: segments.isEmpty
+                ? "No ads found"
+                : "\(segments.count) segment\(segments.count == 1 ? "" : "s")"
+        )
         // Scanning the episode you're listening to must repaint the seek bar
         // and the Ads list — the same refresh the correction verbs do.
         await refreshSegmentsIfPlaying(episode)
@@ -1760,6 +1921,29 @@ final class AppModel {
             ))
         }
         return queue
+    }
+
+    /// The pending queue, cached.
+    ///
+    /// `queuedWork` is not cheap — it reads the newest few hundred episodes
+    /// and asks the transcript table about each one. The Activity screen
+    /// polls once a second and the Home badge every five, so calling it
+    /// straight through would put a burst of queries behind every screen the
+    /// listener leaves open. In-flight progress is read live; only this
+    /// slow-moving part is cached, and anything that changes it invalidates.
+    private var cachedQueue: (items: [QueuedWork], at: Date)?
+
+    func pendingWork(maxAge: TimeInterval = 20) async -> [QueuedWork] {
+        if let cachedQueue, Date().timeIntervalSince(cachedQueue.at) < maxAge {
+            return cachedQueue.items
+        }
+        let items = await queuedWork(limit: 60)
+        cachedQueue = (items, Date())
+        return items
+    }
+
+    func invalidatePendingWork() {
+        cachedQueue = nil
     }
 
     /// Runs the queue now, in the foreground.
@@ -2992,6 +3176,58 @@ final class AppModel {
         startPlayback(episode, startAtMs: episode.playbackPositionMs, blocks: [], autoplay: false)
     }
 
+    /// Where the audio currently playing is coming from.
+    ///
+    /// Cam's report: "I can't tell if I'm streaming or playing a download."
+    /// The resolution happens deep inside startPlayback and was never
+    /// published anywhere, so no surface could say. It is recorded here, at
+    /// the moment the URL is chosen, and read by the mini player and the
+    /// full player — never re-derived, because re-deriving it from the
+    /// episode record is how you end up claiming "downloaded" for a file
+    /// that finished downloading after playback already started streaming.
+    enum PlaybackSource: Sendable, Equatable {
+        case downloaded
+        case streaming
+        case streamingVideo
+
+        var label: String {
+            switch self {
+            case .downloaded: "Downloaded"
+            case .streaming: "Streaming"
+            case .streamingVideo: "Streaming video"
+            }
+        }
+
+        var systemImage: String {
+            switch self {
+            case .downloaded: "arrow.down.circle.fill"
+            case .streaming: "dot.radiowaves.up.forward"
+            case .streamingVideo: "play.rectangle.on.rectangle"
+            }
+        }
+
+        var isStreaming: Bool { self != .downloaded }
+    }
+
+    private(set) var playbackSource: PlaybackSource?
+
+    /// Fetches the episode that is playing right now, without interrupting it:
+    /// the file lands on disk and the badge flips to Downloaded at the next
+    /// play. Offered from the player when the badge says Streaming.
+    func downloadNowPlaying() async {
+        guard let episode = nowPlaying else { return }
+        _ = try? await downloadAudio(for: episode)
+        if let fresh = try? await episodes.find(id: episode.id), nowPlaying?.id == fresh.id {
+            nowPlaying = fresh
+            await loadWaveform(for: fresh)
+        }
+    }
+
+    static func fileSizeLabel(_ url: URL) -> String? {
+        guard let size = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize else { return nil }
+        return ByteCountFormatStyle().format(Int64(size))
+    }
+
     /// Explicit "play the video" — same engine and timeline as audio.
     func playVideo(_ episode: EpisodeRecord) async {
         await playWithSegments(
@@ -3019,6 +3255,10 @@ final class AppModel {
             return renditions.first(where: \.isPrimaryEnclosure)?.sources.first
                 ?? renditions.first?.sources.first
         }() else { return }
+
+        playbackSource = url.isFileURL
+            ? .downloaded
+            : (overrideURL != nil ? .streamingVideo : .streaming)
 
         let timeline = DisplayTimeline(
             mediaDurationMs: episode.durationMs ?? 0,

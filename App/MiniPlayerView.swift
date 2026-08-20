@@ -20,12 +20,18 @@ struct MiniPlayerView: View {
                 // Display time comes from the timeline, never raw player time
                 // (§11.4). With no segments yet the two are equal — the point
                 // is that no view ever reads the raw clock.
-                Text(
-                    Duration.milliseconds(model.player.displayPositionMs),
-                    format: .time(pattern: .hourMinuteSecond)
-                )
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+                HStack(spacing: 5) {
+                    // Streaming or downloaded, on the surface that is on
+                    // screen the most. One glyph, because the strip is
+                    // narrow — the full player spells it out.
+                    PlaybackSourceChip(compact: true)
+                    Text(
+                        Duration.milliseconds(model.player.displayPositionMs),
+                        format: .time(pattern: .hourMinuteSecond)
+                    )
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                }
             }
 
             Spacer()

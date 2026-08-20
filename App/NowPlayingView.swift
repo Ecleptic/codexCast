@@ -93,6 +93,8 @@ private struct PlayerPage: View {
                     .buttonStyle(.plain)
                     .accessibilityHint("Opens show page")
                 }
+
+                sourceRow
             }
             .padding(.horizontal, 24)
 
@@ -100,46 +102,25 @@ private struct PlayerPage: View {
 
             transport
 
-            HStack(spacing: 20) {
+            HStack(spacing: 18) {
                 speedMenu
                 markAdControls
                 sleepMenu
+                audioMenu
                 AirPlayButton()
                     .frame(width: 34, height: 34)
             }
 
-            Toggle(isOn: Binding(
-                get: { model.audioSettings.autoSkipAds },
-                set: { newValue in Task { await model.setAutoSkip(newValue) } }
-            )) {
-                Text("Skip detected ads automatically").font(.callout)
+            // Which of those are on, said in one quiet line rather than by
+            // three full-width switches. The switches pushed the transport
+            // up the screen and made the busiest control on the page — the
+            // scrubber — compete with settings nobody changes twice a day.
+            if !activeEffects.isEmpty {
+                Text(activeEffects.joined(separator: " · "))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .transition(.opacity)
             }
-            .padding(.horizontal, 32)
-
-            // Right where the ear is: sound-changing features must be
-            // toggleable mid-listen, or "is that the app or the episode?"
-            // can never be answered.
-            Toggle(isOn: Binding(
-                get: { model.audioSettings.trimSilence },
-                set: { newValue in
-                    model.audioSettings.trimSilence = newValue
-                    model.applyAudioSettings()
-                }
-            )) {
-                Text("Shorten silences").font(.callout)
-            }
-            .padding(.horizontal, 32)
-
-            Toggle(isOn: Binding(
-                get: { model.audioSettings.voiceBoostEnabled },
-                set: { newValue in
-                    model.audioSettings.voiceBoostEnabled = newValue
-                    model.applyAudioSettings()
-                }
-            )) {
-                Text("Voice boost").font(.callout)
-            }
-            .padding(.horizontal, 32)
 
             Spacer(minLength: 8)
         }
@@ -148,6 +129,82 @@ private struct PlayerPage: View {
     private var showTitle: String? {
         guard let episode = model.nowPlaying else { return nil }
         return model.library.first { $0.id == episode.podcastId }?.title
+    }
+
+    /// Where the bytes are coming from, with the one-tap fix beside it.
+    ///
+    /// Streaming and playing a download sound identical and behave very
+    /// differently — no waveform, no Smart Speed pre-analysis, nothing in a
+    /// tunnel. Saying which, here, is the whole point.
+    @ViewBuilder
+    private var sourceRow: some View {
+        if let source = model.playbackSource {
+            HStack(spacing: 8) {
+                PlaybackSourceChip()
+                if source.isStreaming, let episode = model.nowPlaying,
+                   !model.isDownloaded(episode) {
+                    if case .downloading = model.episodeWork[episode.id] {
+                        StatusChip(text: model.workLabel(for: episode.id) ?? "Downloading…",
+                                   systemImage: "arrow.down", tint: .accentColor)
+                    } else {
+                        Button {
+                            Task { await model.downloadNowPlaying() }
+                        } label: {
+                            Text("Download")
+                                .font(.caption2.weight(.semibold))
+                        }
+                        .buttonStyle(.glass)
+                        .controlSize(.mini)
+                    }
+                }
+            }
+            .padding(.top, 2)
+        }
+    }
+
+    /// The sound-changing switches, still reachable mid-listen — a menu, not
+    /// a stack of rows. Checkmarks carry the state.
+    private var audioMenu: some View {
+        Menu {
+            Toggle(isOn: Binding(
+                get: { model.audioSettings.autoSkipAds },
+                set: { newValue in Task { await model.setAutoSkip(newValue) } }
+            )) {
+                Label("Skip detected ads", systemImage: "forward.end")
+            }
+            Toggle(isOn: Binding(
+                get: { model.audioSettings.trimSilence },
+                set: { newValue in
+                    model.audioSettings.trimSilence = newValue
+                    model.applyAudioSettings()
+                }
+            )) {
+                Label("Shorten silences", systemImage: "scissors")
+            }
+            Toggle(isOn: Binding(
+                get: { model.audioSettings.voiceBoostEnabled },
+                set: { newValue in
+                    model.audioSettings.voiceBoostEnabled = newValue
+                    model.applyAudioSettings()
+                }
+            )) {
+                Label("Voice boost", systemImage: "waveform.badge.mic")
+            }
+        } label: {
+            Image(systemName: "slider.horizontal.3")
+                .font(.title3)
+                .foregroundStyle(activeEffects.isEmpty ? Color.primary : .accentColor)
+        }
+        .buttonStyle(.glass)
+        .accessibilityLabel("Audio options")
+    }
+
+    private var activeEffects: [String] {
+        var names: [String] = []
+        if model.audioSettings.autoSkipAds { names.append("Skipping ads") }
+        if model.audioSettings.trimSilence { names.append("Shortened silences") }
+        if model.audioSettings.voiceBoostEnabled { names.append("Voice boost") }
+        return names
     }
 
     /// Poster or video, in the same slot. Video is inline and native —
@@ -454,21 +511,15 @@ private struct QueuePage: View {
 }
 
 private struct QueueRow: View {
+    @Environment(AppModel.self) private var model
     let episode: EpisodeRecord
 
     var body: some View {
-        HStack(spacing: 10) {
-            EpisodeArtwork(episode: episode, size: 44)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(episode.title).font(.subheadline).lineLimit(2)
-                if let duration = episode.durationMs {
-                    Text(Duration.milliseconds(duration),
-                         format: .units(allowed: [.hours, .minutes], width: .narrow))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
+        EpisodeRowContent(
+            episode: episode,
+            showTitle: model.library.first { $0.id == episode.podcastId }?.title,
+            artworkSize: Metrics.compactArtwork
+        )
     }
 }
 

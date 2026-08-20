@@ -138,11 +138,7 @@ struct PlaylistDetailView: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(episode.title).font(.headline).lineLimit(2)
                             HStack(spacing: 4) {
-                                if episode.localPath != nil {
-                                    Image(systemName: "arrow.down.circle.fill")
-                                        .font(.caption2)
-                                        .foregroundStyle(.tint)
-                                }
+                                DownloadStateIcon(episode: episode)
                                 if let show = showTitle(for: episode) {
                                     Text(show).lineLimit(1)
                                 }
