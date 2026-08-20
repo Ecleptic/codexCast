@@ -291,3 +291,52 @@ struct RowPlayButton: View {
         .accessibilityLabel("Play \(episode.title)")
     }
 }
+
+/// A per-show setting that can say "I haven't decided".
+///
+/// Three states, not two. Without the first one, every show silently freezes
+/// a copy of whatever the global default happened to be the day you last
+/// touched it, and editing the default afterwards does nothing — which is
+/// exactly the bug this replaced. The Default row names the value it is
+/// currently inheriting, so the screen is honest about what will actually
+/// happen.
+struct InheritableToggle: View {
+    enum Choice: Hashable { case inherited, on, off }
+
+    let title: String
+    /// What the class default currently resolves to.
+    let inherited: Bool
+    @Binding var override: Bool?
+
+    var body: some View {
+        Picker(title, selection: Binding(
+            get: { override.map { $0 ? Choice.on : .off } ?? .inherited },
+            set: { choice in
+                switch choice {
+                case .inherited: override = nil
+                case .on: override = true
+                case .off: override = false
+                }
+            }
+        )) {
+            Text("Default (\(inherited ? "On" : "Off"))").tag(Choice.inherited)
+            Text("On").tag(Choice.on)
+            Text("Off").tag(Choice.off)
+        }
+    }
+}
+
+/// Marks a row whose value this show has taken into its own hands, with the
+/// way back to the default.
+struct OverriddenBadge: View {
+    var reset: () -> Void
+
+    var body: some View {
+        Button(action: reset) {
+            Label("Using a custom value — reset to default", systemImage: "arrow.uturn.backward")
+                .font(.caption)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.tint)
+    }
+}

@@ -57,9 +57,16 @@ struct EpisodeDetailView: View {
                         .buttonStyle(.glassProminent)
 
                         Button {
-                            Task { await model.addToUpNext(episode) }
+                            Task { await model.playNext(episode) }
                         } label: {
                             Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                        }
+                        .buttonStyle(.glass)
+
+                        Button {
+                            Task { await model.addToQueue(episode) }
+                        } label: {
+                            Label("Queue", systemImage: "text.line.last.and.arrowtriangle.forward")
                         }
                         .buttonStyle(.glass)
 

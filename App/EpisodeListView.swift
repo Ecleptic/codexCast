@@ -62,14 +62,15 @@ struct EpisodeListView: View {
                 Button {
                     Task { await model.playNext(episode) }
                 } label: {
-                    Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                    Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
                 }
                 .tint(.indigo)
                 Button {
-                    Task { await model.addToUpNext(episode) }
+                    Task { await model.addToQueue(episode) }
                 } label: {
-                    Label("Play Last", systemImage: "text.line.last.and.arrowtriangle.forward")
+                    Label("Add to Queue", systemImage: "text.line.last.and.arrowtriangle.forward")
                 }
+                .tint(.teal)
             }
             }
         }

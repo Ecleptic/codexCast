@@ -5,9 +5,14 @@ import SwiftUI
 /// ADDED show gets — episode retention, auto download/transcribe/scan, and
 /// notifications, set once instead of ninety-seven times.
 ///
-/// Defaults apply automatically to newly added shows only; the "Apply to
-/// all" buttons push them onto existing shows explicitly. Per-show settings
-/// always win afterward.
+/// Editing a default here IS the apply. Every show that has not taken a
+/// setting into its own hands follows these values live, including shows you
+/// added long before you changed them — the old behaviour, where the values
+/// were copied onto each show once and then went stale, is what made editing
+/// a default look like it did nothing.
+///
+/// The button per class is only for shows that HAVE customised something:
+/// it clears their overrides so they follow along again.
 struct DefaultShowSettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var applied: String?
@@ -60,6 +65,11 @@ struct DefaultShowSettingsView: View {
             Toggle("Auto-download new episodes", isOn: defaults.autoDownload)
             Toggle("Transcribe after download", isOn: defaults.autoTranscribe)
             Toggle("Scan for ads after transcribing", isOn: defaults.autoScan)
+            if defaults.wrappedValue.autoDownload || defaults.wrappedValue.autoTranscribe {
+                Text("Applies to episodes published in the last \(AppModel.queueRecencyDays) days, at most \(AppModel.queuePerShowLimit) per show at a time. Older episodes download when you play them.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             Picker("Notify me", selection: defaults.notifyOn) {
                 Text("Never").tag(AppModel.NotifyOn.never)
                 Text("New episode").tag(AppModel.NotifyOn.newEpisode)
@@ -67,17 +77,18 @@ struct DefaultShowSettingsView: View {
                 Text("Ready (ads scanned)").tag(AppModel.NotifyOn.processed)
             }
 
-            Button("Apply to All \(count(followed: followedClass)) \(followedClass ? "Followed" : "Added") Shows Now") {
+            let customized = model.customizedShowCount(followed: followedClass)
+            Button("Reset \(customized) Customised Show\(customized == 1 ? "" : "s")") {
                 Task {
-                    await model.applyDefaultsToAll(followedShows: followedClass)
-                    applied = "Applied to \(count(followed: followedClass)) \(followedClass ? "followed" : "added") shows."
+                    await model.resetOverrides(followedShows: followedClass)
+                    applied = "\(customized) show\(customized == 1 ? "" : "s") now follow\(customized == 1 ? "s" : "") these defaults."
                 }
             }
-            .disabled(count(followed: followedClass) == 0)
+            .disabled(customized == 0)
         } header: {
             Text(title)
         } footer: {
-            Text(subtitle + " New shows pick these up automatically; the button pushes them onto existing shows, replacing their per-show settings.")
+            Text(subtitle + " These apply to every \(followedClass ? "followed" : "added") show straight away. A show that sets its own value on its settings page keeps it — the button above puts those shows back on these defaults.")
         }
     }
 

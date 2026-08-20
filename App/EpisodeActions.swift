@@ -37,16 +37,19 @@ struct EpisodeContextMenu: View {
             }
         }
 
+        // Two distinct places in the queue, named for where they put it.
+        // "Play Next" and "Play Last" described the same shelf twice and
+        // neither said which end.
         Button {
             Task { await model.playNext(episode); onChange() }
         } label: {
-            Label("Play Next", systemImage: "text.line.first.and.arrowtriangle.forward")
+            Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
         }
 
         Button {
-            Task { await model.addToUpNext(episode); onChange() }
+            Task { await model.addToQueue(episode); onChange() }
         } label: {
-            Label("Play Last", systemImage: "text.line.last.and.arrowtriangle.forward")
+            Label("Add to Queue", systemImage: "text.line.last.and.arrowtriangle.forward")
         }
 
         AddToPlaylistMenu(episode: episode)

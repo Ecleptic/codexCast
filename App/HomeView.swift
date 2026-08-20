@@ -136,13 +136,22 @@ struct HomeView: View {
                                 .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                     Button {
                                         Task {
-                                            await model.addToUpNext(episode)
+                                            await model.playNext(episode)
                                             await reload()
                                         }
                                     } label: {
                                         Label("Up Next", systemImage: "text.line.first.and.arrowtriangle.forward")
                                     }
                                     .tint(.indigo)
+                                    Button {
+                                        Task {
+                                            await model.addToQueue(episode)
+                                            await reload()
+                                        }
+                                    } label: {
+                                        Label("Add to Queue", systemImage: "text.line.last.and.arrowtriangle.forward")
+                                    }
+                                    .tint(.teal)
                                 }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {

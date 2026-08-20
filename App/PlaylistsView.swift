@@ -89,6 +89,7 @@ private struct PlaylistChip: View {
         case "yellow": .yellow
         case "blue": .blue
         case "brown": .brown
+        case "green": .green
         default: .indigo
         }
     }
@@ -116,6 +117,7 @@ struct PlaylistDetailView: View {
     @State private var episodes: [EpisodeRecord] = []
     @State private var showAddEpisodes = false
     @State private var showManageShows = false
+    @State private var showFilters = false
 
     var body: some View {
         List {
@@ -124,33 +126,10 @@ struct PlaylistDetailView: View {
                     // The rest of the playlist follows this one.
                     model.play(episode, from: playlist, ordered: episodes)
                 } label: {
-                    HStack(spacing: 12) {
-                        // The show's artwork — a playlist mixes shows, and
-                        // titles alone don't say which is which.
-                        AsyncImage(url: artworkURL(for: episode)) { image in
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            RoundedRectangle(cornerRadius: 8).fill(.quaternary)
-                        }
-                        .frame(width: 48, height: 48)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(episode.title).font(.headline).lineLimit(2)
-                            HStack(spacing: 4) {
-                                DownloadStateIcon(episode: episode)
-                                if let show = showTitle(for: episode) {
-                                    Text(show).lineLimit(1)
-                                }
-                                if let published = episode.publishedAt {
-                                    Text("· ").foregroundStyle(.tertiary)
-                                        + Text(published, style: .date)
-                                }
-                            }
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        }
-                    }
+                    EpisodeRowContent(
+                        episode: episode,
+                        showTitle: showTitle(for: episode)
+                    )
                 }
                 .buttonStyle(.plain)
             }
@@ -167,6 +146,13 @@ struct PlaylistDetailView: View {
         .navigationTitle(playlist.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            // Up Next is the queue — you order it by hand and a filter that
+            // quietly drops things out of it would be a trap.
+            if playlist.name != Playlist.upNextName {
+                Button("Filters", systemImage: "line.3.horizontal.decrease.circle") {
+                    showFilters = true
+                }
+            }
             if !playlist.isBuiltIn || playlist.decodedRules == nil {
                 Menu {
                     if !playlist.isBuiltIn {
@@ -185,6 +171,11 @@ struct PlaylistDetailView: View {
                     Image(systemName: "plus")
                 }
                 EditButton()
+            }
+        }
+        .sheet(isPresented: $showFilters) {
+            PlaylistFiltersSheet(playlist: playlist) {
+                Task { episodes = await model.episodes(in: playlist) }
             }
         }
         .sheet(isPresented: $showManageShows) {
@@ -345,6 +336,66 @@ private struct ManageShowsSheet: View {
                 selected = Set(
                     (try? await model.playlistRepository.includedShows(playlistID: playlist.id)) ?? []
                 )
+            }
+        }
+    }
+}
+
+
+/// What a playlist lets through, and in what order.
+///
+/// The rules existed in the model from the start and had no way in — which is
+/// why "only downloaded episodes" was a field nobody could set.
+private struct PlaylistFiltersSheet: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.dismiss) private var dismiss
+    let playlist: Playlist
+    var onDone: () -> Void
+
+    @State private var rules = Playlist.Rules()
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Toggle("Only downloaded episodes", isOn: $rules.downloadedOnly)
+                    Toggle("Only unplayed episodes", isOn: $rules.unplayedOnly)
+                } footer: {
+                    Text("Downloaded means the file is on this iPhone right now — an episode whose download was deleted drops out of the list rather than quietly streaming.")
+                }
+
+                Section("Order") {
+                    Picker("Sort", selection: $rules.sortOrder) {
+                        Text("Newest first").tag(Playlist.Rules.SortOrder.newestFirst)
+                        Text("Oldest first").tag(Playlist.Rules.SortOrder.oldestFirst)
+                        Text("Shortest first").tag(Playlist.Rules.SortOrder.shortestFirst)
+                        Text("Longest first").tag(Playlist.Rules.SortOrder.longestFirst)
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                }
+            }
+            .navigationTitle(playlist.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task {
+                            await model.setPlaylistRules(rules, playlistID: playlist.id)
+                            onDone()
+                            dismiss()
+                        }
+                    }
+                }
+            }
+            .task {
+                // A playlist with no rules yet is hand-curated, so the rules we
+                // are about to attach must only filter what it already holds.
+                rules = playlist.decodedRules
+                    ?? Playlist.Rules(unplayedOnly: false, curated: true)
             }
         }
     }

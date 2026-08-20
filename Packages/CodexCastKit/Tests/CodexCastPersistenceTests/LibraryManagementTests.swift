@@ -74,8 +74,10 @@ struct PlaylistTests {
         try await fixture.playlists.ensureBuiltIns()
 
         let all = try await fixture.playlists.all()
-        #expect(all.count == 2)
-        #expect(all.map(\.name) == [Playlist.allEpisodesName, Playlist.upNextName])
+        #expect(all.count == 3)
+        #expect(all.map(\.name) == [
+            Playlist.allEpisodesName, Playlist.upNextName, Playlist.downloadsName,
+        ])
         #expect(all.allSatisfy { $0.isBuiltIn })
     }
 
@@ -88,7 +90,7 @@ struct PlaylistTests {
         try await fixture.playlists.delete(allEpisodes.id)
 
         let remaining = try await fixture.playlists.all()
-        #expect(remaining.count == 2)
+        #expect(remaining.count == 3)
     }
 
     @Test("A user playlist can be created and deleted")
@@ -98,11 +100,11 @@ struct PlaylistTests {
 
         let daily = try await fixture.playlists.create(name: "Daily podcasts", colorName: "yellow")
         let withUser = try await fixture.playlists.all()
-        #expect(withUser.count == 3)
+        #expect(withUser.count == 4)
 
         try await fixture.playlists.delete(daily.id)
         let afterDelete = try await fixture.playlists.all()
-        #expect(afterDelete.count == 2)
+        #expect(afterDelete.count == 3)
     }
 
     /// A rules-based playlist is a live query across shows.

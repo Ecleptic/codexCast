@@ -10,14 +10,13 @@ struct ShowSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     let podcast: PodcastRecord
 
-    @State private var limitIndex: Int = 0
     @State private var storageBytes: Int64?
     @State private var confirmUnsubscribe = false
-    @State private var autoDownload = false
     @State private var followed = true
     @State private var speedOverride: Double = 0   // 0 = inherit
-    @State private var pipelinePrefs = AppModel.ShowPipelinePrefs()
-    @State private var notifyOn: AppModel.NotifyOn = .never
+    /// This show's departures from its class default. Empty means it follows
+    /// Show Defaults, and keeps following them as they change.
+    @State private var overrides = AppModel.ShowOverrides()
     @State private var classifierNotes = ""
     @State private var notesSaveTask: Task<Void, Never>?
     @State private var rules: [PositionRule] = []
@@ -90,14 +89,10 @@ struct ShowSettingsView: View {
             }
 
             Section {
-                Picker("Keep", selection: $limitIndex) {
+                Picker("Keep", selection: limitBinding) {
+                    Text("Default (\(limitLabel(inherited.episodeLimit)))").tag(-1)
                     ForEach(Self.limitChoices.indices, id: \.self) { index in
                         Text(limitLabel(Self.limitChoices[index])).tag(index)
-                    }
-                }
-                .onChange(of: limitIndex) {
-                    Task {
-                        await model.setEpisodeLimit(Self.limitChoices[limitIndex], for: podcast.id)
                     }
                 }
 
@@ -108,7 +103,11 @@ struct ShowSettingsView: View {
                         Text("—")
                     }
                 }
-                Toggle("Auto-download new episodes", isOn: autoDownloadBinding)
+                InheritableToggle(
+                    title: "Auto-download new episodes",
+                    inherited: inherited.autoDownload,
+                    override: overrideBinding(\.autoDownload)
+                )
                 Toggle("Show in New Releases", isOn: followBinding)
             } header: {
                 Text("Downloads")
@@ -123,8 +122,16 @@ struct ShowSettingsView: View {
             }
 
             Section {
-                Toggle("Transcribe after download", isOn: pipelineBinding(\.autoTranscribe))
-                Toggle("Scan for ads after transcribing", isOn: pipelineBinding(\.autoScan))
+                InheritableToggle(
+                    title: "Transcribe after download",
+                    inherited: inherited.autoTranscribe,
+                    override: overrideBinding(\.autoTranscribe)
+                )
+                InheritableToggle(
+                    title: "Scan for ads after transcribing",
+                    inherited: inherited.autoScan,
+                    override: overrideBinding(\.autoScan)
+                )
             } header: {
                 Text("Processing")
             } footer: {
@@ -188,13 +195,16 @@ struct ShowSettingsView: View {
 
             Section {
                 Picker("Notify me", selection: notifyBinding) {
-                    Text("Never").tag(AppModel.NotifyOn.never)
-                    Text("New episode").tag(AppModel.NotifyOn.newEpisode)
-                    Text("Downloaded").tag(AppModel.NotifyOn.downloaded)
-                    Text("Ready (ads scanned)").tag(AppModel.NotifyOn.processed)
+                    Text("Default (\(notifyLabel(inherited.notifyOn)))")
+                        .tag(AppModel.NotifyOn?.none)
+                    ForEach(AppModel.NotifyOn.allCases, id: \.self) { option in
+                        Text(notifyLabel(option)).tag(AppModel.NotifyOn?.some(option))
+                    }
                 }
             } header: {
                 Text("Notifications")
+            } footer: {
+                Text("On Default this follows Show Defaults, and changes when you change it there.")
             }
 
             Section {
@@ -206,9 +216,9 @@ struct ShowSettingsView: View {
                 }
                 .onChange(of: speedOverride) {
                     Task {
-                        var overrides = model.overrides(for: podcast.id)
+                        var overrides = model.playbackOverrides(for: podcast.id)
                         overrides.speed = speedOverride == 0 ? nil : speedOverride
-                        await model.saveOverrides(overrides, podcastID: podcast.id)
+                        await model.savePlaybackOverrides(overrides, podcastID: podcast.id)
                     }
                 }
             } header: {
@@ -261,38 +271,73 @@ struct ShowSettingsView: View {
             }
         }
         .task {
-            limitIndex = Self.limitChoices.firstIndex(of: podcast.episodeLimit) ?? 0
-            autoDownload = podcast.autoDownloadEnabled
             followed = podcast.isFollowed
-            speedOverride = model.overrides(for: podcast.id).speed ?? 0
-            pipelinePrefs = model.pipelinePrefs(for: podcast.id)
-            notifyOn = model.notifySetting(for: podcast.id)
+            speedOverride = model.playbackOverrides(for: podcast.id).speed ?? 0
+            overrides = model.overrides(for: podcast.id)
             classifierNotes = model.classifierNotes(for: podcast.id) ?? ""
             await reloadRules()
             storageBytes = await model.downloadedBytes(for: podcast.id)
         }
     }
 
-    private func pipelineBinding(
-        _ keyPath: WritableKeyPath<AppModel.ShowPipelinePrefs, Bool>
-    ) -> Binding<Bool> {
+    /// What this show would use if it overrode nothing.
+    private var inherited: AppModel.ShowDefaults {
+        model.classDefaults(for: podcast)
+    }
+
+    private func overrideBinding(
+        _ keyPath: WritableKeyPath<AppModel.ShowOverrides, Bool?>
+    ) -> Binding<Bool?> {
         Binding(
-            get: { pipelinePrefs[keyPath: keyPath] },
+            get: { overrides[keyPath: keyPath] },
             set: { newValue in
-                pipelinePrefs[keyPath: keyPath] = newValue
-                Task { await model.savePipelinePrefs(pipelinePrefs, podcastID: podcast.id) }
+                overrides[keyPath: keyPath] = newValue
+                save()
             }
         )
     }
 
-    private var notifyBinding: Binding<AppModel.NotifyOn> {
+    /// -1 is the Default row; the rest index `limitChoices`.
+    private var limitBinding: Binding<Int> {
         Binding(
-            get: { notifyOn },
-            set: { newValue in
-                notifyOn = newValue
-                Task { await model.setNotifySetting(newValue, podcastID: podcast.id) }
+            get: {
+                guard let limit = overrides.episodeLimit else { return -1 }
+                return Self.limitChoices.firstIndex(of: limit.value) ?? -1
+            },
+            set: { index in
+                overrides.episodeLimit = index == -1
+                    ? nil
+                    : AppModel.ShowOverrides.EpisodeLimit(Self.limitChoices[index])
+                save()
             }
         )
+    }
+
+    private func save() {
+        let snapshot = overrides
+        Task { await model.setOverrides(snapshot, podcastID: podcast.id) }
+    }
+
+    private var notifyBinding: Binding<AppModel.NotifyOn?> {
+        Binding(
+            get: { overrides.notifyOn },
+            set: { newValue in
+                overrides.notifyOn = newValue
+                if let newValue {
+                    Task { await model.requestNotificationAuthorizationIfNeeded(for: newValue) }
+                }
+                save()
+            }
+        )
+    }
+
+    private func notifyLabel(_ value: AppModel.NotifyOn) -> String {
+        switch value {
+        case .never: "Never"
+        case .newEpisode: "New episode"
+        case .downloaded: "Downloaded"
+        case .processed: "Ready (ads scanned)"
+        }
     }
 
     private var followBinding: Binding<Bool> {
@@ -302,19 +347,6 @@ struct ShowSettingsView: View {
                 followed = newValue
                 Task {
                     try? await model.podcasts.setFollowed(newValue, podcastID: podcast.id)
-                    await model.reloadLibrary()
-                }
-            }
-        )
-    }
-
-    private var autoDownloadBinding: Binding<Bool> {
-        Binding(
-            get: { autoDownload },
-            set: { newValue in
-                autoDownload = newValue
-                Task {
-                    try? await model.podcasts.setAutoDownload(newValue, podcastID: podcast.id)
                     await model.reloadLibrary()
                 }
             }

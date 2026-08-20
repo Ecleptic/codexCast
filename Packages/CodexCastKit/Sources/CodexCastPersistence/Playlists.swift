@@ -30,6 +30,14 @@ public struct Playlist: Codable, FetchableRecord, MutablePersistableRecord, Send
         public var sortOrder: SortOrder
         /// Cap on how many episodes the list shows.
         public var limit: Int?
+        /// This playlist's membership is its hand-picked entries; the rules
+        /// only filter and sort them.
+        ///
+        /// Without this a curated playlist whose filter excluded everything
+        /// looked identical to a rules playlist with no shows chosen — which
+        /// matches EVERY show — so switching on "downloaded only" could
+        /// replace your ten hand-picked episodes with the entire library.
+        public var curated: Bool
 
         public init(
             includedPodcastIDs: [Podcast.ID] = [],
@@ -37,7 +45,8 @@ public struct Playlist: Codable, FetchableRecord, MutablePersistableRecord, Send
             unplayedOnly: Bool = true,
             downloadedOnly: Bool = false,
             sortOrder: SortOrder = .newestFirst,
-            limit: Int? = nil
+            limit: Int? = nil,
+            curated: Bool = false
         ) {
             self.includedPodcastIDs = includedPodcastIDs
             self.excludedPodcastIDs = excludedPodcastIDs
@@ -45,6 +54,22 @@ public struct Playlist: Codable, FetchableRecord, MutablePersistableRecord, Send
             self.downloadedOnly = downloadedOnly
             self.sortOrder = sortOrder
             self.limit = limit
+            self.curated = curated
+        }
+
+        /// Lenient: rules blobs written before a field existed must still
+        /// decode, or adding one silently empties every playlist.
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            includedPodcastIDs = try container.decodeIfPresent(
+                [Podcast.ID].self, forKey: .includedPodcastIDs) ?? []
+            excludedPodcastIDs = try container.decodeIfPresent(
+                [Podcast.ID].self, forKey: .excludedPodcastIDs) ?? []
+            unplayedOnly = try container.decodeIfPresent(Bool.self, forKey: .unplayedOnly) ?? true
+            downloadedOnly = try container.decodeIfPresent(Bool.self, forKey: .downloadedOnly) ?? false
+            sortOrder = try container.decodeIfPresent(SortOrder.self, forKey: .sortOrder) ?? .newestFirst
+            limit = try container.decodeIfPresent(Int.self, forKey: .limit)
+            curated = try container.decodeIfPresent(Bool.self, forKey: .curated) ?? false
         }
     }
 
@@ -84,9 +109,12 @@ public struct Playlist: Codable, FetchableRecord, MutablePersistableRecord, Send
         return try? JSONDecoder().decode(Rules.self, from: data)
     }
 
-    /// The two built-ins every library starts with.
+    /// The built-ins every library starts with.
     public static let allEpisodesName = "All Episodes"
     public static let upNextName = "Up Next"
+    /// Everything sitting on the phone — the list to open on a plane, and the
+    /// answer to "what can I actually play right now".
+    public static let downloadsName = "Downloads"
 }
 
 public struct PlaylistEntry: Codable, FetchableRecord, MutablePersistableRecord, Sendable {
@@ -141,6 +169,17 @@ public struct PlaylistRepository: Sendable {
                     rules: Playlist.Rules(unplayedOnly: true)
                 )
                 try all.insert(db)
+            }
+            if !names.contains(Playlist.downloadsName) {
+                var downloads = Playlist(
+                    name: Playlist.downloadsName,
+                    colorName: "green",
+                    iconName: "arrow.down.circle.fill",
+                    sortIndex: 2,
+                    isBuiltIn: true,
+                    rules: Playlist.Rules(unplayedOnly: true, downloadedOnly: true)
+                )
+                try downloads.insert(db)
             }
             if !names.contains(Playlist.upNextName) {
                 // Hand-curated: the queue is ordered by the listener, not by a rule.
@@ -249,14 +288,25 @@ public struct PlaylistRepository: Sendable {
 
             guard let rules = playlist.decodedRules else { return manual }
 
+            // Filters apply to hand-picked entries as well as matched ones.
+            // They used to apply only to the rule-matched half, so switching
+            // "downloaded only" on for a curated playlist changed nothing at
+            // all and looked like the setting was ignored.
+            var picked = manual
+            if rules.unplayedOnly { picked = picked.filter { !$0.isPlayed } }
+            if rules.downloadedOnly { picked = picked.filter { $0.localPath != nil } }
+            // Filter-only rules: the hand-picked entries ARE the membership,
+            // even when the filter leaves none of them.
+            if rules.curated { return picked }
+
             var request = EpisodeRecord.all()
             if !rules.includedPodcastIDs.isEmpty {
                 request = request.filter(rules.includedPodcastIDs.contains(Column("podcastId")))
-            } else if manual.isEmpty {
+            } else if picked.isEmpty {
                 // A rules playlist with no shows selected matches everything;
                 // one that ALSO has manual entries matches nothing extra.
             } else {
-                return manual
+                return picked
             }
             if !rules.excludedPodcastIDs.isEmpty {
                 request = request.filter(!rules.excludedPodcastIDs.contains(Column("podcastId")))
@@ -275,13 +325,27 @@ public struct PlaylistRepository: Sendable {
             }
 
             let ruled = try request.limit(min(rules.limit ?? limit, limit)).fetchAll(db)
-            let manualIDs = Set(manual.map(\.id))
-            return manual + ruled.filter { !manualIDs.contains($0.id) }
+            let pickedIDs = Set(picked.map(\.id))
+            return picked + ruled.filter { !pickedIDs.contains($0.id) }
         }
     }
 
     /// Sets the shows a playlist follows as a category — "Daily always has my
     /// daily podcasts". New episodes of these shows appear automatically.
+    /// Replaces a playlist's membership/filter rules. Built-ins included:
+    /// Downloads is a rules playlist and the listener may want it sorted
+    /// oldest-first like any other.
+    public func setRules(_ rules: Playlist.Rules?, playlistID: Playlist.ID) async throws {
+        let json = rules.flatMap { try? JSONEncoder().encode($0) }
+            .flatMap { String(data: $0, encoding: .utf8) }
+        try await database.write { db in
+            try db.execute(
+                sql: "UPDATE playlists SET rules = ? WHERE id = ?",
+                arguments: [json, playlistID]
+            )
+        }
+    }
+
     public func setIncludedShows(
         _ podcastIDs: [Podcast.ID],
         playlistID: Playlist.ID

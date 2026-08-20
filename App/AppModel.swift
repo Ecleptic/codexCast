@@ -245,7 +245,7 @@ final class AppModel {
         try await subscribe(feedURL: feedURL, itunesCollectionID: itunesCollectionID)
         if let record = library.first(where: { $0.feedURL == feedURL.absoluteString }) {
             try? await podcasts.setFollowed(false, podcastID: record.id)
-            await applyDefaults(showDefaults.added, to: record.id)
+            await materialize(podcastID: record.id)
             await reloadLibrary()
         }
     }
@@ -293,6 +293,11 @@ final class AppModel {
             if let data = try? JSONEncoder().encode(showDefaults) {
                 UserDefaults.standard.set(data, forKey: "showDefaults")
             }
+            // Changing a default IS the apply. Every show that never made its
+            // own decision follows it immediately; the ones that did keep
+            // their override until you clear it.
+            guard showDefaults != oldValue else { return }
+            Task { await materializeAll() }
         }
     }
 
@@ -303,25 +308,29 @@ final class AppModel {
         return decoded
     }
 
-    /// Writes one class's defaults onto one show — used for newly subscribed
-    /// shows and by the explicit "apply to all" buttons. Never runs behind
-    /// the user's back on existing shows.
-    func applyDefaults(_ defaults: ShowDefaults, to podcastID: Podcast.ID) async {
-        try? await retention.setLimit(defaults.episodeLimit, podcastID: podcastID)
-        try? await podcasts.setAutoDownload(defaults.autoDownload, podcastID: podcastID)
-        await savePipelinePrefs(
-            ShowPipelinePrefs(autoTranscribe: defaults.autoTranscribe, autoScan: defaults.autoScan),
-            podcastID: podcastID
-        )
-        await setNotifySetting(defaults.notifyOn, podcastID: podcastID)
+    /// How many shows in one class have overridden something — the only
+    /// shows a "reset" button has anything to do.
+    func customizedShowCount(followed: Bool) -> Int {
+        library.filter { $0.isFollowed == followed && !overrides(for: $0.id).isEmpty }.count
     }
 
-    func applyDefaultsToAll(followedShows: Bool) async {
-        let defaults = followedShows ? showDefaults.followed : showDefaults.added
+    /// Clears per-show overrides for one class, putting those shows back onto
+    /// the default.
+    ///
+    /// This is all the old "Apply to All" ever needed to do. It used to write
+    /// the default onto all of them instead, which both froze the value and
+    /// made the button mandatory — and, because it asked for notification
+    /// permission once per show inside the loop, usually never finished.
+    func resetOverrides(followedShows: Bool) async {
+        await requestNotificationAuthorizationIfNeeded(
+            for: (followedShows ? showDefaults.followed : showDefaults.added).notifyOn
+        )
         for podcast in library where podcast.isFollowed == followedShows {
-            await applyDefaults(defaults, to: podcast.id)
+            guard !overrides(for: podcast.id).isEmpty else { continue }
+            await setOverrides(ShowOverrides(), podcastID: podcast.id, reload: false)
         }
         await reloadLibrary()
+        await materializeAll()
     }
 
     /// Clears an episode's progress so it leaves Continue Listening; if it's
@@ -339,18 +348,38 @@ final class AppModel {
     func setFollowed(_ followed: Bool, podcast: PodcastRecord) async {
         try? await podcasts.setFollowed(followed, podcastID: podcast.id)
         await reloadLibrary()
+        // Following changes which class the show inherits from, so whatever
+        // it wasn't overriding now resolves differently.
+        await materialize(podcastID: podcast.id)
     }
 
     // MARK: - Playlists (A5.2)
 
     func episodes(in playlist: Playlist) async -> [EpisodeRecord] {
-        (try? await playlistRepository.episodes(in: playlist)) ?? []
+        let episodes = (try? await playlistRepository.episodes(in: playlist)) ?? []
+        // The database can only check the stored path, which outlives the file
+        // it names across app updates. A "downloaded only" list that offers
+        // episodes it would have to stream is worse than no filter, so the
+        // final say belongs to the file system.
+        guard playlist.decodedRules?.downloadedOnly == true else { return episodes }
+        return episodes.filter { isDownloaded($0) }
+    }
+
+    /// The built-in list of everything on the phone.
+    var downloadsPlaylist: Playlist? {
+        playlists.first { $0.name == Playlist.downloadsName }
+    }
+
+    func setPlaylistRules(_ rules: Playlist.Rules?, playlistID: Playlist.ID) async {
+        try? await playlistRepository.setRules(rules, playlistID: playlistID)
+        await reloadLibrary()
     }
 
     func reorderPlaylist(_ id: Playlist.ID, episodeIDs: [Episode.ID]) async {
         try? await playlistRepository.reorder(playlistID: id, episodeIDs: episodeIDs)
     }
 
+    /// Top of the queue — this one plays as soon as the current episode ends.
     func playNext(_ episode: EpisodeRecord) async {
         guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }) else { return }
         try? await playlistRepository.append(episodeID: episode.id, to: queue.id)
@@ -365,7 +394,8 @@ final class AppModel {
         try? await episodes.setPlayed(!episode.isPlayed, episodeID: episode.id)
     }
 
-    func addToUpNext(_ episode: EpisodeRecord) async {
+    /// Bottom of the queue — everything already queued plays first.
+    func addToQueue(_ episode: EpisodeRecord) async {
         guard let queue = playlists.first(where: { $0.name == Playlist.upNextName }) else { return }
         try? await playlistRepository.append(episodeID: episode.id, to: queue.id)
     }
@@ -666,6 +696,24 @@ final class AppModel {
         return support
     }
 
+    /// Whether this episode has audio that could be fetched at all.
+    ///
+    /// The automatic path checks first. A video-only item or a feed with no
+    /// usable enclosure would otherwise throw on every play and leave a
+    /// failure row in Activity that the listener never asked for and can do
+    /// nothing about.
+    func hasDownloadableAudio(_ episode: EpisodeRecord) -> Bool {
+        guard let json = episode.renditions?.data(using: .utf8),
+              let renditions = try? JSONDecoder().decode([Rendition].self, from: json)
+        else { return false }
+        let core = Episode(
+            podcastID: episode.podcastId, guid: episode.guid, title: episode.title,
+            renditions: renditions
+        )
+        return core.analysisRendition?.sources.first != nil
+            || renditions.first(where: \.isPrimaryEnclosure)?.sources.first != nil
+    }
+
     /// Downloads the analysis rendition — always audio, and the cheapest one,
     /// since detection and transcription are all it exists for (§8.3).
     ///
@@ -728,7 +776,16 @@ final class AppModel {
         episodeWork[episode.id] = .downloading(fraction: nil)
         defer { if case .downloading = episodeWork[episode.id] { episodeWork[episode.id] = nil } }
 
-        let (temp, _) = try await URLSession.shared.download(from: source)
+        let (temp, response) = try await URLSession.shared.download(from: source)
+        // URLSession does not treat 404 as an error, so without this the
+        // server's error page was moved into place and recorded as a
+        // perfectly good download — the episode then showed a download badge
+        // and played silence. Caught in the field the moment playing an
+        // episode started fetching it automatically.
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            try? FileManager.default.removeItem(at: temp)
+            throw WorkError.badResponse(http.statusCode)
+        }
         let destination = mediaDirectory
             .appendingPathComponent(episode.id.rawValue.uuidString)
             .appendingPathExtension(source.pathExtension.isEmpty ? "mp3" : source.pathExtension)
@@ -796,7 +853,16 @@ final class AppModel {
 
     enum WorkError: LocalizedError {
         case noAudio
-        var errorDescription: String? { "This episode has no downloadable audio." }
+        case badResponse(Int)
+
+        var errorDescription: String? {
+            switch self {
+            case .noAudio:
+                "This episode has no downloadable audio."
+            case .badResponse(let code):
+                "The show's server returned \(code) for this episode."
+            }
+        }
     }
 
     // MARK: - Ad detection (§5, first on-device pass)
@@ -1382,14 +1448,14 @@ final class AppModel {
         var autoSkipAds: Bool?
     }
 
-    func overrides(for podcastID: Podcast.ID) -> ShowPlaybackOverrides {
+    func playbackOverrides(for podcastID: Podcast.ID) -> ShowPlaybackOverrides {
         let combined = loadCombinedPrefs(for: podcastID)
         return ShowPlaybackOverrides(speed: combined.speed, autoSkipAds: combined.autoSkipAds)
     }
 
     /// Merges into the combined envelope so playback overrides and pipeline
     /// prefs — which share the storage column — can never clobber each other.
-    func saveOverrides(_ overrides: ShowPlaybackOverrides, podcastID: Podcast.ID) async {
+    func savePlaybackOverrides(_ overrides: ShowPlaybackOverrides, podcastID: Podcast.ID) async {
         var combined = loadCombinedPrefs(for: podcastID)
         combined.speed = overrides.speed
         combined.autoSkipAds = overrides.autoSkipAds
@@ -1893,25 +1959,49 @@ final class AppModel {
     /// is the one about to be played. Ordering by anything else is how a
     /// three-week-old backlog item gets transcribed while this morning's
     /// commute episode waits.
+    ///
+    /// Bounded twice, and both bounds matter. `newReleases` already excludes
+    /// anything played or part-listened, but "unplayed" is not the same as
+    /// "wanted": a followed show's entire back catalogue is unplayed, and a
+    /// library of ninety-odd follows made that a backlog of hundreds that
+    /// could never drain — the phone downloading and transcribing years of
+    /// episodes nobody was ever going to open. The pipeline's job is the
+    /// handful you are about to listen to, so it only reaches back
+    /// `queueRecencyDays`, and no single show may occupy more than
+    /// `queuePerShowLimit` of it. Anything outside those bounds is still one
+    /// tap away from any episode row; it just isn't automatic.
     func queuedWork(limit: Int = 12) async -> [QueuedWork] {
         guard let releases = try? await episodes.newReleases(limit: limit * 4) else { return [] }
+        let cutoff = Date().addingTimeInterval(-Double(Self.queueRecencyDays) * 86_400)
         var queue: [QueuedWork] = []
+        var perShow: [Podcast.ID: Int] = [:]
         for episode in releases {
             guard queue.count < limit else { break }
             guard let show = library.first(where: { $0.id == episode.podcastId }) else { continue }
+            // Stated here as well as in the query: this is the one place that
+            // decides what the phone spends its battery on, and "never work
+            // on something already listened to" must be readable at the
+            // decision, not inferred from a SQL file in another module.
+            guard !episode.isPlayed, episode.playbackPositionMs == 0 else { continue }
+            // No date means no way to judge recency, and a feed that omits it
+            // is not publishing something new — leave it to a manual tap.
+            guard let published = episode.publishedAt, published >= cutoff else { continue }
+            guard perShow[episode.podcastId, default: 0] < Self.queuePerShowLimit else { continue }
             // Something already failed on this episode this session — a music
             // show, a dead URL, no Apple Intelligence. Retrying it on every
             // activation would starve everything behind it.
             guard episodeWorkErrors[episode.id] == nil else { continue }
             if case .unavailable = scanState[episode.id] { continue }
 
-            let prefs = pipelinePrefs(for: show.id)
-            let needsDownload = show.autoDownloadEnabled && localFileURL(for: episode) == nil
+            let settings = showSettings(for: show.id)
+            let needsDownload = settings.autoDownload && localFileURL(for: episode) == nil
             let hasTranscript = (try? await transcripts.hasTranscript(episodeID: episode.id)) ?? false
-            let needsTranscript = prefs.autoTranscribe && !hasTranscript
-            let needsScan = prefs.autoTranscribe && prefs.autoScan && episode.lastScannedAt == nil
+            let needsTranscript = settings.autoTranscribe && !hasTranscript
+            let needsScan = settings.autoTranscribe && settings.autoScan
+                && episode.lastScannedAt == nil
             guard needsDownload || needsTranscript || needsScan else { continue }
 
+            perShow[episode.podcastId, default: 0] += 1
             queue.append(QueuedWork(
                 episode: episode,
                 showTitle: show.title,
@@ -1922,6 +2012,12 @@ final class AppModel {
         }
         return queue
     }
+
+    /// How far back the pipeline reaches on its own.
+    static let queueRecencyDays = 14
+    /// How much of the queue any one show may occupy, so a daily show can't
+    /// crowd out the weekly one you actually wanted.
+    static let queuePerShowLimit = 2
 
     /// The pending queue, cached.
     ///
@@ -2324,7 +2420,7 @@ final class AppModel {
     // MARK: - Audio settings (A5.4)
 
     func applyAudioSettings() {
-        let override = nowPlaying.map { overrides(for: $0.podcastId) }
+        let override = nowPlaying.map { playbackOverrides(for: $0.podcastId) }
         player.setRate(override?.speed ?? audioSettings.speed)
         player.setProcessing(audioSettings.resolvedDefaults)
         if let episode = nowPlaying {
@@ -2365,7 +2461,7 @@ final class AppModel {
         audioSettings.autoSkipAds = enabled
         guard let episode = nowPlaying else { return }
         var blocks: [SkipBlock] = []
-        let effective = overrides(for: episode.podcastId).autoSkipAds ?? enabled
+        let effective = playbackOverrides(for: episode.podcastId).autoSkipAds ?? enabled
         if effective, let outcome = await gatedSegments(for: episode) {
             blocks = skipBlocks(from: outcome.autoSkippable)
         }
@@ -2377,31 +2473,132 @@ final class AppModel {
 
     // MARK: - Per-show pipeline steps (§9.2/§9.3, simplified per-show form)
 
-    struct ShowPipelinePrefs: Codable, Hashable {
-        /// After a new episode downloads, transcribe it automatically.
-        var autoTranscribe: Bool = false
-        /// After transcription, scan for ads automatically.
-        var autoScan: Bool = false
+    /// One show's deliberate departures from its class default.
+    ///
+    /// Every field is optional and nil means "inherit". That is the entire
+    /// point. The old shape stored a concrete value on every show, written in
+    /// bulk by "Apply to All" — so once you had pressed it, every show held a
+    /// frozen copy of that day's default and editing the default afterwards
+    /// appeared to do nothing at all. Nothing can distinguish "I chose off"
+    /// from "I never said" in a plain Bool, and the settings screen cannot be
+    /// honest without that distinction.
+    ///
+    /// The legacy `pipeline` key is deliberately not read: its values were
+    /// frozen copies, not choices, so shows go back to inheriting and the
+    /// default becomes live again.
+    struct ShowOverrides: Codable, Hashable {
+        /// `.unlimited` is a real choice; the field being absent is not.
+        /// A bare `Int?` cannot say both, which is why this is an enum.
+        enum EpisodeLimit: Codable, Hashable {
+            case unlimited
+            case keep(Int)
 
-        init(autoTranscribe: Bool = false, autoScan: Bool = false) {
-            self.autoTranscribe = autoTranscribe
-            self.autoScan = autoScan
+            init(_ value: Int?) { self = value.map(Self.keep) ?? .unlimited }
+            var value: Int? { if case .keep(let count) = self { count } else { nil } }
         }
 
-        /// Lenient: a new field must not reset every show's pipeline prefs.
-        init(from decoder: any Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            autoTranscribe = try container.decodeIfPresent(Bool.self, forKey: .autoTranscribe) ?? false
-            autoScan = try container.decodeIfPresent(Bool.self, forKey: .autoScan) ?? false
+        var episodeLimit: EpisodeLimit?
+        var autoDownload: Bool?
+        var autoTranscribe: Bool?
+        var autoScan: Bool?
+        var notifyOn: NotifyOn?
+
+        var isEmpty: Bool {
+            episodeLimit == nil && autoDownload == nil && autoTranscribe == nil
+                && autoScan == nil && notifyOn == nil
         }
     }
 
-    func pipelinePrefs(for podcastID: Podcast.ID) -> ShowPipelinePrefs {
-        guard let record = library.first(where: { $0.id == podcastID }),
-              let json = record.playbackSettings?.data(using: .utf8),
-              let combined = try? JSONDecoder().decode(CombinedShowPrefs.self, from: json)
-        else { return ShowPipelinePrefs() }
-        return combined.pipeline ?? ShowPipelinePrefs()
+    /// Names one setting, so a screen can say which of them a show has taken
+    /// into its own hands.
+    enum ShowSetting: String, CaseIterable, Hashable, Sendable {
+        case episodeLimit, autoDownload, autoTranscribe, autoScan, notifyOn
+    }
+
+    /// What a show's settings actually are right now, and where each came from.
+    struct ResolvedShowSettings {
+        var episodeLimit: Int?
+        var autoDownload = false
+        var autoTranscribe = false
+        var autoScan = false
+        var notifyOn: NotifyOn = .never
+        /// Settings this show has taken into its own hands. Everything not in
+        /// here follows the class default and moves when the default moves.
+        var overridden: Set<ShowSetting> = []
+    }
+
+    /// The class a show inherits from: your regulars and your browsing
+    /// library want different things by default.
+    func classDefaults(for podcast: PodcastRecord) -> ShowDefaults {
+        podcast.isFollowed ? showDefaults.followed : showDefaults.added
+    }
+
+    func overrides(for podcastID: Podcast.ID) -> ShowOverrides {
+        loadCombinedPrefs(for: podcastID).overrides ?? ShowOverrides()
+    }
+
+    /// Override where set, class default everywhere else. Every reader of
+    /// these settings goes through here.
+    func showSettings(for podcastID: Podcast.ID) -> ResolvedShowSettings {
+        guard let podcast = library.first(where: { $0.id == podcastID }) else {
+            return ResolvedShowSettings()
+        }
+        let defaults = classDefaults(for: podcast)
+        let overrides = overrides(for: podcastID)
+        var resolved = ResolvedShowSettings(
+            episodeLimit: overrides.episodeLimit?.value ?? defaults.episodeLimit,
+            autoDownload: overrides.autoDownload ?? defaults.autoDownload,
+            autoTranscribe: overrides.autoTranscribe ?? defaults.autoTranscribe,
+            autoScan: overrides.autoScan ?? defaults.autoScan,
+            notifyOn: overrides.notifyOn ?? defaults.notifyOn
+        )
+        if overrides.episodeLimit != nil { resolved.overridden.insert(.episodeLimit) }
+        if overrides.autoDownload != nil { resolved.overridden.insert(.autoDownload) }
+        if overrides.autoTranscribe != nil { resolved.overridden.insert(.autoTranscribe) }
+        if overrides.autoScan != nil { resolved.overridden.insert(.autoScan) }
+        if overrides.notifyOn != nil { resolved.overridden.insert(.notifyOn) }
+        return resolved
+    }
+
+    func setOverrides(_ overrides: ShowOverrides, podcastID: Podcast.ID, reload: Bool = true) async {
+        var combined = loadCombinedPrefs(for: podcastID)
+        combined.overrides = overrides.isEmpty ? nil : overrides
+        await saveCombinedPrefs(combined, podcastID: podcastID)
+        await materialize(podcastID: podcastID, reload: reload)
+    }
+
+    /// Copies the resolved answer into the show's own columns.
+    ///
+    /// Retention is a database query and cannot consult an in-memory
+    /// inheritance chain, so the resolved value is written where it can see
+    /// it. Everything else resolves live. Nothing here is a source of truth —
+    /// the override record and the class default are — so this is safe to
+    /// re-run at any time, and re-running it after a default changes is
+    /// precisely what removes the need for an "apply" step.
+    func materialize(podcastID: Podcast.ID, reload: Bool = true) async {
+        let resolved = showSettings(for: podcastID)
+        try? await retention.setLimit(resolved.episodeLimit, podcastID: podcastID)
+        try? await podcasts.setAutoDownload(resolved.autoDownload, podcastID: podcastID)
+        try? await database.write { db in
+            try db.execute(
+                sql: "UPDATE podcasts SET notificationSettings = ? WHERE id = ?",
+                arguments: [resolved.notifyOn.rawValue, podcastID]
+            )
+        }
+        if reload { await reloadLibrary() }
+    }
+
+    /// Re-resolves every show. Runs whenever a class default changes.
+    func materializeAll() async {
+        // One reload at the end, not ninety-seven: each one is a full library
+        // read, and doing it per show is what made "Apply to All" appear to
+        // hang and then not finish.
+        let shows = library
+        for podcast in shows {
+            await materialize(podcastID: podcast.id, reload: false)
+        }
+        await reloadLibrary()
+        invalidatePendingWork()
     }
 
     /// Playback overrides and pipeline prefs share the podcast row's settings
@@ -2409,7 +2606,10 @@ final class AppModel {
     struct CombinedShowPrefs: Codable, Hashable {
         var speed: Double?
         var autoSkipAds: Bool?
-        var pipeline: ShowPipelinePrefs?
+        /// Renamed from `pipeline`: the old key held frozen copies of a
+        /// default rather than choices, and leaving it unread is the
+        /// migration — every show goes back to inheriting.
+        var overrides: ShowOverrides?
         /// The listener's free-text guidance to the ad classifier (§6.5) —
         /// "the host reads listener mail at the start, it is not an ad".
         var classifierNotes: String?
@@ -2423,12 +2623,6 @@ final class AppModel {
         var combined = loadCombinedPrefs(for: podcastID)
         let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         combined.classifierNotes = trimmed.isEmpty ? nil : String(trimmed.prefix(300))
-        await saveCombinedPrefs(combined, podcastID: podcastID)
-    }
-
-    func savePipelinePrefs(_ prefs: ShowPipelinePrefs, podcastID: Podcast.ID) async {
-        var combined = loadCombinedPrefs(for: podcastID)
-        combined.pipeline = prefs
         await saveCombinedPrefs(combined, podcastID: podcastID)
     }
 
@@ -2453,25 +2647,24 @@ final class AppModel {
     }
 
     func notifySetting(for podcastID: Podcast.ID) -> NotifyOn {
-        guard let record = library.first(where: { $0.id == podcastID }),
-              let raw = record.notificationSettingsRaw,
-              let value = NotifyOn(rawValue: raw)
-        else { return .never }
-        return value
+        showSettings(for: podcastID).notifyOn
     }
 
     func setNotifySetting(_ value: NotifyOn, podcastID: Podcast.ID) async {
-        if value != .never {
-            _ = try? await UNUserNotificationCenter.current()
-                .requestAuthorization(options: [.alert, .sound, .badge])
-        }
-        try? await database.write { db in
-            try db.execute(
-                sql: "UPDATE podcasts SET notificationSettings = ? WHERE id = ?",
-                arguments: [value.rawValue, podcastID]
-            )
-        }
-        await reloadLibrary()
+        await requestNotificationAuthorizationIfNeeded(for: value)
+        var overrides = overrides(for: podcastID)
+        overrides.notifyOn = value
+        await setOverrides(overrides, podcastID: podcastID)
+    }
+
+    /// Asked once, before any loop. Requesting inside a per-show loop meant
+    /// ninety-seven sequential authorization calls, the first of which blocks
+    /// on a system prompt — which is what "Apply to All" actually spent its
+    /// time doing instead of applying anything.
+    func requestNotificationAuthorizationIfNeeded(for value: NotifyOn) async {
+        guard value != .never else { return }
+        _ = try? await UNUserNotificationCenter.current()
+            .requestAuthorization(options: [.alert, .sound, .badge])
     }
 
     // MARK: Deferred notices
@@ -2690,7 +2883,7 @@ final class AppModel {
         // re-subscribing (Discover follow of an OPML show, repeat import)
         // must never silently rewrite a show's customized settings.
         if !library.contains(where: { $0.id == record.id }) {
-            await applyDefaults(showDefaults.followed, to: record.id)
+            await materialize(podcastID: record.id)
         }
         await reloadLibrary()
     }
@@ -2781,7 +2974,7 @@ final class AppModel {
         // found five confident false positives and zero real ads. Segments are
         // always *drawn* on the seek bar; skipping them is the user's call.
         var blocks: [SkipBlock] = []
-        let skipEnabled = overrides(for: episode.podcastId).autoSkipAds ?? audioSettings.autoSkipAds
+        let skipEnabled = playbackOverrides(for: episode.podcastId).autoSkipAds ?? audioSettings.autoSkipAds
         if skipEnabled, let outcome = await gatedSegments(for: episode) {
             blocks = skipBlocks(from: outcome.autoSkippable)
         }
@@ -3260,13 +3453,26 @@ final class AppModel {
             ? .downloaded
             : (overrideURL != nil ? .streamingVideo : .streaming)
 
+        // Streaming is a fallback, not a destination. Pressing play is the
+        // clearest signal there is that this episode is wanted, so the file
+        // starts arriving immediately — the current session keeps streaming
+        // (swapping the URL under a playing episode is not worth the seek),
+        // and by the next play it is offline, has a waveform, and can be
+        // pre-analysed for Smart Speed. This is also what fills the gap the
+        // queue deliberately leaves: it only handles the last fortnight, and
+        // anything older you reach for gets fetched because you reached
+        // for it.
+        if playbackSource?.isStreaming == true, hasDownloadableAudio(episode) {
+            Task { [weak self] in _ = try? await self?.downloadAudio(for: episode) }
+        }
+
         let timeline = DisplayTimeline(
             mediaDurationMs: episode.durationMs ?? 0,
             blocks: blocks
         )
         player.load(url: url, timeline: timeline, startAtMs: startAtMs ?? episode.playbackPositionMs)
         // Per-show speed override beats the global (§10.4).
-        let override = overrides(for: episode.podcastId)
+        let override = playbackOverrides(for: episode.podcastId)
         player.setRate(override.speed ?? audioSettings.speed)
         player.setProcessing(audioSettings.resolvedDefaults)
         prepareTrimSilence(for: episode, localURL: localURL)
